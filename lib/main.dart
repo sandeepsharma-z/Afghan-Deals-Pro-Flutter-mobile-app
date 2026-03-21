@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'screens/splash_screen.dart';
+import 'features/home/presentation/screens/home_screen.dart';
 import 'theme/app_colors.dart';
 
 void main() {
@@ -33,9 +33,9 @@ class AfghanDealsPro extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
-        useMaterial3: true,
+        useMaterial3: false,
       ),
-      home: const SplashScreen(),
+      home: const HomeScreen(), // TODO: restore to SplashScreen after auth is added
     );
   }
 }

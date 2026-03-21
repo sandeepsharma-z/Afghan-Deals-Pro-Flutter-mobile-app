@@ -21,6 +21,12 @@ class AppColors {
   // Border
   static const Color borderColor = Color(0xFFE5E7EB);
 
+  // Home screen / Bottom nav
+  static const Color navActive = Color(0xFF2258A8);
+  static const Color sellLeft  = Color(0xFF3B77FE);
+  static const Color sellRight = Color(0xFF1D57A7);
+  static const Color sellBottom = Color(0xFF000000);
+
   // Splash gradient
   static const LinearGradient splashGradient = LinearGradient(
     begin: Alignment.topCenter,
