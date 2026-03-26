@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'features/home/presentation/screens/home_screen.dart';
-import 'theme/app_colors.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() {
+import 'core/router/app_router.dart';
+import 'core/theme/app_theme.dart';
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Force portrait mode
+  await Supabase.initialize(
+    url: 'https://nxgniehrrcpqqymorjxq.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54Z25pZWhycmNwcXF5bW9yanhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwODk5MDAsImV4cCI6MjA4OTY2NTkwMH0.F6r42k-M0OzbyjOrUA91Wyvi4gSru4uSgUckxaQxrkE',
+  );
+
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  // Make status bar transparent on splash
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -20,22 +26,21 @@ void main() {
     ),
   );
 
-  runApp(const AfghanDealsPro());
+  runApp(const ProviderScope(child: AfghanDealsPro()));
 }
 
-class AfghanDealsPro extends StatelessWidget {
+class AfghanDealsPro extends ConsumerWidget {
   const AfghanDealsPro({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(appRouterProvider);
+
+    return MaterialApp.router(
       title: 'Afghan Deals Pro',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
-        useMaterial3: false,
-      ),
-      home: const HomeScreen(), // TODO: restore to SplashScreen after auth is added
+      theme: AppTheme.light,
+      routerConfig: router,
     );
   }
 }
