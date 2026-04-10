@@ -20,6 +20,11 @@ class RouteNames {
   static const searchResults = '/search/:query';
   static const filter = '/filter/:category';
   static const postAd = '/post-ad/:category';
+  static const postMobile = '/post-mobile';
+  static const postCar = '/post-car';
+  static const postProperty = '/post-property';
+
+  static const adminChats = '/admin-chats';
 
   // Category screens
   static const cars = '/cars';

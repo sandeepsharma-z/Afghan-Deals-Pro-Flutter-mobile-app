@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "7761798024",
+    "project_id": "afghan-deals-pro",
+    "storage_bucket": "afghan-deals-pro.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:7761798024:android:f11d7964e2e5d2c3f3503d",
+        "android_client_info": {
+          "package_name": "com.afghandeals.afghan_deals_pro"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAaEk_cEsWhc2cAiEvpGXJ_wqVdCxtQZVc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

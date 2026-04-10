@@ -10,6 +10,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../chat/presentation/screens/chats_screen.dart';
 import '../../../profile/presentation/screens/favorites_screen.dart';
 import '../../../profile/presentation/screens/account_screen.dart';
+import '../../../categories/properties/presentation/screens/properties_screen.dart';
 import '../providers/home_provider.dart';
 import '../../data/models/home_category_model.dart';
 
@@ -103,6 +104,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     super.dispose();
   }
 
+  String? _flagImageFor(String country) {
+    switch (country) {
+      case 'Afghanistan': return 'assets/images/flags/afghanistan.png';
+      case 'Oman':        return 'assets/images/flags/oman.png';
+      case 'UAE':         return 'assets/images/flags/uae.png';
+      case 'Qatar':       return 'assets/images/flags/qatar.png';
+      case 'KSA':         return 'assets/images/flags/ksa.png';
+      case 'Syria':       return 'assets/images/flags/syria.png';
+      default:            return null;
+    }
+  }
+
   String _flagFor(String country) {
     switch (country) {
       case 'Afghanistan':
@@ -138,7 +151,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       useRootNavigator: true,
       builder: (_) => _CountrySheet(
         countries: const [
-          _Country('Afghanistan', 'AF', null, '+93'),
+          _Country('Afghanistan', 'AF', 'assets/images/flags/afghanistan.png', '+93'),
           _Country('Oman', 'OM', 'assets/images/flags/oman.png', '+968'),
           _Country('UAE', 'AE', 'assets/images/flags/uae.png', '+971'),
           _Country('Qatar', 'QA', 'assets/images/flags/qatar.png', '+974'),
@@ -209,6 +222,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       context.push(RouteNames.cars);
       return;
     }
+    if (slug == 'properties') {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const PropertiesScreen()),
+      );
+      return;
+    }
+    if (slug == 'mobiles') {
+      context.push(RouteNames.mobiles);
+      return;
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -257,7 +280,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ],
             ),
-            const ChatsScreen(),
+            ChatsScreen(
+              onExploreListings: () => setState(() => _activeIndex = 0),
+            ),
             const FavoritesScreen(),
             const AccountScreen(),
           ],
@@ -285,8 +310,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(_flagFor(_selectedCountry),
-                      style: const TextStyle(fontSize: 15)),
+                  _flagImageFor(_selectedCountry) != null
+                      ? Image.asset(_flagImageFor(_selectedCountry)!,
+                          width: 22, height: 22, fit: BoxFit.cover)
+                      : Text(_flagFor(_selectedCountry),
+                          style: const TextStyle(fontSize: 15)),
                   const SizedBox(width: 5),
                   Text(
                     _selectedCountry,
@@ -300,16 +328,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           Container(
             width: 34,
             height: 34,
             decoration: _headerBoxDecoration,
             child: const Center(
-              child: Icon(Icons.help_outline, size: 18, color: Colors.black54),
+              child: Icon(Icons.help_outline, size: 22, color: Colors.black54),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           GestureDetector(
             onTap: () => context.push(RouteNames.notifications),
             child: Container(
@@ -318,7 +346,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               decoration: _headerBoxDecoration,
               child: const Center(
                 child: Icon(Icons.notifications_outlined,
-                    size: 19, color: Colors.black87),
+                    size: 23, color: Colors.black87),
               ),
             ),
           ),
@@ -497,7 +525,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         color: Colors.white,
         elevation: 0,
         child: SizedBox(
-          height: 60,
+          height: 66,
           child: Row(
             children: [
               Expanded(child: _navItem(0, Icons.home_rounded, 'HOME')),
@@ -516,7 +544,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         color: Colors.black38,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 8),
                   ],
                 ),
               ),
@@ -542,7 +570,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           children: [
             Icon(icon,
                 size: 24, color: active ? AppColors.navActive : Colors.black38),
-            const SizedBox(height: 3),
+            const SizedBox(height: 7),
             Text(
               label,
               style: GoogleFonts.montserrat(
@@ -551,7 +579,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 color: active ? AppColors.navActive : Colors.black38,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
           ],
         ),
       ),

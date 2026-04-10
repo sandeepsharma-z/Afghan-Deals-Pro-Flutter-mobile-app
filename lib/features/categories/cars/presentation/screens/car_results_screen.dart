@@ -1,13 +1,21 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../chat/presentation/providers/chat_provider.dart';
 import '../../../../../features/listings/data/models/rental_car_model.dart';
 import '../providers/rental_cars_provider.dart';
 
 class CarResultsScreen extends ConsumerStatefulWidget {
   final String subcategory;
-  const CarResultsScreen({super.key, required this.subcategory});
+  final String rentalDuration; // 'all' | 'Daily Rentals' | 'Weekly Rentals' | 'Monthly Rentals'
+  const CarResultsScreen({
+    super.key,
+    required this.subcategory,
+    this.rentalDuration = 'all',
+  });
 
   @override
   ConsumerState<CarResultsScreen> createState() => _CarResultsScreenState();
@@ -223,34 +231,79 @@ class _CarResultsScreenState extends ConsumerState<CarResultsScreen> {
           child: Divider(height: 1, thickness: 1, color: Color(0xFFE8E8E8)),
         ),
       ),
-      body: ref.watch(rentalCarsProvider).when(
+      body: ref.watch(rentalCarsProvider(widget.rentalDuration)).when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
-        data: (cars) => cars.isEmpty
-            ? const Center(child: Text('No rental cars found'))
-            : GridView.builder(
-                padding: const EdgeInsets.fromLTRB(8, 8, 8, 18),
-                gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 8,
-                  crossAxisSpacing: 8,
-                  mainAxisExtent: 276,
+        data: (cars) => RefreshIndicator(
+          onRefresh: () => ref.refresh(rentalCarsProvider(widget.rentalDuration).future),
+          child: cars.isEmpty
+              ? const SingleChildScrollView(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  child: SizedBox(
+                    height: 400,
+                    child: Center(child: Text('No rental cars found')),
+                  ),
+                )
+              : GridView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 18),
+                  gridDelegate:
+                      const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 8,
+                    crossAxisSpacing: 8,
+                    mainAxisExtent: 340,
+                  ),
+                  itemCount: cars.length,
+                  itemBuilder: (_, i) => _CarCard(car: cars[i]),
                 ),
-                itemCount: cars.length,
-                itemBuilder: (_, i) => _CarCard(car: cars[i]),
-              ),
+        ),
       ),
     );
   }
 }
 
-class _CarCard extends StatelessWidget {
+class _CarCard extends ConsumerStatefulWidget {
   final RentalCarModel car;
   const _CarCard({required this.car});
 
   @override
+  ConsumerState<_CarCard> createState() => _CarCardState();
+}
+
+class _CarCardState extends ConsumerState<_CarCard> {
+  late final PageController _pageController;
+  Timer? _timer;
+  int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(viewportFraction: 1.0);
+    if (widget.car.images.length > 1) {
+      _timer = Timer.periodic(const Duration(seconds: 4), (_) {
+        if (!mounted) return;
+        final next = (_currentPage + 1) % widget.car.images.length;
+        _pageController.animateToPage(
+          next,
+          duration: const Duration(milliseconds: 700),
+          curve: Curves.easeInOutCubic,
+        );
+        setState(() => _currentPage = next);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final car = widget.car;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -284,15 +337,27 @@ class _CarCard extends StatelessWidget {
                   SizedBox(
                     height: 101,
                     width: double.infinity,
-                    child: Image.network(
-                      car.imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        color: const Color(0xFFE8E8E8),
-                        child: const Icon(Icons.directions_car,
-                            size: 40, color: Colors.grey),
-                      ),
-                    ),
+                    child: car.images.isEmpty
+                        ? Container(
+                            color: const Color(0xFFE8E8E8),
+                            child: const Icon(Icons.directions_car,
+                                size: 40, color: Colors.grey),
+                          )
+                        : PageView.builder(
+                            controller: _pageController,
+                            itemCount: car.images.length,
+                            onPageChanged: (i) =>
+                                setState(() => _currentPage = i),
+                            itemBuilder: (_, i) => Image.network(
+                              car.images[i],
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                color: const Color(0xFFE8E8E8),
+                                child: const Icon(Icons.directions_car,
+                                    size: 40, color: Colors.grey),
+                              ),
+                            ),
+                          ),
                   ),
                   const Positioned(
                     top: 8,
@@ -321,10 +386,12 @@ class _CarCard extends StatelessWidget {
                               color: Colors.white, size: 9),
                           const SizedBox(width: 3),
                           Text(
-                            car.photoCount,
+                            car.images.length > 1
+                                ? '${_currentPage + 1}/${car.images.length}'
+                                : car.photoCount,
                             style: GoogleFonts.montserrat(
                               color: Colors.white,
-                              fontSize: 8.49,
+                              fontSize: 11,
                               fontWeight: FontWeight.w500,
                               height: 1,
                             ),
@@ -336,7 +403,7 @@ class _CarCard extends StatelessWidget {
                 ],
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+                padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -345,43 +412,43 @@ class _CarCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
-                        fontSize: 10.55,
-                        fontWeight: FontWeight.w400,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
                         color: const Color(0xFF141414),
-                        height: 1.8,
+                        height: 1.3,
                         letterSpacing: 0,
                       ),
                     ),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 8),
                     Row(
                       children: [
                         _Spec(
                             icon: Icons.calendar_month_outlined,
                             value: car.year),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 10),
                         _Spec(
                             icon: Icons.airline_seat_recline_normal_outlined,
                             value: car.seats.toString()),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 10),
                         _Spec(
                             icon: Icons.door_front_door_outlined,
                             value: car.doors.toString()),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 10),
                         _Spec(icon: Icons.luggage_outlined, value: car.luggage.toString()),
                       ],
                     ),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 8),
                     Text(
                       car.subtitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.montserrat(
-                        fontSize: 8.49,
+                        fontSize: 11,
                         fontWeight: FontWeight.w500,
                         color: const Color(0xFF1E1E1E),
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 10),
                     Row(
                       children: [
                         Expanded(
@@ -390,7 +457,7 @@ class _CarCard extends StatelessWidget {
                               price: car.priceDaily,
                               km: car.kmDay),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: _RentBox(
                               title: 'MONTHLY RENT',
@@ -399,70 +466,70 @@ class _CarCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 10),
                     Row(
                       children: [
                         if (car.hasDayRental) ...[
                           const Icon(Icons.info_outline,
-                              size: 11, color: Colors.black87),
-                          const SizedBox(width: 3),
+                              size: 13, color: Colors.black87),
+                          const SizedBox(width: 4),
                           Expanded(
                             child: Text(
                               '1 Day Rental',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.montserrat(
-                                  fontSize: 5.49,
+                                  fontSize: 11,
                                   color: const Color(0xFF1E1E1E)),
                             ),
                           ),
                         ],
                         if (car.hasInsurance) ...[
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 6),
                           const Icon(Icons.check,
-                              size: 11, color: Color(0xFF0EAF2D)),
-                          const SizedBox(width: 3),
+                              size: 13, color: Color(0xFF0EAF2D)),
+                          const SizedBox(width: 4),
                           Expanded(
                             child: Text(
                               'Insurance',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.montserrat(
-                                  fontSize: 5.49,
+                                  fontSize: 11,
                                   color: const Color(0xFF1E1E1E)),
                             ),
                           ),
                         ],
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 8),
                     Row(
                       children: [
                         const Icon(Icons.location_on_outlined,
-                            size: 11, color: Colors.black87),
-                        const SizedBox(width: 3),
+                            size: 13, color: Colors.black87),
+                        const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             car.location,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.montserrat(
-                                fontSize: 5.49, color: const Color(0xFF1E1E1E)),
+                                fontSize: 11, color: const Color(0xFF1E1E1E)),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 7),
+                    const SizedBox(height: 10),
                     const Divider(
                         height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
-                    const SizedBox(height: 7),
+                    const SizedBox(height: 10),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         _ActionButton(icon: Icons.phone_outlined, onTap: () {}),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 8),
                         _ActionButton(
-                            icon: Icons.chat_bubble_outline, onTap: () {}),
+                            icon: Icons.chat_bubble_outline, onTap: _openChat),
                       ],
                     ),
                   ],
@@ -474,14 +541,66 @@ class _CarCard extends StatelessWidget {
       ),
     );
   }
+
+  Future<void> _openChat() async {
+    try {
+      final chatId = await ref.read(chatActionsProvider).openOrCreateChatForListing(
+            listingId: widget.car.id,
+            sellerId: widget.car.sellerId,
+          );
+      if (!mounted) return;
+      context.push('/chat/$chatId');
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+      );
+    }
+  }
 }
 
-class _RentalCarDetailScreen extends StatelessWidget {
+class _RentalCarDetailScreen extends ConsumerStatefulWidget {
   final RentalCarModel car;
   const _RentalCarDetailScreen({required this.car});
 
   @override
+  ConsumerState<_RentalCarDetailScreen> createState() =>
+      _RentalCarDetailScreenState();
+}
+
+class _RentalCarDetailScreenState extends ConsumerState<_RentalCarDetailScreen> {
+  late final PageController _pageController;
+  Timer? _timer;
+  int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(viewportFraction: 1.0);
+    if (widget.car.images.length > 1) {
+      _timer = Timer.periodic(const Duration(seconds: 4), (_) {
+        if (!mounted) return;
+        final next = (_currentPage + 1) % widget.car.images.length;
+        _pageController.animateToPage(
+          next,
+          duration: const Duration(milliseconds: 700),
+          curve: Curves.easeInOutCubic,
+        );
+        setState(() => _currentPage = next);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final car = widget.car;
     return Scaffold(
       backgroundColor: const Color(0xFFFFFFFF),
       body: SafeArea(
@@ -494,15 +613,27 @@ class _RentalCarDetailScreen extends StatelessWidget {
                   SizedBox(
                     height: 312,
                     width: double.infinity,
-                    child: Image.network(
-                      car.imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        color: const Color(0xFFE8E8E8),
-                        child: const Icon(Icons.directions_car,
-                            size: 50, color: Colors.grey),
-                      ),
-                    ),
+                    child: car.images.isEmpty
+                        ? Container(
+                            color: const Color(0xFFE8E8E8),
+                            child: const Icon(Icons.directions_car,
+                                size: 50, color: Colors.grey),
+                          )
+                        : PageView.builder(
+                            controller: _pageController,
+                            itemCount: car.images.length,
+                            onPageChanged: (i) =>
+                                setState(() => _currentPage = i),
+                            itemBuilder: (_, i) => Image.network(
+                              car.images[i],
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                color: const Color(0xFFE8E8E8),
+                                child: const Icon(Icons.directions_car,
+                                    size: 50, color: Colors.grey),
+                              ),
+                            ),
+                          ),
                   ),
                   Positioned(
                     top: 12,
@@ -537,7 +668,7 @@ class _RentalCarDetailScreen extends StatelessWidget {
                               color: Colors.white, size: 15),
                           const SizedBox(width: 4),
                           Text(
-                            '1/8',
+                            '${_currentPage + 1}/${car.images.isEmpty ? 1 : car.images.length}',
                             style: GoogleFonts.poppins(
                               color: Colors.white,
                               fontSize: 11.62,
@@ -549,26 +680,30 @@ class _RentalCarDetailScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Positioned(
-                    bottom: 14,
-                    left: 0,
-                    right: 0,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(
-                        4,
-                        (index) => Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 3),
-                          width: index == 0 ? 10 : 7,
-                          height: index == 0 ? 10 : 7,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFD9D9D9),
-                            shape: BoxShape.circle,
+                  if (car.images.length > 1)
+                    Positioned(
+                      bottom: 14,
+                      left: 0,
+                      right: 0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          car.images.length,
+                          (index) => AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            margin: const EdgeInsets.symmetric(horizontal: 3),
+                            width: index == _currentPage ? 10 : 7,
+                            height: index == _currentPage ? 10 : 7,
+                            decoration: BoxDecoration(
+                              color: index == _currentPage
+                                  ? Colors.white
+                                  : Colors.white.withValues(alpha: 0.45),
+                              shape: BoxShape.circle,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
                 ],
               ),
               Container(
@@ -689,10 +824,10 @@ class _RentalCarDetailScreen extends StatelessWidget {
                             child: _detailAction(Icons.phone_outlined, 'Call')),
                         const SizedBox(width: 8),
                         Expanded(
-                            child: _whatsAppAction()),
+                            child: _whatsAppAction(onTap: _openChat)),
                         const SizedBox(width: 8),
                         Expanded(
-                            child: _detailAction(Icons.chat_bubble_outline, 'SMS')),
+                            child: _detailAction(Icons.chat_bubble_outline, 'SMS', onTap: _openChat)),
                       ],
                     )
                   ],
@@ -742,51 +877,73 @@ class _RentalCarDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _detailAction(IconData icon, String? label) {
-    return Container(
-      height: 38,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: const Color(0xFFD9D9D9)),
-        color: Colors.white,
-      ),
-      child: label == null
-          ? Center(
-              child: Icon(icon, size: 18, color: const Color(0xFF2258A8)),
-            )
-          : Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, size: 16, color: const Color(0xFF2258A8)),
-                const SizedBox(width: 8),
-                Text(
-                  label,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14.24,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.black,
-                    height: 25.12 / 14.24,
-                    letterSpacing: 0,
+  Future<void> _openChat() async {
+    try {
+      final chatId = await ref.read(chatActionsProvider).openOrCreateChatForListing(
+            listingId: widget.car.id,
+            sellerId: widget.car.sellerId,
+          );
+      if (!mounted) return;
+      context.push('/chat/$chatId');
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+      );
+    }
+  }
+
+  Widget _detailAction(IconData icon, String? label, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 38,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: const Color(0xFFD9D9D9)),
+          color: Colors.white,
+        ),
+        child: label == null
+            ? Center(
+                child: Icon(icon, size: 18, color: const Color(0xFF2258A8)),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 16, color: const Color(0xFF2258A8)),
+                  const SizedBox(width: 8),
+                  Text(
+                    label,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14.24,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.black,
+                      height: 25.12 / 14.24,
+                      letterSpacing: 0,
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+      ),
     );
   }
 
-  Widget _whatsAppAction() {
-    return Container(
-      height: 38,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: const Color(0xFFD9D9D9)),
-        color: Colors.white,
-      ),
-      child: const Center(
-        child: FaIcon(
-          FontAwesomeIcons.whatsapp,
-          size: 16,
-          color: Color(0xFF2258A8),
+  Widget _whatsAppAction({VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 38,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: const Color(0xFFD9D9D9)),
+          color: Colors.white,
+        ),
+        child: const Center(
+          child: FaIcon(
+            FontAwesomeIcons.whatsapp,
+            size: 16,
+            color: Color(0xFF2258A8),
+          ),
         ),
       ),
     );
@@ -977,12 +1134,12 @@ class _Spec extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 9, color: const Color(0xFF4A4A4A)),
-        const SizedBox(width: 2),
+        Icon(icon, size: 13, color: const Color(0xFF4A4A4A)),
+        const SizedBox(width: 3),
         Text(
           value,
           style: GoogleFonts.montserrat(
-            fontSize: 5.49,
+            fontSize: 11,
             color: const Color(0xFF303030),
             fontWeight: FontWeight.w500,
           ),
@@ -1009,23 +1166,28 @@ class _RentBox extends StatelessWidget {
         color: const Color(0xFFF2F2F2),
         borderRadius: BorderRadius.circular(5),
       ),
-      padding: const EdgeInsets.fromLTRB(6, 5, 6, 5),
+      padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: GoogleFonts.montserrat(
-              fontSize: 5.49,
+              fontSize: 10,
               fontWeight: FontWeight.w500,
               color: Colors.black87,
             ),
           ),
-          const SizedBox(height: 1),
+          const SizedBox(height: 2),
           Text(
             price,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: GoogleFonts.montserrat(
-              fontSize: 6.49,
+              fontSize: 12,
               fontWeight: FontWeight.w600,
               color: Colors.black87,
               height: 1.1,
@@ -1033,8 +1195,10 @@ class _RentBox extends StatelessWidget {
           ),
           Text(
             km,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: GoogleFonts.montserrat(
-              fontSize: 3.49,
+              fontSize: 10,
               color: const Color(0xFF343434),
             ),
           ),
@@ -1069,4 +1233,3 @@ class _ActionButton extends StatelessWidget {
     );
   }
 }
-

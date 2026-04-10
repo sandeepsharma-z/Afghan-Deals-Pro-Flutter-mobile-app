@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -11,17 +12,28 @@ import '../../features/auth/presentation/screens/sign_up_screen.dart';
 import '../../features/auth/presentation/screens/sign_in_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/chat/presentation/screens/chats_screen.dart';
+import '../../features/chat/presentation/screens/chat_detail_screen.dart';
+import '../../features/chat/data/models/chat_thread_model.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/account_screen.dart';
 import '../../features/profile/presentation/screens/favorites_screen.dart';
 import '../../features/profile/presentation/screens/notifications_screen.dart';
 import '../../features/categories/cars/presentation/screens/cars_screen.dart';
+import '../../features/categories/properties/presentation/screens/properties_screen.dart';
+import '../../features/categories/mobiles/presentation/screens/mobiles_screen.dart';
 import '../../features/sell/presentation/screens/sell_screen.dart';
 import '../../features/sell/presentation/screens/post_ad_screen.dart';
+import '../../features/sell/presentation/screens/post_mobile_screen.dart';
+import '../../features/sell/presentation/screens/post_car_screen.dart';
+import '../../features/sell/presentation/screens/post_property_screen.dart';
+import '../../features/admin/presentation/screens/admin_chats_screen.dart';
 import 'route_names.dart';
+
+final appNavigatorKey = GlobalKey<NavigatorState>();
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
+    navigatorKey: appNavigatorKey,
     initialLocation: RouteNames.splash,
     redirect: (context, state) {
       // Use Supabase directly — avoids GoRouter rebuild on auth change
@@ -49,7 +61,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           location == RouteNames.account ||
           location == RouteNames.accountSettings ||
           location == RouteNames.notifications ||
-          location.startsWith('/post-ad');
+          location.startsWith('/post-ad') ||
+          location == RouteNames.postMobile ||
+          location == RouteNames.postCar ||
+          location == RouteNames.postProperty;
 
       if (!isAuthenticated && isProtectedRoute) return RouteNames.onboarding;
 
@@ -103,6 +118,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ChatsScreen(),
       ),
       GoRoute(
+        path: RouteNames.chat,
+        builder: (context, state) {
+          final chatId = state.pathParameters['chatId'] ?? '';
+          final initialThread =
+              state.extra is ChatThreadModel ? state.extra as ChatThreadModel : null;
+          return ChatDetailScreen(
+            chatId: chatId,
+            initialThread: initialThread,
+          );
+        },
+      ),
+      GoRoute(
         path: RouteNames.profile,
         builder: (context, state) => const ProfileScreen(),
       ),
@@ -123,6 +150,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const CarsScreen(),
       ),
       GoRoute(
+        path: RouteNames.properties,
+        builder: (context, state) => const PropertiesScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.mobiles,
+        builder: (context, state) => const MobilesScreen(),
+      ),
+      GoRoute(
         path: RouteNames.sell,
         builder: (context, state) => const SellScreen(),
       ),
@@ -132,6 +167,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final category = state.pathParameters['category'] ?? 'classifieds';
           return PostAdScreen(category: category);
         },
+      ),
+      GoRoute(
+        path: RouteNames.postMobile,
+        builder: (context, state) => const PostMobileScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.postCar,
+        builder: (context, state) => const PostCarScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.postProperty,
+        builder: (context, state) => const PostPropertyScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.adminChats,
+        builder: (context, state) => const AdminChatsScreen(),
       ),
     ],
   );

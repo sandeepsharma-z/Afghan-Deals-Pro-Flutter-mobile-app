@@ -6,14 +6,17 @@ import 'car_results_screen.dart';
 class RentalCarsScreen extends StatelessWidget {
   const RentalCarsScreen({super.key});
 
+  // key = what to pass as rentalDuration to the provider
   static const _sections = [
     _FilterSection(
       title: 'Rental Duration',
       items: ['All', 'Daily Rentals', 'Weekly Rentals', 'Monthly Rentals'],
+      filterKeys: ['all', 'Daily Rentals', 'Weekly Rentals', 'Monthly Rentals'],
     ),
     _FilterSection(
       title: 'Body Type',
-      items: ['SUV', 'Sedan', 'Coupe', 'Sports Car'],
+      items: ['All', 'SUV', 'Sedan', 'Coupe', 'Sports Car'],
+      filterKeys: ['all', 'all', 'all', 'all', 'all'], // body type filter — pass all for now
     ),
   ];
 
@@ -74,6 +77,7 @@ class RentalCarsScreen extends StatelessWidget {
               ...section.items.asMap().entries.map((entry) {
                 final i = entry.key;
                 final item = entry.value;
+                final filterKey = section.filterKeys[i];
                 return Column(
                   children: [
                     InkWell(
@@ -81,7 +85,8 @@ class RentalCarsScreen extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (_) => CarResultsScreen(
-                            subcategory: 'Rental Cars - $item',
+                            subcategory: 'rental-cars',
+                            rentalDuration: filterKey,
                           ),
                         ),
                       ),
@@ -125,5 +130,6 @@ class RentalCarsScreen extends StatelessWidget {
 class _FilterSection {
   final String title;
   final List<String> items;
-  const _FilterSection({required this.title, required this.items});
+  final List<String> filterKeys;
+  const _FilterSection({required this.title, required this.items, required this.filterKeys});
 }

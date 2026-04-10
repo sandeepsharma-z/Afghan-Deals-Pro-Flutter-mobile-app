@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -16,22 +17,42 @@ class SignUpScreen extends ConsumerStatefulWidget {
 }
 
 class _SignUpScreenState extends ConsumerState<SignUpScreen> {
-  final _formKey     = GlobalKey<FormState>();
-  final _nameCtrl    = TextEditingController();
-  final _emailCtrl   = TextEditingController();
-  final _phoneCtrl   = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _nameCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
-  bool _obscure      = true;
+  bool _obscure = true;
   String? _gender;
   String? _nationality;
   DateTime? _dob;
 
   static const _nationalities = [
-    'Afghanistan', 'Pakistan', 'India', 'Iran', 'Bangladesh',
-    'Turkey', 'Saudi Arabia', 'United Arab Emirates', 'United States',
-    'United Kingdom', 'China', 'Russia', 'Germany', 'France',
-    'Canada', 'Australia', 'Japan', 'South Korea', 'Malaysia',
-    'Indonesia', 'Egypt', 'Nigeria', 'Kenya', 'South Africa', 'Other',
+    'Afghanistan',
+    'Pakistan',
+    'India',
+    'Iran',
+    'Bangladesh',
+    'Turkey',
+    'Saudi Arabia',
+    'United Arab Emirates',
+    'United States',
+    'United Kingdom',
+    'China',
+    'Russia',
+    'Germany',
+    'France',
+    'Canada',
+    'Australia',
+    'Japan',
+    'South Korea',
+    'Malaysia',
+    'Indonesia',
+    'Egypt',
+    'Nigeria',
+    'Kenya',
+    'South Africa',
+    'Other',
   ];
 
   @override
@@ -61,17 +82,25 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
   Future<void> _signUp() async {
     if (!_formKey.currentState!.validate()) return;
-    final success = await ref.read(authNotifierProvider.notifier).signUpWithEmail(
-      name: _nameCtrl.text.trim(),
-      email: _emailCtrl.text.trim(),
-      password: _passwordCtrl.text,
-      phone: _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
-      gender: _gender,
-      nationality: _nationality,
-      dob: _dob != null
-          ? '${_dob!.year}-${_dob!.month.toString().padLeft(2, '0')}-${_dob!.day.toString().padLeft(2, '0')}'
-          : null,
-    );
+    final success = await ref
+        .read(authNotifierProvider.notifier)
+        .signUpWithEmail(
+          name: _nameCtrl.text.trim(),
+          email: _emailCtrl.text.trim(),
+          password: _passwordCtrl.text,
+          phone: _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
+          gender: _gender,
+          nationality: _nationality,
+          dob: _dob != null
+              ? '${_dob!.year}-${_dob!.month.toString().padLeft(2, '0')}-${_dob!.day.toString().padLeft(2, '0')}'
+              : null,
+        );
+    if (success && mounted) context.go(RouteNames.home);
+  }
+
+  Future<void> _continueWithGoogle() async {
+    final success =
+        await ref.read(authNotifierProvider.notifier).signInWithGoogle();
     if (success && mounted) context.go(RouteNames.home);
   }
 
@@ -103,14 +132,16 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: IconButton(
-                  icon: const Icon(Icons.chevron_left, size: 30, color: AppColors.black),
+                  icon: const Icon(Icons.chevron_left,
+                      size: 30, color: AppColors.black),
                   onPressed: () => context.pop(),
                 ),
               ),
             ),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: AppDimensions.screenPadding),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimensions.screenPadding),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -119,7 +150,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       const SizedBox(height: AppDimensions.sm),
                       Text('Create Account', style: AppTextStyles.heading2),
                       const SizedBox(height: 6),
-                      Text('Fill in your details to get started', style: AppTextStyles.caption),
+                      Text('Fill in your details to get started',
+                          style: AppTextStyles.caption),
                       const SizedBox(height: AppDimensions.lg),
 
                       // Full Name
@@ -129,7 +161,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         controller: _nameCtrl,
                         hint: 'Enter your full name',
                         keyboardType: TextInputType.name,
-                        validator: (v) => v == null || v.trim().isEmpty ? 'Name is required' : null,
+                        validator: (v) => v == null || v.trim().isEmpty
+                            ? 'Name is required'
+                            : null,
                       ),
                       const SizedBox(height: AppDimensions.md),
 
@@ -141,8 +175,12 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         hint: 'Enter your email',
                         keyboardType: TextInputType.emailAddress,
                         validator: (v) {
-                          if (v == null || v.trim().isEmpty) return 'Email is required';
-                          if (!v.contains('@')) return 'Enter a valid email';
+                          if (v == null || v.trim().isEmpty) {
+                            return 'Email is required';
+                          }
+                          if (!v.contains('@')) {
+                            return 'Enter a valid email';
+                          }
                           return null;
                         },
                       ),
@@ -165,10 +203,12 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         onTap: _pickDob,
                         child: Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 14),
                           decoration: BoxDecoration(
                             border: Border.all(color: AppColors.greyBorder),
-                            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                            borderRadius:
+                                BorderRadius.circular(AppDimensions.radiusMd),
                           ),
                           child: Row(
                             children: [
@@ -178,7 +218,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                                       ? '${_dob!.day}/${_dob!.month}/${_dob!.year}'
                                       : 'Select date of birth',
                                   style: AppTextStyles.body.copyWith(
-                                    color: _dob != null ? AppColors.black : AppColors.grey,
+                                    color: _dob != null
+                                        ? AppColors.black
+                                        : AppColors.grey,
                                   ),
                                 ),
                               ),
@@ -196,21 +238,29 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       DropdownButtonFormField<String>(
                         value: _nationality,
                         hint: Text('Select nationality',
-                            style: AppTextStyles.body.copyWith(color: AppColors.grey)),
-                        style: AppTextStyles.body.copyWith(color: AppColors.black),
+                            style: AppTextStyles.body
+                                .copyWith(color: AppColors.grey)),
+                        style:
+                            AppTextStyles.body.copyWith(color: AppColors.black),
                         decoration: InputDecoration(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 14),
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                            borderSide: const BorderSide(color: AppColors.greyBorder),
+                            borderRadius:
+                                BorderRadius.circular(AppDimensions.radiusMd),
+                            borderSide:
+                                const BorderSide(color: AppColors.greyBorder),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                            borderRadius:
+                                BorderRadius.circular(AppDimensions.radiusMd),
+                            borderSide: const BorderSide(
+                                color: AppColors.primary, width: 1.5),
                           ),
                         ),
                         items: _nationalities
-                            .map((n) => DropdownMenuItem(value: n, child: Text(n)))
+                            .map((n) =>
+                                DropdownMenuItem(value: n, child: Text(n)))
                             .toList(),
                         onChanged: (v) => setState(() => _nationality = v),
                       ),
@@ -222,21 +272,29 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       DropdownButtonFormField<String>(
                         value: _gender,
                         hint: Text('Select gender',
-                            style: AppTextStyles.body.copyWith(color: AppColors.grey)),
-                        style: AppTextStyles.body.copyWith(color: AppColors.black),
+                            style: AppTextStyles.body
+                                .copyWith(color: AppColors.grey)),
+                        style:
+                            AppTextStyles.body.copyWith(color: AppColors.black),
                         decoration: InputDecoration(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 14),
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                            borderSide: const BorderSide(color: AppColors.greyBorder),
+                            borderRadius:
+                                BorderRadius.circular(AppDimensions.radiusMd),
+                            borderSide:
+                                const BorderSide(color: AppColors.greyBorder),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                            borderRadius:
+                                BorderRadius.circular(AppDimensions.radiusMd),
+                            borderSide: const BorderSide(
+                                color: AppColors.primary, width: 1.5),
                           ),
                         ),
                         items: ['Male', 'Female', 'Prefer not to say']
-                            .map((g) => DropdownMenuItem(value: g, child: Text(g)))
+                            .map((g) =>
+                                DropdownMenuItem(value: g, child: Text(g)))
                             .toList(),
                         onChanged: (v) => setState(() => _gender = v),
                       ),
@@ -250,13 +308,21 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         hint: 'Create a password (min 6 chars)',
                         obscure: _obscure,
                         suffix: IconButton(
-                          icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility,
-                              color: AppColors.grey, size: 20),
+                          icon: Icon(
+                              _obscure
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: AppColors.grey,
+                              size: 20),
                           onPressed: () => setState(() => _obscure = !_obscure),
                         ),
                         validator: (v) {
-                          if (v == null || v.isEmpty) return 'Password is required';
-                          if (v.length < 6) return 'Minimum 6 characters';
+                          if (v == null || v.isEmpty) {
+                            return 'Password is required';
+                          }
+                          if (v.length < 6) {
+                            return 'Minimum 6 characters';
+                          }
                           return null;
                         },
                       ),
@@ -267,14 +333,21 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(
-                  AppDimensions.screenPadding, 0, AppDimensions.screenPadding, AppDimensions.md),
+              padding: const EdgeInsets.fromLTRB(AppDimensions.screenPadding, 0,
+                  AppDimensions.screenPadding, AppDimensions.md),
               child: Column(
                 children: [
                   AppButton(
                     label: 'Create Account',
                     onTap: isLoading ? null : _signUp,
                     isLoading: isLoading,
+                  ),
+                  const SizedBox(height: 10),
+                  AppButton(
+                    label: 'Continue with Google',
+                    type: AppButtonType.outline,
+                    onTap: isLoading ? null : _continueWithGoogle,
+                    prefixIcon: const _GoogleIcon(),
                   ),
                   const SizedBox(height: 14),
                   GestureDetector(
@@ -306,8 +379,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   }
 
   Widget _label(String text) => Text(text,
-      style: AppTextStyles.caption.copyWith(
-          fontWeight: FontWeight.w500, color: AppColors.black));
+      style: AppTextStyles.caption
+          .copyWith(fontWeight: FontWeight.w500, color: AppColors.black));
 
   Widget _field({
     required TextEditingController controller,
@@ -327,7 +400,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           hintText: hint,
           hintStyle: AppTextStyles.body.copyWith(color: AppColors.grey),
           suffixIcon: suffix,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
             borderSide: const BorderSide(color: AppColors.greyBorder),
@@ -346,4 +420,22 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           ),
         ),
       );
+}
+
+class _GoogleIcon extends StatelessWidget {
+  const _GoogleIcon();
+
+  static const _svg = '''
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+</svg>
+''';
+
+  @override
+  Widget build(BuildContext context) {
+    return SvgPicture.string(_svg, width: 18, height: 18);
+  }
 }

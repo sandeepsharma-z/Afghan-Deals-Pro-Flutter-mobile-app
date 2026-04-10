@@ -1,16 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../features/listings/data/models/car_sale_model.dart';
+import '../providers/car_listings_provider.dart';
 
-class CarListingsScreen extends StatefulWidget {
+// Map display title → Supabase subcategory value
+const _subcategoryMap = {
+  'Used Cars': 'used',
+  'New Cars': 'new',
+  'Export Cars': 'export',
+  'Motorcycles': 'motorcycles',
+  'Auto Accessories & Parts': 'accessories',
+  'Heavy Vehicles': 'heavy',
+  'Boats': 'boats',
+  'Number Plates': 'number-plates',
+};
+
+class CarListingsScreen extends ConsumerStatefulWidget {
   final String subcategory;
   const CarListingsScreen({super.key, required this.subcategory});
 
   @override
-  State<CarListingsScreen> createState() => _CarListingsScreenState();
+  ConsumerState<CarListingsScreen> createState() => _CarListingsScreenState();
 }
 
-class _CarListingsScreenState extends State<CarListingsScreen> {
+class _CarListingsScreenState extends ConsumerState<CarListingsScreen> {
   bool _isGrid = false;
   String _sortBy = 'Latest';
 
@@ -18,75 +33,35 @@ class _CarListingsScreenState extends State<CarListingsScreen> {
     'Latest',
     'Price: Low to High',
     'Price: High to Low',
-    'Most Popular'
+    'Most Popular',
   ];
 
-  // Dummy listings
-  static const _listings = [
-    _CarListing(
-      title: 'Toyota Corolla 2020',
-      price: 'AFN 1,200,000',
-      year: '2020',
-      mileage: '45,000 km',
-      transmission: 'Automatic',
-      location: 'Kabul',
-      timeAgo: '2 hours ago',
-      isFeatured: true,
-    ),
-    _CarListing(
-      title: 'Honda Civic 2019',
-      price: 'AFN 980,000',
-      year: '2019',
-      mileage: '62,000 km',
-      transmission: 'Manual',
-      location: 'Kabul',
-      timeAgo: '5 hours ago',
-      isFeatured: false,
-    ),
-    _CarListing(
-      title: 'Toyota Land Cruiser 2018',
-      price: 'AFN 3,500,000',
-      year: '2018',
-      mileage: '80,000 km',
-      transmission: 'Automatic',
-      location: 'Mazar-i-Sharif',
-      timeAgo: 'Yesterday',
-      isFeatured: true,
-    ),
-    _CarListing(
-      title: 'Hyundai Tucson 2021',
-      price: 'AFN 2,100,000',
-      year: '2021',
-      mileage: '22,000 km',
-      transmission: 'Automatic',
-      location: 'Herat',
-      timeAgo: '2 days ago',
-      isFeatured: false,
-    ),
-    _CarListing(
-      title: 'Suzuki Cultus 2022',
-      price: 'AFN 750,000',
-      year: '2022',
-      mileage: '15,000 km',
-      transmission: 'Manual',
-      location: 'Kandahar',
-      timeAgo: '3 days ago',
-      isFeatured: false,
-    ),
-    _CarListing(
-      title: 'Kia Sportage 2020',
-      price: 'AFN 1,800,000',
-      year: '2020',
-      mileage: '38,000 km',
-      transmission: 'Automatic',
-      location: 'Kabul',
-      timeAgo: '4 days ago',
-      isFeatured: false,
-    ),
-  ];
+  String get _supabaseSubcategory =>
+      _subcategoryMap[widget.subcategory] ?? widget.subcategory.toLowerCase();
+
+  List<CarSaleModel> _sortListings(List<CarSaleModel> list) {
+    final sorted = List<CarSaleModel>.from(list);
+    switch (_sortBy) {
+      case 'Price: Low to High':
+        sorted.sort((a, b) =>
+            (double.tryParse(a.price) ?? 0)
+                .compareTo(double.tryParse(b.price) ?? 0));
+        break;
+      case 'Price: High to Low':
+        sorted.sort((a, b) =>
+            (double.tryParse(b.price) ?? 0)
+                .compareTo(double.tryParse(a.price) ?? 0));
+        break;
+      default:
+        break;
+    }
+    return sorted;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final asyncData = ref.watch(carListingsProvider(_supabaseSubcategory));
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
@@ -104,88 +79,119 @@ class _CarListingsScreenState extends State<CarListingsScreen> {
             fontSize: 15,
             fontWeight: FontWeight.w600,
             height: 28 / 15,
-            letterSpacing: 0,
             color: Colors.black87,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Colors.black87, size: 22),
+            icon:
+                const Icon(Icons.search, color: Colors.black87, size: 22),
             onPressed: () {},
           ),
         ],
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1, thickness: 1, color: Color(0xFFE8E8E8)),
+          child:
+              Divider(height: 1, thickness: 1, color: Color(0xFFE8E8E8)),
         ),
       ),
-      body: Column(
-        children: [
-          // Filter bar
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Row(
-              children: [
-                // Filter button
-                _filterChip(Icons.tune, 'Filter', () {}),
-                const SizedBox(width: 8),
-                // Sort
-                GestureDetector(
-                  onTap: _showSortSheet,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFFDDDDDD)),
-                      borderRadius: BorderRadius.circular(20),
+      body: asyncData.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Error: $e')),
+        data: (listings) {
+          final sorted = _sortListings(listings);
+          return Column(
+            children: [
+              // Filter bar
+              Container(
+                color: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 12, vertical: 8),
+                child: Row(
+                  children: [
+                    _filterChip(Icons.tune, 'Filter', () {}),
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () => _showSortSheet(sorted),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          border:
+                              Border.all(color: const Color(0xFFDDDDDD)),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(_sortBy,
+                                style: GoogleFonts.montserrat(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500)),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.keyboard_arrow_down,
+                                size: 16),
+                          ],
+                        ),
+                      ),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(_sortBy,
-                            style: GoogleFonts.montserrat(
-                                fontSize: 12, fontWeight: FontWeight.w500)),
-                        const SizedBox(width: 4),
-                        const Icon(Icons.keyboard_arrow_down, size: 16),
-                      ],
+                    const Spacer(),
+                    Text('${sorted.length} results',
+                        style: GoogleFonts.montserrat(
+                            fontSize: 12, color: Colors.black45)),
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () =>
+                          setState(() => _isGrid = !_isGrid),
+                      child: Icon(
+                        _isGrid ? Icons.view_list : Icons.grid_view,
+                        size: 20,
+                        color: Colors.black54,
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-                const Spacer(),
-                // Count
-                Text('${_listings.length} results',
-                    style: GoogleFonts.montserrat(
-                        fontSize: 12, color: Colors.black45)),
-                const SizedBox(width: 8),
-                // Grid/List toggle
-                GestureDetector(
-                  onTap: () => setState(() => _isGrid = !_isGrid),
-                  child: Icon(
-                    _isGrid ? Icons.view_list : Icons.grid_view,
-                    size: 20,
-                    color: Colors.black54,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1, color: Color(0xFFEEEEEE)),
-
-          // Listings
-          Expanded(
-            child: _isGrid ? _buildGrid() : _buildList(),
-          ),
-        ],
+              ),
+              const Divider(height: 1, color: Color(0xFFEEEEEE)),
+              Expanded(
+                child: sorted.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.directions_car_outlined,
+                                size: 64, color: Colors.black26),
+                            const SizedBox(height: 12),
+                            Text('No listings found',
+                                style: GoogleFonts.montserrat(
+                                    fontSize: 16,
+                                    color: Colors.black45)),
+                          ],
+                        ),
+                      )
+                    : RefreshIndicator(
+                        onRefresh: () => ref.refresh(
+                            carListingsProvider(_supabaseSubcategory)
+                                .future),
+                        child: _isGrid
+                            ? _buildGrid(sorted)
+                            : _buildList(sorted),
+                      ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _filterChip(IconData icon, String label, VoidCallback onTap) =>
+  Widget _filterChip(
+          IconData icon, String label, VoidCallback onTap) =>
       GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             color: AppColors.primary,
             borderRadius: BorderRadius.circular(20),
@@ -205,13 +211,13 @@ class _CarListingsScreenState extends State<CarListingsScreen> {
         ),
       );
 
-  Widget _buildList() => ListView.builder(
+  Widget _buildList(List<CarSaleModel> listings) => ListView.builder(
         padding: const EdgeInsets.all(12),
-        itemCount: _listings.length,
-        itemBuilder: (_, i) => _ListingCard(listing: _listings[i]),
+        itemCount: listings.length,
+        itemBuilder: (_, i) => _ListingCard(listing: listings[i]),
       );
 
-  Widget _buildGrid() => GridView.builder(
+  Widget _buildGrid(List<CarSaleModel> listings) => GridView.builder(
         padding: const EdgeInsets.all(12),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
@@ -219,15 +225,16 @@ class _CarListingsScreenState extends State<CarListingsScreen> {
           mainAxisSpacing: 10,
           childAspectRatio: 0.72,
         ),
-        itemCount: _listings.length,
-        itemBuilder: (_, i) => _GridCard(listing: _listings[i]),
+        itemCount: listings.length,
+        itemBuilder: (_, i) => _GridCard(listing: listings[i]),
       );
 
-  void _showSortSheet() {
+  void _showSortSheet(List<CarSaleModel> listings) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
+          borderRadius:
+              BorderRadius.vertical(top: Radius.circular(22))),
       builder: (_) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -256,7 +263,8 @@ class _CarListingsScreenState extends State<CarListingsScreen> {
                                 ? FontWeight.w600
                                 : FontWeight.w400)),
                     trailing: opt == _sortBy
-                        ? const Icon(Icons.check, color: AppColors.primary)
+                        ? const Icon(Icons.check,
+                            color: AppColors.primary)
                         : null,
                     onTap: () {
                       setState(() => _sortBy = opt);
@@ -265,7 +273,8 @@ class _CarListingsScreenState extends State<CarListingsScreen> {
                   ),
                   Container(
                       height: 1,
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      margin:
+                          const EdgeInsets.symmetric(horizontal: 16),
                       color: const Color(0xFFEEEEEE)),
                 ],
               )),
@@ -276,9 +285,9 @@ class _CarListingsScreenState extends State<CarListingsScreen> {
   }
 }
 
-// ── List Card ──────────────────────────────────────────────────────────────────
+// ── List Card ─────────────────────────────────────────────────────────────────
 class _ListingCard extends StatelessWidget {
-  final _CarListing listing;
+  final CarSaleModel listing;
   const _ListingCard({required this.listing});
 
   @override
@@ -290,7 +299,9 @@ class _ListingCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [
           BoxShadow(
-              color: Color(0x0D000000), blurRadius: 4, offset: Offset(0, 2))
+              color: Color(0x0D000000),
+              blurRadius: 4,
+              offset: Offset(0, 2))
         ],
       ),
       child: InkWell(
@@ -302,15 +313,18 @@ class _ListingCard extends StatelessWidget {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius:
-                      const BorderRadius.horizontal(left: Radius.circular(12)),
-                  child: Container(
-                    width: 130,
-                    height: 110,
-                    color: const Color(0xFFF0F0F0),
-                    child: const Icon(Icons.directions_car,
-                        size: 48, color: Color(0xFFCCCCCC)),
-                  ),
+                  borderRadius: const BorderRadius.horizontal(
+                      left: Radius.circular(12)),
+                  child: listing.imageUrl.isNotEmpty
+                      ? Image.network(
+                          listing.imageUrl,
+                          width: 130,
+                          height: 110,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) =>
+                              _imagePlaceholder(130, 110),
+                        )
+                      : _imagePlaceholder(130, 110),
                 ),
                 if (listing.isFeatured)
                   Positioned(
@@ -341,12 +355,13 @@ class _ListingCard extends StatelessWidget {
                   children: [
                     Text(listing.title,
                         maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.montserrat(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: Colors.black87)),
                     const SizedBox(height: 6),
-                    Text(listing.price,
+                    Text(listing.formattedPrice,
                         style: GoogleFonts.montserrat(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -354,10 +369,14 @@ class _ListingCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Wrap(
                       spacing: 6,
+                      runSpacing: 4,
                       children: [
-                        _tag(listing.year),
-                        _tag(listing.mileage),
-                        _tag(listing.transmission),
+                        if (listing.year.isNotEmpty)
+                          _tag(listing.year),
+                        if (listing.mileage.isNotEmpty)
+                          _tag(listing.mileage),
+                        if (listing.transmission.isNotEmpty)
+                          _tag(listing.transmission),
                       ],
                     ),
                     const SizedBox(height: 6),
@@ -386,19 +405,21 @@ class _ListingCard extends StatelessWidget {
   }
 
   Widget _tag(String text) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
           color: const Color(0xFFF0F0F0),
           borderRadius: BorderRadius.circular(4),
         ),
         child: Text(text,
-            style: GoogleFonts.montserrat(fontSize: 10, color: Colors.black54)),
+            style: GoogleFonts.montserrat(
+                fontSize: 10, color: Colors.black54)),
       );
 }
 
-// ── Grid Card ──────────────────────────────────────────────────────────────────
+// ── Grid Card ─────────────────────────────────────────────────────────────────
 class _GridCard extends StatelessWidget {
-  final _CarListing listing;
+  final CarSaleModel listing;
   const _GridCard({required this.listing});
 
   @override
@@ -409,7 +430,9 @@ class _GridCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [
           BoxShadow(
-              color: Color(0x0D000000), blurRadius: 4, offset: Offset(0, 2))
+              color: Color(0x0D000000),
+              blurRadius: 4,
+              offset: Offset(0, 2))
         ],
       ),
       child: InkWell(
@@ -421,15 +444,18 @@ class _GridCard extends StatelessWidget {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(12)),
-                  child: Container(
-                    height: 110,
-                    width: double.infinity,
-                    color: const Color(0xFFF0F0F0),
-                    child: const Icon(Icons.directions_car,
-                        size: 48, color: Color(0xFFCCCCCC)),
-                  ),
+                  borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(12)),
+                  child: listing.imageUrl.isNotEmpty
+                      ? Image.network(
+                          listing.imageUrl,
+                          height: 110,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) =>
+                              _imagePlaceholder(double.infinity, 110),
+                        )
+                      : _imagePlaceholder(double.infinity, 110),
                 ),
                 if (listing.isFeatured)
                   Positioned(
@@ -469,12 +495,13 @@ class _GridCard extends StatelessWidget {
                 children: [
                   Text(listing.title,
                       maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.montserrat(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                           color: Colors.black87)),
                   const SizedBox(height: 4),
-                  Text(listing.price,
+                  Text(listing.formattedPrice,
                       style: GoogleFonts.montserrat(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
@@ -487,6 +514,7 @@ class _GridCard extends StatelessWidget {
                       const SizedBox(width: 2),
                       Expanded(
                         child: Text(listing.location,
+                            overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.montserrat(
                                 fontSize: 10, color: Colors.black38)),
                       ),
@@ -502,17 +530,10 @@ class _GridCard extends StatelessWidget {
   }
 }
 
-class _CarListing {
-  final String title, price, year, mileage, transmission, location, timeAgo;
-  final bool isFeatured;
-  const _CarListing({
-    required this.title,
-    required this.price,
-    required this.year,
-    required this.mileage,
-    required this.transmission,
-    required this.location,
-    required this.timeAgo,
-    required this.isFeatured,
-  });
-}
+Widget _imagePlaceholder(double width, double height) => Container(
+      width: width,
+      height: height,
+      color: const Color(0xFFF0F0F0),
+      child: const Icon(Icons.directions_car,
+          size: 48, color: Color(0xFFCCCCCC)),
+    );

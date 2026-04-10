@@ -1,4 +1,5 @@
-import 'package:google_sign_in/google_sign_in.dart';
+import 'dart:async';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -56,7 +57,8 @@ class AuthRepositoryImpl implements AuthRepository {
       throw AppAuthException(e.message, code: e.statusCode);
     } catch (e) {
       if (e is AppAuthException) rethrow;
-      throw const AppAuthException('OTP verification failed. Please try again.');
+      throw const AppAuthException(
+          'OTP verification failed. Please try again.');
     }
   }
 
@@ -124,7 +126,8 @@ class AuthRepositoryImpl implements AuthRepository {
     } on AuthException catch (e) {
       throw AppAuthException(e.message, code: e.statusCode);
     } catch (_) {
-      throw const AppAuthException('Failed to send email link. Please try again.');
+      throw const AppAuthException(
+          'Failed to send email link. Please try again.');
     }
   }
 
@@ -147,33 +150,47 @@ class AuthRepositoryImpl implements AuthRepository {
       throw AppAuthException(e.message, code: e.statusCode);
     } catch (e) {
       if (e is AppAuthException) rethrow;
-      throw const AppAuthException('Email verification failed. Please try again.');
+      throw const AppAuthException(
+          'Email verification failed. Please try again.');
     }
   }
 
   @override
   Future<UserEntity> signInWithGoogle() async {
     try {
-      final googleUser = await GoogleSignIn(
-        serverClientId: const String.fromEnvironment('GOOGLE_WEB_CLIENT_ID'),
-      ).signIn();
-      if (googleUser == null) throw const AppAuthException('Google sign-in cancelled.');
-
-      final googleAuth = await googleUser.authentication;
-      final idToken = googleAuth.idToken;
-      final accessToken = googleAuth.accessToken;
-
-      if (idToken == null) throw const AppAuthException('Google sign-in failed: no token.');
-
-      final response = await _client.auth.signInWithIdToken(
-        provider: OAuthProvider.google,
-        idToken: idToken,
-        accessToken: accessToken,
+      final launched = await _client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'io.supabase.flutter://login-callback/',
+        authScreenLaunchMode: LaunchMode.externalApplication,
       );
-      if (response.user == null) throw const AppAuthException('Google sign-in failed.');
-      return UserModel.fromSupabaseUser(response.user!);
+      if (!launched) {
+        throw const AppAuthException('Google sign-in was cancelled.');
+      }
+
+      final immediateUser = _client.auth.currentUser;
+      if (immediateUser != null) {
+        return UserModel.fromSupabaseUser(immediateUser);
+      }
+
+      final authEvent = await _client.auth.onAuthStateChange
+          .where((event) =>
+              event.session?.user != null &&
+              event.event != AuthChangeEvent.signedOut)
+          .first
+          .timeout(const Duration(seconds: 20));
+
+      final user = authEvent.session?.user;
+      if (user == null) {
+        throw const AppAuthException(
+            'Google sign-in did not complete. Please try again.');
+      }
+      return UserModel.fromSupabaseUser(user);
     } on AuthException catch (e) {
       throw AppAuthException(e.message, code: e.statusCode);
+    } on TimeoutException {
+      throw const AppAuthException(
+        'Google sign-in timed out. Please open app again and retry.',
+      );
     } catch (e) {
       if (e is AppAuthException) rethrow;
       throw const AppAuthException('Google sign-in failed. Please try again.');
@@ -198,6 +215,14 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> signOut() async {
     try {
+      final userId = _client.auth.currentUser?.id;
+      if (userId != null) {
+        try {
+          await _client
+              .from('profiles')
+              .update({'fcm_token': null}).eq('id', userId);
+        } catch (_) {}
+      }
       await _client.auth.signOut();
     } on AuthException catch (e) {
       throw AppAuthException(e.message, code: e.statusCode);

@@ -1,5 +1,7 @@
 class RentalCarModel {
   final String id;
+  final String sellerId;
+  final String sellerName;
   final String name;
   final String subtitle;
   final String currency;
@@ -25,6 +27,8 @@ class RentalCarModel {
 
   const RentalCarModel({
     required this.id,
+    required this.sellerId,
+    required this.sellerName,
     required this.name,
     required this.subtitle,
     required this.currency,
@@ -79,6 +83,8 @@ class RentalCarModel {
 
     return RentalCarModel(
       id: map['id']?.toString() ?? '',
+      sellerId: map['seller_id']?.toString() ?? '',
+      sellerName: map['seller_name']?.toString() ?? '',
       name: map['title']?.toString() ?? '',
       subtitle: map['description']?.toString() ?? '',
       currency: map['currency']?.toString() ?? 'AED',

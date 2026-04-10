@@ -1,26 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
-import 'car_listings_screen.dart';
+import '../../data/models/subcategory_model.dart';
+import '../providers/subcategories_provider.dart';
+import 'normal_cars_screen.dart';
 import 'rental_cars_screen.dart';
 
-class CarsScreen extends StatelessWidget {
+class CarsScreen extends ConsumerWidget {
   const CarsScreen({super.key});
 
-  static const _subcategories = [
-    _CarSubcategory(title: 'Used Cars', isNew: false),
-    _CarSubcategory(title: 'New Cars', isNew: false),
-    _CarSubcategory(title: 'Export Cars', isNew: false),
-    _CarSubcategory(title: 'Rental Cars', isNew: true),
-    _CarSubcategory(title: 'Motorcycles', isNew: false),
-    _CarSubcategory(title: 'Auto Accessories & Parts', isNew: false),
-    _CarSubcategory(title: 'Heavy Vehicles', isNew: false),
-    _CarSubcategory(title: 'Boats', isNew: false),
-    _CarSubcategory(title: 'Number Plates', isNew: false),
-  ];
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final subcategoriesAsync = ref.watch(subcategoriesProvider('cars'));
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -47,46 +40,60 @@ class CarsScreen extends StatelessWidget {
           child: Divider(height: 1, thickness: 1, color: Color(0xFFE8E8E8)),
         ),
       ),
-      body: ListView.separated(
-        itemCount: _subcategories.length,
-        separatorBuilder: (_, __) => const Divider(
-            height: 1,
-            thickness: 1,
-            color: Color(0xFFF0F0F0),
-            indent: 16,
-            endIndent: 16),
-        itemBuilder: (_, i) {
-          final sub = _subcategories[i];
-          return _SubcategoryTile(subcategory: sub);
-        },
+      body: subcategoriesAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (_, __) => _buildList(_fallback),
+        data: (subs) => _buildList(subs.isEmpty ? _fallback : subs),
       ),
     );
   }
+
+  Widget _buildList(List<SubcategoryModel> subs) {
+    return ListView.separated(
+      itemCount: subs.length,
+      separatorBuilder: (_, __) => const Divider(
+          height: 1,
+          thickness: 1,
+          color: Color(0xFFF0F0F0),
+          indent: 16,
+          endIndent: 16),
+      itemBuilder: (context, i) => _SubcategoryTile(subcategory: subs[i]),
+    );
+  }
+
+  // Fallback static list in case Supabase is empty/offline
+  static const _fallback = [
+    SubcategoryModel(id: '1', categorySlug: 'cars', name: 'Used Cars',                slug: 'used-cars',        isActive: true, isNew: false, sortOrder: 1),
+    SubcategoryModel(id: '2', categorySlug: 'cars', name: 'New Cars',                 slug: 'new-cars',         isActive: true, isNew: false, sortOrder: 2),
+    SubcategoryModel(id: '3', categorySlug: 'cars', name: 'Export Cars',              slug: 'export-cars',      isActive: true, isNew: false, sortOrder: 3),
+    SubcategoryModel(id: '4', categorySlug: 'cars', name: 'Rental Cars',              slug: 'rental-cars',      isActive: true, isNew: true,  sortOrder: 4),
+    SubcategoryModel(id: '5', categorySlug: 'cars', name: 'Motorcycles',              slug: 'motorcycles',      isActive: true, isNew: false, sortOrder: 5),
+    SubcategoryModel(id: '6', categorySlug: 'cars', name: 'Auto Accessories & Parts', slug: 'auto-accessories', isActive: true, isNew: false, sortOrder: 6),
+    SubcategoryModel(id: '7', categorySlug: 'cars', name: 'Heavy Vehicles',           slug: 'heavy-vehicles',   isActive: true, isNew: false, sortOrder: 7),
+    SubcategoryModel(id: '8', categorySlug: 'cars', name: 'Boats',                    slug: 'boats',            isActive: true, isNew: false, sortOrder: 8),
+    SubcategoryModel(id: '9', categorySlug: 'cars', name: 'Number Plates',            slug: 'number-plates',    isActive: true, isNew: false, sortOrder: 9),
+  ];
 }
 
 class _SubcategoryTile extends StatelessWidget {
-  final _CarSubcategory subcategory;
+  final SubcategoryModel subcategory;
   const _SubcategoryTile({required this.subcategory});
+
+  void _onTap(BuildContext context) {
+    if (subcategory.slug == 'rental-cars') {
+      Navigator.push(context,
+          MaterialPageRoute(builder: (_) => const RentalCarsScreen()));
+    } else {
+      Navigator.push(context,
+          MaterialPageRoute(
+              builder: (_) => NormalCarsScreen(subcategory: subcategory.slug)));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {
-        if (subcategory.title == 'Rental Cars') {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const RentalCarsScreen(),
-              ));
-        } else {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                    CarListingsScreen(subcategory: subcategory.title),
-              ));
-        }
-      },
+      onTap: () => _onTap(context),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Row(
@@ -95,7 +102,7 @@ class _SubcategoryTile extends StatelessWidget {
               child: Row(
                 children: [
                   Text(
-                    subcategory.title,
+                    subcategory.name,
                     style: GoogleFonts.montserrat(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
@@ -128,10 +135,4 @@ class _SubcategoryTile extends StatelessWidget {
       ),
     );
   }
-}
-
-class _CarSubcategory {
-  final String title;
-  final bool isNew;
-  const _CarSubcategory({required this.title, required this.isNew});
 }
