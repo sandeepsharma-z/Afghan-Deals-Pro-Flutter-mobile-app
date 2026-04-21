@@ -23,7 +23,7 @@ class ChatDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
-  final _textCtrl  = TextEditingController();
+  final _textCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
   final List<ChatMessageModel> _optimisticMessages = [];
   bool _sending = false;
@@ -56,7 +56,9 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
     for (final m in server) {
       if (m.senderId != opt.senderId) continue;
       if (m.text.trim() != opt.text.trim()) continue;
-      if (m.createdAt.difference(opt.createdAt).inSeconds.abs() <= 15) return true;
+      if (m.createdAt.difference(opt.createdAt).inSeconds.abs() <= 15) {
+        return true;
+      }
     }
     return false;
   }
@@ -83,18 +85,27 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
 
     final tempId = 'local-${DateTime.now().microsecondsSinceEpoch}';
     final optimistic = ChatMessageModel(
-      id: tempId, chatId: widget.chatId,
-      senderId: me, text: msg,
+      id: tempId,
+      chatId: widget.chatId,
+      senderId: me,
+      text: msg,
       createdAt: DateTime.now().toUtc(),
     );
 
-    setState(() { _sending = true; _optimisticMessages.add(optimistic); });
+    setState(() {
+      _sending = true;
+      _optimisticMessages.add(optimistic);
+    });
     _textCtrl.clear();
     _scrollToBottom();
 
     try {
-      await ref.read(chatActionsProvider).sendMessage(chatId: widget.chatId, text: msg);
-      if (mounted) setState(() => _optimisticMessages.removeWhere((m) => m.id == tempId));
+      await ref
+          .read(chatActionsProvider)
+          .sendMessage(chatId: widget.chatId, text: msg);
+      if (mounted) {
+        setState(() => _optimisticMessages.removeWhere((m) => m.id == tempId));
+      }
       ref.invalidate(chatMessagesProvider(widget.chatId));
       ref.invalidate(chatThreadsProvider);
       _scrollToBottom(extra: 80);
@@ -115,7 +126,8 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
 
   Future<void> _pickAndSendImage() async {
     final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70, maxWidth: 1080);
+    final picked = await picker.pickImage(
+        source: ImageSource.gallery, imageQuality: 70, maxWidth: 1080);
     if (picked == null || !mounted) return;
 
     final me = Supabase.instance.client.auth.currentUser?.id ?? '';
@@ -127,12 +139,19 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
       createdAt: DateTime.now().toUtc(),
     );
 
-    setState(() { _sending = true; _optimisticMessages.add(optimistic); });
+    setState(() {
+      _sending = true;
+      _optimisticMessages.add(optimistic);
+    });
     _scrollToBottom();
 
     try {
-      await ref.read(chatActionsProvider).sendImage(chatId: widget.chatId, image: picked);
-      if (mounted) setState(() => _optimisticMessages.removeWhere((m) => m.id == tempId));
+      await ref
+          .read(chatActionsProvider)
+          .sendImage(chatId: widget.chatId, image: picked);
+      if (mounted) {
+        setState(() => _optimisticMessages.removeWhere((m) => m.id == tempId));
+      }
       ref.invalidate(chatMessagesProvider(widget.chatId));
       ref.invalidate(chatThreadsProvider);
       _scrollToBottom(extra: 80);
@@ -153,13 +172,16 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final me         = Supabase.instance.client.auth.currentUser?.id ?? '';
-    final metaAsync  = ref.watch(chatThreadByIdProvider(widget.chatId));
-    final thread     = widget.initialThread ?? metaAsync.value;
+    final me = Supabase.instance.client.auth.currentUser?.id ?? '';
+    final metaAsync = ref.watch(chatThreadByIdProvider(widget.chatId));
+    final thread = widget.initialThread ?? metaAsync.value;
     final messagesAsync = ref.watch(chatMessagesProvider(widget.chatId));
 
-    final title    = thread?.peerName    ?? 'Chat';
+    final title = thread?.peerName ?? 'Chat';
     final subtitle = thread?.listingTitle ?? 'Listing';
+    final recipientLastReadAt = thread == null
+        ? null
+        : (thread.amIBuyer ? thread.sellerLastReadAt : thread.buyerLastReadAt);
 
     // Mark read whenever new messages arrive
     ref.listen(chatMessagesProvider(widget.chatId), (_, __) => _markRead());
@@ -170,7 +192,8 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: Colors.black87),
+          icon: const Icon(Icons.arrow_back_ios_new,
+              size: 18, color: Colors.black87),
           onPressed: () => Navigator.of(context).pop(),
         ),
         titleSpacing: 0,
@@ -178,11 +201,15 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(title,
-                style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black87)),
+                style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87)),
             Text(subtitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(fontSize: 11, color: Colors.black54)),
+                style:
+                    GoogleFonts.poppins(fontSize: 11, color: Colors.black54)),
           ],
         ),
       ),
@@ -194,7 +221,8 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
               error: (e, _) => Center(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Text(e.toString(), textAlign: TextAlign.center,
+                  child: Text(e.toString(),
+                      textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(color: Colors.red)),
                 ),
               ),
@@ -208,25 +236,41 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                 if (all.isEmpty) {
                   return Center(
                     child: Text('Say hi to start chat',
-                        style: GoogleFonts.poppins(fontSize: 14, color: Colors.black54)),
+                        style: GoogleFonts.poppins(
+                            fontSize: 14, color: Colors.black54)),
                   );
                 }
 
-                final myLastMsg = all.lastWhere(
-                  (m) => m.senderId == me, orElse: () => all.last);
+                ChatMessageModel? myLastMsg;
+                for (var i = all.length - 1; i >= 0; i--) {
+                  if (all[i].senderId == me) {
+                    myLastMsg = all[i];
+                    break;
+                  }
+                }
+
+                final isMyLastMessageSeen = myLastMsg != null &&
+                    recipientLastReadAt != null &&
+                    !recipientLastReadAt
+                        .toUtc()
+                        .isBefore(myLastMsg.createdAt.toUtc());
 
                 return ListView.builder(
                   controller: _scrollCtrl,
                   padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
                   itemCount: all.length,
                   itemBuilder: (_, i) {
-                    final m    = all[i];
+                    final m = all[i];
                     final mine = m.senderId == me;
                     final isLast = i == all.length - 1;
                     return _MessageBubble(
                       msg: m,
                       mine: mine,
-                      showSeen: isLast && mine && m.id == myLastMsg.id,
+                      showSeen: isLast &&
+                          mine &&
+                          myLastMsg != null &&
+                          m.id == myLastMsg.id &&
+                          isMyLastMessageSeen,
                     );
                   },
                 );
@@ -255,7 +299,8 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFFFEEBEB),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFC92325).withValues(alpha: 0.3)),
+              border: Border.all(
+                  color: const Color(0xFFC92325).withValues(alpha: 0.3)),
             ),
             child: Row(
               children: [
@@ -264,7 +309,8 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                 Expanded(
                   child: Text(
                     'Your account has been restricted from sending messages.',
-                    style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFFC92325)),
+                    style: GoogleFonts.poppins(
+                        fontSize: 12, color: const Color(0xFFC92325)),
                   ),
                 ),
               ],
@@ -284,7 +330,8 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
             // Image picker button
             IconButton(
               onPressed: _sending ? null : _pickAndSendImage,
-              icon: const Icon(Icons.image_outlined, color: Color(0xFF2258A8), size: 24),
+              icon: const Icon(Icons.image_outlined,
+                  color: Color(0xFF2258A8), size: 24),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
             ),
@@ -298,8 +345,10 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                 maxLines: 4,
                 decoration: InputDecoration(
                   hintText: 'Type message...',
-                  hintStyle: GoogleFonts.poppins(fontSize: 13, color: Colors.black38),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  hintStyle:
+                      GoogleFonts.poppins(fontSize: 13, color: Colors.black38),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
@@ -323,14 +372,18 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                 onPressed: _sending ? null : _send,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2258A8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
                   padding: EdgeInsets.zero,
                 ),
                 child: _sending
                     ? const SizedBox(
-                        width: 16, height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Icon(Icons.send_rounded, size: 18, color: Colors.white),
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.send_rounded,
+                        size: 18, color: Colors.white),
               ),
             ),
           ],
@@ -347,21 +400,24 @@ class _MessageBubble extends StatelessWidget {
   final bool mine;
   final bool showSeen;
 
-  const _MessageBubble({required this.msg, required this.mine, this.showSeen = false});
+  const _MessageBubble(
+      {required this.msg, required this.mine, this.showSeen = false});
 
   @override
   Widget build(BuildContext context) {
     final hasImage = msg.imageUrl != null && msg.imageUrl!.isNotEmpty;
-    final hasText  = msg.text.isNotEmpty;
+    final hasText = msg.text.isNotEmpty;
 
     return Align(
       alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
       child: Column(
-        crossAxisAlignment: mine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment:
+            mine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           Container(
             margin: const EdgeInsets.only(bottom: 2),
-            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.74),
+            constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.74),
             decoration: BoxDecoration(
               color: mine ? const Color(0xFF2258A8) : Colors.white,
               borderRadius: BorderRadius.circular(12),
@@ -375,11 +431,13 @@ class _MessageBubble extends StatelessWidget {
                   if (hasImage) _buildImage(context),
                   if (hasText || !hasImage)
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 9),
                       child: Text(
                         hasText ? msg.text : '',
                         style: GoogleFonts.poppins(
-                          fontSize: 13, height: 1.35,
+                          fontSize: 13,
+                          height: 1.35,
                           color: mine ? Colors.white : Colors.black87,
                         ),
                       ),
@@ -396,14 +454,17 @@ class _MessageBubble extends StatelessWidget {
               children: [
                 Text(
                   _time(msg.createdAt),
-                  style: GoogleFonts.poppins(fontSize: 10, color: Colors.black38),
+                  style:
+                      GoogleFonts.poppins(fontSize: 10, color: Colors.black38),
                 ),
                 if (showSeen && mine) ...[
                   const SizedBox(width: 4),
-                  const Icon(Icons.done_all, size: 13, color: Color(0xFF2258A8)),
+                  const Icon(Icons.done_all,
+                      size: 13, color: Color(0xFF2258A8)),
                   const SizedBox(width: 2),
                   Text('Seen',
-                      style: GoogleFonts.poppins(fontSize: 10, color: const Color(0xFF2258A8))),
+                      style: GoogleFonts.poppins(
+                          fontSize: 10, color: const Color(0xFF2258A8))),
                 ],
               ],
             ),
@@ -422,10 +483,13 @@ class _MessageBubble extends StatelessWidget {
         maxHeight: 220,
       ),
       child: isLocal
-          ? Image.asset(url, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _imgError())
-          : Image.network(url, fit: BoxFit.cover,
-              loadingBuilder: (_, child, progress) =>
-                  progress == null ? child : const Center(child: CircularProgressIndicator()),
+          ? Image.asset(url,
+              fit: BoxFit.cover, errorBuilder: (_, __, ___) => _imgError())
+          : Image.network(url,
+              fit: BoxFit.cover,
+              loadingBuilder: (_, child, progress) => progress == null
+                  ? child
+                  : const Center(child: CircularProgressIndicator()),
               errorBuilder: (_, __, ___) => _imgError()),
     );
   }
@@ -433,7 +497,8 @@ class _MessageBubble extends StatelessWidget {
   Widget _imgError() => Container(
         height: 120,
         color: const Color(0xFFEFF2F8),
-        child: const Center(child: Icon(Icons.broken_image_outlined, color: Color(0xFF98A2B3))),
+        child: const Center(
+            child: Icon(Icons.broken_image_outlined, color: Color(0xFF98A2B3))),
       );
 
   String _time(DateTime dt) {

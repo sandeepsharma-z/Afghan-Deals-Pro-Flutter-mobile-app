@@ -8,7 +8,6 @@ import '../providers/profile_provider.dart';
 import 'profile_screen.dart';
 import 'account_settings_screen.dart';
 import 'notification_settings_screen.dart';
-import '../../../admin/presentation/screens/admin_chats_screen.dart';
 
 class AccountScreen extends ConsumerStatefulWidget {
   const AccountScreen({super.key});
@@ -327,8 +326,6 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AccountSettingsScreen()))),
                   _flatItem(Icons.notifications_outlined, 'Notification Settings', null,
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationSettingsScreen()))),
-                  _flatItem(Icons.admin_panel_settings_outlined, 'Admin Dashboard', null,
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminChatsScreen()))),
                   _line(),
                   _flatItem(Icons.location_city_outlined, 'Country', _selectedCountry, onTap: _showCountryPicker),
                   _flatItem(Icons.translate_outlined, 'Language', _selectedLanguage, onTap: _showLanguagePicker),

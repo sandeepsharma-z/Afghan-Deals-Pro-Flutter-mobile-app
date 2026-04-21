@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../../core/router/route_names.dart';
 import '../../../../chat/presentation/providers/chat_provider.dart';
 import '../../../../chat/presentation/screens/chat_detail_screen.dart';
 import '../../../../../features/listings/data/models/car_sale_model.dart';
@@ -14,7 +16,8 @@ class CarSaleDetailScreen extends ConsumerStatefulWidget {
   const CarSaleDetailScreen({super.key, required this.car});
 
   @override
-  ConsumerState<CarSaleDetailScreen> createState() => _CarSaleDetailScreenState();
+  ConsumerState<CarSaleDetailScreen> createState() =>
+      _CarSaleDetailScreenState();
 }
 
 class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
@@ -72,7 +75,8 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
                         : PageView.builder(
                             controller: _pageController,
                             itemCount: car.images.length,
-                            onPageChanged: (i) => setState(() => _currentPage = i),
+                            onPageChanged: (i) =>
+                                setState(() => _currentPage = i),
                             itemBuilder: (_, i) => Image.network(
                               car.images[i],
                               fit: BoxFit.cover,
@@ -105,7 +109,8 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
                     left: 14,
                     bottom: 12,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         color: const Color(0x63000000),
                         borderRadius: BorderRadius.circular(7),
@@ -195,11 +200,19 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        _DetailSpec(icon: Icons.calendar_month_outlined, value: car.year.isEmpty ? '-' : car.year),
+                        _DetailSpec(
+                            icon: Icons.calendar_month_outlined,
+                            value: car.year.isEmpty ? '-' : car.year),
                         const SizedBox(width: 14),
-                        _DetailSpec(icon: Icons.speed_outlined, value: car.mileage.isEmpty ? '-' : car.mileage),
+                        _DetailSpec(
+                            icon: Icons.speed_outlined,
+                            value: car.mileage.isEmpty ? '-' : car.mileage),
                         const SizedBox(width: 14),
-                        _DetailSpec(icon: Icons.public, value: car.transmission.isEmpty ? '-' : car.transmission),
+                        _DetailSpec(
+                            icon: Icons.public,
+                            value: car.transmission.isEmpty
+                                ? '-'
+                                : car.transmission),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -209,7 +222,9 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
                             size: 15, color: Color(0xFF505050)),
                         const SizedBox(width: 5),
                         Text(
-                          car.location.isNotEmpty ? car.location : 'Afghanistan',
+                          car.location.isNotEmpty
+                              ? car.location
+                              : 'Afghanistan',
                           style: GoogleFonts.poppins(
                             fontSize: 11.62,
                             fontWeight: FontWeight.w400,
@@ -220,7 +235,8 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
                       ],
                     ),
                     const SizedBox(height: 14),
-                    const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+                    const Divider(
+                        height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
                     const SizedBox(height: 14),
                     Text(
                       'Car Overview',
@@ -232,17 +248,23 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    _overviewRow('Condition', car.condition.isEmpty ? '-' : car.condition),
-                    _overviewRow('Body Type', car.bodyType.isEmpty ? '-' : car.bodyType),
-                    _overviewRow('Fuel Type', car.fuelType.isEmpty ? '-' : car.fuelType),
-                    _overviewRow('Transmission', car.transmission.isEmpty ? '-' : car.transmission),
+                    _overviewRow('Condition',
+                        car.condition.isEmpty ? '-' : car.condition),
+                    _overviewRow(
+                        'Body Type', car.bodyType.isEmpty ? '-' : car.bodyType),
+                    _overviewRow(
+                        'Fuel Type', car.fuelType.isEmpty ? '-' : car.fuelType),
+                    _overviewRow('Transmission',
+                        car.transmission.isEmpty ? '-' : car.transmission),
                     _overviewRow('Color', car.color.isEmpty ? '-' : car.color),
                     const SizedBox(height: 14),
-                    const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+                    const Divider(
+                        height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
                     const SizedBox(height: 14),
                     Row(
                       children: [
-                        Expanded(child: _detailAction(Icons.phone_outlined, 'Call')),
+                        Expanded(
+                            child: _detailAction(Icons.phone_outlined, 'Call')),
                         const SizedBox(width: 8),
                         Expanded(child: _whatsAppAction(onTap: _openChat)),
                         const SizedBox(width: 8),
@@ -298,18 +320,24 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
     if (_chatLoading) return;
     setState(() => _chatLoading = true);
     try {
-      final chatId = await ref.read(chatActionsProvider).openOrCreateChatForListing(
-            listingId: widget.car.id,
-            sellerId: widget.car.sellerId,
-          );
+      final chatId =
+          await ref.read(chatActionsProvider).openOrCreateChatForListing(
+                listingId: widget.car.id,
+                sellerId: widget.car.sellerId,
+              );
       if (!mounted) return;
       Navigator.of(context).push(MaterialPageRoute(
         builder: (_) => ChatDetailScreen(chatId: chatId),
       ));
     } catch (e) {
       if (!mounted) return;
+      final message = e.toString().replaceAll('Exception: ', '');
+      if (message.toLowerCase().contains('please sign in first')) {
+        context.push(RouteNames.onboarding);
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(e.toString().replaceAll('Exception: ', '')),
+        content: Text(message),
         backgroundColor: Colors.red,
         behavior: SnackBarBehavior.floating,
       ));

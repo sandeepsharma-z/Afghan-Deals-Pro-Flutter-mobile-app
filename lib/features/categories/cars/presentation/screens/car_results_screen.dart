@@ -4,13 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../../core/router/route_names.dart';
 import '../../../../chat/presentation/providers/chat_provider.dart';
 import '../../../../../features/listings/data/models/rental_car_model.dart';
 import '../providers/rental_cars_provider.dart';
 
 class CarResultsScreen extends ConsumerStatefulWidget {
   final String subcategory;
-  final String rentalDuration; // 'all' | 'Daily Rentals' | 'Weekly Rentals' | 'Monthly Rentals'
+  final String
+      rentalDuration; // 'all' | 'Daily Rentals' | 'Weekly Rentals' | 'Monthly Rentals'
   const CarResultsScreen({
     super.key,
     required this.subcategory,
@@ -232,33 +234,34 @@ class _CarResultsScreenState extends ConsumerState<CarResultsScreen> {
         ),
       ),
       body: ref.watch(rentalCarsProvider(widget.rentalDuration)).when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
-        data: (cars) => RefreshIndicator(
-          onRefresh: () => ref.refresh(rentalCarsProvider(widget.rentalDuration).future),
-          child: cars.isEmpty
-              ? const SingleChildScrollView(
-                  physics: AlwaysScrollableScrollPhysics(),
-                  child: SizedBox(
-                    height: 400,
-                    child: Center(child: Text('No rental cars found')),
-                  ),
-                )
-              : GridView.builder(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 18),
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 8,
-                    crossAxisSpacing: 8,
-                    mainAxisExtent: 340,
-                  ),
-                  itemCount: cars.length,
-                  itemBuilder: (_, i) => _CarCard(car: cars[i]),
-                ),
-        ),
-      ),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => Center(child: Text('Error: $e')),
+            data: (cars) => RefreshIndicator(
+              onRefresh: () =>
+                  ref.refresh(rentalCarsProvider(widget.rentalDuration).future),
+              child: cars.isEmpty
+                  ? const SingleChildScrollView(
+                      physics: AlwaysScrollableScrollPhysics(),
+                      child: SizedBox(
+                        height: 400,
+                        child: Center(child: Text('No rental cars found')),
+                      ),
+                    )
+                  : GridView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(8, 8, 8, 18),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 8,
+                        crossAxisSpacing: 8,
+                        mainAxisExtent: 340,
+                      ),
+                      itemCount: cars.length,
+                      itemBuilder: (_, i) => _CarCard(car: cars[i]),
+                    ),
+            ),
+          ),
     );
   }
 }
@@ -434,7 +437,9 @@ class _CarCardState extends ConsumerState<_CarCard> {
                             icon: Icons.door_front_door_outlined,
                             value: car.doors.toString()),
                         const SizedBox(width: 10),
-                        _Spec(icon: Icons.luggage_outlined, value: car.luggage.toString()),
+                        _Spec(
+                            icon: Icons.luggage_outlined,
+                            value: car.luggage.toString()),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -479,8 +484,7 @@ class _CarCardState extends ConsumerState<_CarCard> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.montserrat(
-                                  fontSize: 11,
-                                  color: const Color(0xFF1E1E1E)),
+                                  fontSize: 11, color: const Color(0xFF1E1E1E)),
                             ),
                           ),
                         ],
@@ -495,8 +499,7 @@ class _CarCardState extends ConsumerState<_CarCard> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.montserrat(
-                                  fontSize: 11,
-                                  color: const Color(0xFF1E1E1E)),
+                                  fontSize: 11, color: const Color(0xFF1E1E1E)),
                             ),
                           ),
                         ],
@@ -544,16 +547,22 @@ class _CarCardState extends ConsumerState<_CarCard> {
 
   Future<void> _openChat() async {
     try {
-      final chatId = await ref.read(chatActionsProvider).openOrCreateChatForListing(
-            listingId: widget.car.id,
-            sellerId: widget.car.sellerId,
-          );
+      final chatId =
+          await ref.read(chatActionsProvider).openOrCreateChatForListing(
+                listingId: widget.car.id,
+                sellerId: widget.car.sellerId,
+              );
       if (!mounted) return;
       context.push('/chat/$chatId');
     } catch (e) {
       if (!mounted) return;
+      final message = e.toString().replaceAll('Exception: ', '');
+      if (message.toLowerCase().contains('please sign in first')) {
+        context.push(RouteNames.onboarding);
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+        SnackBar(content: Text(message)),
       );
     }
   }
@@ -568,7 +577,8 @@ class _RentalCarDetailScreen extends ConsumerStatefulWidget {
       _RentalCarDetailScreenState();
 }
 
-class _RentalCarDetailScreenState extends ConsumerState<_RentalCarDetailScreen> {
+class _RentalCarDetailScreenState
+    extends ConsumerState<_RentalCarDetailScreen> {
   late final PageController _pageController;
   Timer? _timer;
   int _currentPage = 0;
@@ -753,7 +763,8 @@ class _RentalCarDetailScreenState extends ConsumerState<_RentalCarDetailScreen> 
                             value: car.doors.toString()),
                         const SizedBox(width: 14),
                         _DetailSpec(
-                            icon: Icons.luggage_outlined, value: car.luggage.toString()),
+                            icon: Icons.luggage_outlined,
+                            value: car.luggage.toString()),
                       ],
                     ),
                     const SizedBox(height: 10),
@@ -799,7 +810,8 @@ class _RentalCarDetailScreenState extends ConsumerState<_RentalCarDetailScreen> 
                       ],
                     ),
                     const SizedBox(height: 18),
-                    const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+                    const Divider(
+                        height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
                     const SizedBox(height: 18),
                     Text(
                       'Car Overview',
@@ -816,18 +828,20 @@ class _RentalCarDetailScreenState extends ConsumerState<_RentalCarDetailScreen> 
                     _overviewRow('Trim', 'Other'),
                     _overviewRow('Horsepower', '200 - 299 HP'),
                     const SizedBox(height: 18),
-                    const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+                    const Divider(
+                        height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
                     const SizedBox(height: 18),
                     Row(
                       children: [
                         Expanded(
                             child: _detailAction(Icons.phone_outlined, 'Call')),
                         const SizedBox(width: 8),
-                        Expanded(
-                            child: _whatsAppAction(onTap: _openChat)),
+                        Expanded(child: _whatsAppAction(onTap: _openChat)),
                         const SizedBox(width: 8),
                         Expanded(
-                            child: _detailAction(Icons.chat_bubble_outline, 'SMS', onTap: _openChat)),
+                            child: _detailAction(
+                                Icons.chat_bubble_outline, 'SMS',
+                                onTap: _openChat)),
                       ],
                     )
                   ],
@@ -879,16 +893,22 @@ class _RentalCarDetailScreenState extends ConsumerState<_RentalCarDetailScreen> 
 
   Future<void> _openChat() async {
     try {
-      final chatId = await ref.read(chatActionsProvider).openOrCreateChatForListing(
-            listingId: widget.car.id,
-            sellerId: widget.car.sellerId,
-          );
+      final chatId =
+          await ref.read(chatActionsProvider).openOrCreateChatForListing(
+                listingId: widget.car.id,
+                sellerId: widget.car.sellerId,
+              );
       if (!mounted) return;
       context.push('/chat/$chatId');
     } catch (e) {
       if (!mounted) return;
+      final message = e.toString().replaceAll('Exception: ', '');
+      if (message.toLowerCase().contains('please sign in first')) {
+        context.push(RouteNames.onboarding);
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+        SnackBar(content: Text(message)),
       );
     }
   }
@@ -1017,8 +1037,7 @@ class _DetailRentBox extends StatelessWidget {
   Widget build(BuildContext context) {
     final parts = price.split(' ');
     final currency = parts.isNotEmpty ? parts.first : price;
-    final amount =
-        parts.length > 1 ? parts.sublist(1).join(' ') : '';
+    final amount = parts.length > 1 ? parts.sublist(1).join(' ') : '';
 
     return Container(
       decoration: BoxDecoration(

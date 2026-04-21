@@ -127,6 +127,10 @@ Future<List<ChatThreadModel>> _buildThreads(
       listingImageUrl: images.isNotEmpty ? images.first.toString() : null,
       lastMessage: r['last_message']?.toString() ?? '',
       lastMessageAt: DateTime.tryParse(r['last_message_at']?.toString() ?? ''),
+      buyerLastReadAt:
+          DateTime.tryParse(r['buyer_last_read_at']?.toString() ?? ''),
+      sellerLastReadAt:
+          DateTime.tryParse(r['seller_last_read_at']?.toString() ?? ''),
       amIBuyer: amIBuyer,
       unreadCount: unreadMap[chatId] ?? 0,
     );

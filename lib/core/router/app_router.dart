@@ -21,12 +21,14 @@ import '../../features/profile/presentation/screens/notifications_screen.dart';
 import '../../features/categories/cars/presentation/screens/cars_screen.dart';
 import '../../features/categories/properties/presentation/screens/properties_screen.dart';
 import '../../features/categories/mobiles/presentation/screens/mobiles_screen.dart';
+import '../../features/categories/spare_parts/presentation/screens/spare_parts_screen.dart';
 import '../../features/sell/presentation/screens/sell_screen.dart';
 import '../../features/sell/presentation/screens/post_ad_screen.dart';
 import '../../features/sell/presentation/screens/post_mobile_screen.dart';
 import '../../features/sell/presentation/screens/post_car_screen.dart';
 import '../../features/sell/presentation/screens/post_property_screen.dart';
 import '../../features/admin/presentation/screens/admin_chats_screen.dart';
+import '../../features/profile/presentation/screens/my_ads_screen.dart';
 import 'route_names.dart';
 
 final appNavigatorKey = GlobalKey<NavigatorState>();
@@ -93,7 +95,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/otp-email/:email',
         builder: (context, state) {
-          final email = Uri.decodeComponent(state.pathParameters['email'] ?? '');
+          final email =
+              Uri.decodeComponent(state.pathParameters['email'] ?? '');
           return OtpScreen(email: email);
         },
       ),
@@ -121,8 +124,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: RouteNames.chat,
         builder: (context, state) {
           final chatId = state.pathParameters['chatId'] ?? '';
-          final initialThread =
-              state.extra is ChatThreadModel ? state.extra as ChatThreadModel : null;
+          final initialThread = state.extra is ChatThreadModel
+              ? state.extra as ChatThreadModel
+              : null;
           return ChatDetailScreen(
             chatId: chatId,
             initialThread: initialThread,
@@ -158,6 +162,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const MobilesScreen(),
       ),
       GoRoute(
+        path: RouteNames.spareParts,
+        builder: (context, state) => const SparePartsScreen(),
+      ),
+      GoRoute(
         path: RouteNames.sell,
         builder: (context, state) => const SellScreen(),
       ),
@@ -183,6 +191,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.adminChats,
         builder: (context, state) => const AdminChatsScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.myAds,
+        builder: (context, state) => const MyAdsScreen(),
       ),
     ],
   );

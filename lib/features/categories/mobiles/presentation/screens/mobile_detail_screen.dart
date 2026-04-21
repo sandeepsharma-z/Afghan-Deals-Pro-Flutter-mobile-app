@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../../core/router/route_names.dart';
 import '../../../../chat/presentation/providers/chat_provider.dart';
 import '../../../../chat/presentation/screens/chat_detail_screen.dart';
 import '../../../../../features/listings/data/models/mobile_listing_model.dart';
@@ -165,8 +167,7 @@ class _MobileDetailScreenState extends ConsumerState<MobileDetailScreen> {
                           m.images.length,
                           (i) => AnimatedContainer(
                             duration: const Duration(milliseconds: 300),
-                            margin:
-                                const EdgeInsets.symmetric(horizontal: 3),
+                            margin: const EdgeInsets.symmetric(horizontal: 3),
                             width: i == _currentPage ? 10 : 7,
                             height: i == _currentPage ? 10 : 7,
                             decoration: const BoxDecoration(
@@ -261,11 +262,13 @@ class _MobileDetailScreenState extends ConsumerState<MobileDetailScreen> {
                     const SizedBox(height: 10),
 
                     // Always-visible detail rows (no dividers on main screen)
-                    if (m.color.isNotEmpty)   _detailRow('Color',            m.color),
-                    if (m.age.isNotEmpty)      _detailRow('Age',              m.age),
-                    if (m.storage.isNotEmpty)  _detailRow('Storage Capacity', m.storage),
-                    if (m.warranty.isNotEmpty) _detailRow('Warranty',         m.warranty),
-                                               _detailRow('Posted On',        m.formattedDate),
+                    if (m.color.isNotEmpty) _detailRow('Color', m.color),
+                    if (m.age.isNotEmpty) _detailRow('Age', m.age),
+                    if (m.storage.isNotEmpty)
+                      _detailRow('Storage Capacity', m.storage),
+                    if (m.warranty.isNotEmpty)
+                      _detailRow('Warranty', m.warranty),
+                    _detailRow('Posted On', m.formattedDate),
 
                     const SizedBox(height: 10),
 
@@ -315,8 +318,9 @@ class _MobileDetailScreenState extends ConsumerState<MobileDetailScreen> {
                         children: [
                           Expanded(
                             child: Text(
-                              m.description.trim().replaceAll(
-                                  RegExp(r'\s+'), ' '),
+                              m.description
+                                  .trim()
+                                  .replaceAll(RegExp(r'\s+'), ' '),
                               softWrap: true,
                               textAlign: TextAlign.justify,
                               style: GoogleFonts.poppins(
@@ -331,9 +335,7 @@ class _MobileDetailScreenState extends ConsumerState<MobileDetailScreen> {
                       ),
                       const SizedBox(height: 14),
                       const Divider(
-                          height: 1,
-                          thickness: 1,
-                          color: Color(0xFFD9D9D9)),
+                          height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
                       const SizedBox(height: 14),
                     ],
 
@@ -393,17 +395,26 @@ class _MobileDetailScreenState extends ConsumerState<MobileDetailScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
               child: _detailsList([
-                if (m.color.isNotEmpty)        (label: 'Color',                        value: m.color),
-                if (m.age.isNotEmpty)           (label: 'Age',                          value: m.age),
-                if (m.storage.isNotEmpty)       (label: 'Storage Capacity',             value: m.storage),
-                if (m.warranty.isNotEmpty)      (label: 'Warranty',                     value: m.warranty),
-                if (m.batteryHealth.isNotEmpty) (label: 'Percentage of Battery Health', value: m.batteryHealth),
-                if (m.condition.isNotEmpty)     (label: 'Condition',                    value: m.condition),
-                if (m.version.isNotEmpty)       (label: 'Version',                      value: m.version),
-                if (m.damageDetails.isNotEmpty) (label: 'Damages On Device',            value: m.damageDetails),
-                if (m.screenSize.isNotEmpty)    (label: 'Screen Size',                  value: m.screenSize),
-                if (m.model.isNotEmpty)         (label: 'Model',                        value: m.model),
-                                                (label: 'Posted On',                    value: m.formattedDate),
+                if (m.color.isNotEmpty) (label: 'Color', value: m.color),
+                if (m.age.isNotEmpty) (label: 'Age', value: m.age),
+                if (m.storage.isNotEmpty)
+                  (label: 'Storage Capacity', value: m.storage),
+                if (m.warranty.isNotEmpty)
+                  (label: 'Warranty', value: m.warranty),
+                if (m.batteryHealth.isNotEmpty)
+                  (
+                    label: 'Percentage of Battery Health',
+                    value: m.batteryHealth
+                  ),
+                if (m.condition.isNotEmpty)
+                  (label: 'Condition', value: m.condition),
+                if (m.version.isNotEmpty) (label: 'Version', value: m.version),
+                if (m.damageDetails.isNotEmpty)
+                  (label: 'Damages On Device', value: m.damageDetails),
+                if (m.screenSize.isNotEmpty)
+                  (label: 'Screen Size', value: m.screenSize),
+                if (m.model.isNotEmpty) (label: 'Model', value: m.model),
+                (label: 'Posted On', value: m.formattedDate),
               ]),
             ),
           ],
@@ -459,18 +470,24 @@ class _MobileDetailScreenState extends ConsumerState<MobileDetailScreen> {
     if (_chatLoading) return;
     setState(() => _chatLoading = true);
     try {
-      final chatId = await ref.read(chatActionsProvider).openOrCreateChatForListing(
-            listingId: widget.mobile.id,
-            sellerId: widget.mobile.sellerId,
-          );
+      final chatId =
+          await ref.read(chatActionsProvider).openOrCreateChatForListing(
+                listingId: widget.mobile.id,
+                sellerId: widget.mobile.sellerId,
+              );
       if (!mounted) return;
       Navigator.of(context).push(MaterialPageRoute(
         builder: (_) => ChatDetailScreen(chatId: chatId),
       ));
     } catch (e) {
       if (!mounted) return;
+      final message = e.toString().replaceAll('Exception: ', '');
+      if (message.toLowerCase().contains('please sign in first')) {
+        context.push(RouteNames.onboarding);
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(e.toString().replaceAll('Exception: ', '')),
+        content: Text(message),
         backgroundColor: Colors.red,
         behavior: SnackBarBehavior.floating,
       ));

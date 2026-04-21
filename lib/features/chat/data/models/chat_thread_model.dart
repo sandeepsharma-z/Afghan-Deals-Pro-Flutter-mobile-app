@@ -8,6 +8,8 @@ class ChatThreadModel {
   final String? listingImageUrl;
   final String lastMessage;
   final DateTime? lastMessageAt;
+  final DateTime? buyerLastReadAt;
+  final DateTime? sellerLastReadAt;
   final bool amIBuyer;
   final int unreadCount;
 
@@ -21,6 +23,8 @@ class ChatThreadModel {
     required this.listingImageUrl,
     required this.lastMessage,
     required this.lastMessageAt,
+    this.buyerLastReadAt,
+    this.sellerLastReadAt,
     required this.amIBuyer,
     this.unreadCount = 0,
   });

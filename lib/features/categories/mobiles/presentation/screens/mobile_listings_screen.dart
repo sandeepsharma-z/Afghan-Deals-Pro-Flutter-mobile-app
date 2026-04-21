@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../../core/router/route_names.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../features/chat/presentation/providers/chat_provider.dart';
 import '../../../../../features/listings/data/models/mobile_listing_model.dart';
@@ -32,8 +33,7 @@ class MobileListingsScreen extends ConsumerStatefulWidget {
       _MobileListingsScreenState();
 }
 
-class _MobileListingsScreenState
-    extends ConsumerState<MobileListingsScreen> {
+class _MobileListingsScreenState extends ConsumerState<MobileListingsScreen> {
   String _sortBy = 'Newest to Oldest';
 
   List<MobileListingModel> _sorted(List<MobileListingModel> list) {
@@ -63,8 +63,7 @@ class _MobileListingsScreenState
         ? ref.watch(mobileListingsProvider)
         : ref.watch(mobileListingsByBrandProvider(brand));
 
-    final cities =
-        ref.watch(mobileCitiesProvider).valueOrNull ?? <String>[];
+    final cities = ref.watch(mobileCitiesProvider).valueOrNull ?? <String>[];
 
     final title = brand.isEmpty ? 'Mobile Phones' : brand;
 
@@ -137,10 +136,12 @@ class _MobileListingsScreenState
                     : RefreshIndicator(
                         onRefresh: () => brand.isEmpty
                             ? ref.refresh(mobileListingsProvider.future)
-                            : ref.refresh(mobileListingsByBrandProvider(brand).future),
+                            : ref.refresh(
+                                mobileListingsByBrandProvider(brand).future),
                         child: GridView.builder(
                           padding: const EdgeInsets.all(12),
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
                             crossAxisSpacing: 10,
                             mainAxisSpacing: 10,
@@ -151,7 +152,8 @@ class _MobileListingsScreenState
                             listing: sorted[i],
                             onTap: () => Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (_) => MobileDetailScreen(mobile: sorted[i]),
+                                builder: (_) =>
+                                    MobileDetailScreen(mobile: sorted[i]),
                               ),
                             ),
                           ),
@@ -199,8 +201,7 @@ class _MobileListingsScreenState
                                   ? FontWeight.w600
                                   : FontWeight.w400)),
                       trailing: opt == _sortBy
-                          ? const Icon(Icons.check,
-                              color: AppColors.primary)
+                          ? const Icon(Icons.check, color: AppColors.primary)
                           : null,
                       onTap: () {
                         setState(() => _sortBy = opt);
@@ -209,8 +210,7 @@ class _MobileListingsScreenState
                     ),
                     Container(
                         height: 1,
-                        margin:
-                            const EdgeInsets.symmetric(horizontal: 16),
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
                         color: const Color(0xFFEEEEEE)),
                   ],
                 )),
@@ -232,23 +232,42 @@ class _MobileListCard extends ConsumerWidget {
   String _formatDate(String raw) {
     final dt = DateTime.tryParse(raw);
     if (dt == null) return '';
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return '${dt.day} ${months[dt.month - 1]}, ${dt.year}';
   }
 
   Future<void> _openChat(BuildContext context, WidgetRef ref) async {
     try {
-      final chatId = await ref.read(chatActionsProvider).openOrCreateChatForListing(
-            listingId: listing.id,
-            sellerId: listing.sellerId,
-          );
+      final chatId =
+          await ref.read(chatActionsProvider).openOrCreateChatForListing(
+                listingId: listing.id,
+                sellerId: listing.sellerId,
+              );
       if (!context.mounted) return;
       context.push('/chat/$chatId');
     } catch (e) {
       if (!context.mounted) return;
+      final message = e.toString().replaceAll('Exception: ', '');
+      if (message.toLowerCase().contains('please sign in first')) {
+        context.push(RouteNames.onboarding);
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.toString().replaceAll('Exception: ', '')),
+          content: Text(message),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -266,7 +285,8 @@ class _MobileListCard extends ConsumerWidget {
           borderRadius: BorderRadius.circular(7.38),
           border: Border.all(color: const Color(0xFFD9D9D9), width: 1),
           boxShadow: const [
-            BoxShadow(color: Color(0x40000000), blurRadius: 4, offset: Offset(0, 1)),
+            BoxShadow(
+                color: Color(0x40000000), blurRadius: 4, offset: Offset(0, 1)),
           ],
         ),
         child: Column(
@@ -276,7 +296,8 @@ class _MobileListCard extends ConsumerWidget {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(7.38)),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(7.38)),
                   child: listing.imageUrl.isNotEmpty
                       ? Image.network(
                           listing.imageUrl,
@@ -305,18 +326,23 @@ class _MobileListCard extends ConsumerWidget {
                     bottom: 6,
                     left: 6,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 5, vertical: 2),
                       decoration: BoxDecoration(
                         color: const Color(0x63000000),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.image_outlined, color: Colors.white, size: 9),
+                          const Icon(Icons.image_outlined,
+                              color: Colors.white, size: 9),
                           const SizedBox(width: 3),
                           Text('${listing.images.length}',
                               style: GoogleFonts.poppins(
-                                  color: Colors.white, fontSize: 8, fontWeight: FontWeight.w500, height: 1)),
+                                  color: Colors.white,
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w500,
+                                  height: 1)),
                         ],
                       ),
                     ),
@@ -327,14 +353,17 @@ class _MobileListCard extends ConsumerWidget {
                     top: 6,
                     left: 6,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 5, vertical: 2),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFFC107),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text('Featured',
                           style: GoogleFonts.poppins(
-                              fontSize: 7, fontWeight: FontWeight.w600, color: Colors.white)),
+                              fontSize: 7,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white)),
                     ),
                   ),
               ],
@@ -358,8 +387,7 @@ class _MobileListCard extends ConsumerWidget {
                       ),
                       Text(date,
                           style: GoogleFonts.poppins(
-                              fontSize: 7.5,
-                              color: const Color(0xFF505050))),
+                              fontSize: 7.5, color: const Color(0xFF505050))),
                     ],
                   ),
                   // Title
@@ -367,23 +395,28 @@ class _MobileListCard extends ConsumerWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
-                          fontSize: 13, fontWeight: FontWeight.w400, color: Colors.black)),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.black)),
                   // Category / Brand
                   Text(
                     'Mobile Phones${listing.brand.isNotEmpty ? ' / ${listing.brand}' : ''}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(fontSize: 10, color: Colors.black54),
+                    style: GoogleFonts.poppins(
+                        fontSize: 10, color: Colors.black54),
                   ),
                   // Age
                   if (listing.condition.isNotEmpty)
                     Text('Age: ${listing.condition}',
-                        style: GoogleFonts.poppins(fontSize: 10, color: Colors.black54)),
+                        style: GoogleFonts.poppins(
+                            fontSize: 10, color: Colors.black54)),
                   const SizedBox(height: 4),
                   // Location
                   Row(
                     children: [
-                      const Icon(Icons.location_on_outlined, size: 10, color: Color(0xFF505050)),
+                      const Icon(Icons.location_on_outlined,
+                          size: 10, color: Color(0xFF505050)),
                       const SizedBox(width: 2),
                       Expanded(
                         child: Text(listing.location,
@@ -395,7 +428,8 @@ class _MobileListCard extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+                  const Divider(
+                      height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
                   const SizedBox(height: 4),
                   // Action buttons
                   Row(
@@ -421,7 +455,8 @@ class _MobileListCard extends ConsumerWidget {
   Widget _placeholder() => Container(
       height: 110,
       color: const Color(0xFFEDEDED),
-      child: const Center(child: Icon(Icons.smartphone, color: Colors.grey, size: 34)));
+      child: const Center(
+          child: Icon(Icons.smartphone, color: Colors.grey, size: 34)));
 }
 
 class _ActionBtn extends StatelessWidget {
@@ -456,8 +491,8 @@ class _CircleBtn extends StatelessWidget {
     return Container(
       width: 28,
       height: 28,
-      decoration: const BoxDecoration(
-          color: Color(0x140F172A), shape: BoxShape.circle),
+      decoration:
+          const BoxDecoration(color: Color(0x140F172A), shape: BoxShape.circle),
       child: Icon(icon, size: 14, color: Colors.white),
     );
   }

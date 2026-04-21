@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,9 +7,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../chat/presentation/screens/chats_screen.dart';
-import '../../../profile/presentation/screens/favorites_screen.dart';
 import '../../../profile/presentation/screens/account_screen.dart';
+import '../../../profile/presentation/screens/my_ads_screen.dart';
 import '../../../categories/properties/presentation/screens/properties_screen.dart';
+import '../../../categories/spare_parts/presentation/screens/spare_parts_screen.dart';
 import '../providers/home_provider.dart';
 import '../../data/models/home_category_model.dart';
 
@@ -24,7 +24,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _activeIndex = 0;
   String _selectedCountry = 'Afghanistan';
-  StreamSubscription? _authSub;
 
   static const _fallbackCategories = [
     _CategoryTile(
@@ -88,31 +87,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ],
   );
 
-  @override
-  void initState() {
-    super.initState();
-    _authSub = Supabase.instance.client.auth.onAuthStateChange.listen((event) {
-      if (event.session == null && mounted) {
-        context.go(RouteNames.onboarding);
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _authSub?.cancel();
-    super.dispose();
-  }
-
   String? _flagImageFor(String country) {
     switch (country) {
-      case 'Afghanistan': return 'assets/images/flags/afghanistan.png';
-      case 'Oman':        return 'assets/images/flags/oman.png';
-      case 'UAE':         return 'assets/images/flags/uae.png';
-      case 'Qatar':       return 'assets/images/flags/qatar.png';
-      case 'KSA':         return 'assets/images/flags/ksa.png';
-      case 'Syria':       return 'assets/images/flags/syria.png';
-      default:            return null;
+      case 'Afghanistan':
+        return 'assets/images/flags/afghanistan.png';
+      case 'Oman':
+        return 'assets/images/flags/oman.png';
+      case 'UAE':
+        return 'assets/images/flags/uae.png';
+      case 'Qatar':
+        return 'assets/images/flags/qatar.png';
+      case 'KSA':
+        return 'assets/images/flags/ksa.png';
+      case 'Syria':
+        return 'assets/images/flags/syria.png';
+      default:
+        return null;
     }
   }
 
@@ -151,7 +141,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       useRootNavigator: true,
       builder: (_) => _CountrySheet(
         countries: const [
-          _Country('Afghanistan', 'AF', 'assets/images/flags/afghanistan.png', '+93'),
+          _Country('Afghanistan', 'AF', 'assets/images/flags/afghanistan.png',
+              '+93'),
           _Country('Oman', 'OM', 'assets/images/flags/oman.png', '+968'),
           _Country('UAE', 'AE', 'assets/images/flags/uae.png', '+971'),
           _Country('Qatar', 'QA', 'assets/images/flags/qatar.png', '+974'),
@@ -232,6 +223,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       context.push(RouteNames.mobiles);
       return;
     }
+    if (slug == 'spare-parts' || slug == 'spare_parts') {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const SparePartsScreen()),
+      );
+      return;
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -283,7 +280,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ChatsScreen(
               onExploreListings: () => setState(() => _activeIndex = 0),
             ),
-            const FavoritesScreen(),
+            const MyAdsScreen(),
             const AccountScreen(),
           ],
         ),
@@ -560,7 +557,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _navItem(int index, IconData icon, String label) {
     final active = _activeIndex == index;
     return GestureDetector(
-      onTap: () => setState(() => _activeIndex = index),
+      onTap: () {
+        final isGuest = Supabase.instance.client.auth.currentUser == null;
+        final requiresAuth = index == 1; // CHATS tab
+        if (isGuest && requiresAuth) {
+          context.push(RouteNames.onboarding);
+          return;
+        }
+        setState(() => _activeIndex = index);
+      },
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
         width: double.infinity,

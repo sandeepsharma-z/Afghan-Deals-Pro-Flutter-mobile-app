@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../chat/presentation/providers/chat_provider.dart';
+import '../../../../../core/router/route_names.dart';
 import '../../data/models/property_listing_model.dart';
 
 class PropertyDetailScreen extends ConsumerStatefulWidget {
@@ -14,7 +15,8 @@ class PropertyDetailScreen extends ConsumerStatefulWidget {
   const PropertyDetailScreen({super.key, required this.property});
 
   @override
-  ConsumerState<PropertyDetailScreen> createState() => _PropertyDetailScreenState();
+  ConsumerState<PropertyDetailScreen> createState() =>
+      _PropertyDetailScreenState();
 }
 
 class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
@@ -51,8 +53,18 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
     final dt = DateTime.tryParse(widget.property.createdAt);
     if (dt == null) return widget.property.createdAt;
     const months = [
-      'January','February','March','April','May','June',
-      'July','August','September','October','November','December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
     ];
     return '${dt.day}th ${months[dt.month - 1]}, ${dt.year}';
   }
@@ -221,8 +233,7 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
                         ],
                         if (p.area.isNotEmpty)
                           _DetailSpec(
-                              icon: Icons.square_foot,
-                              value: '${p.area} sqft'),
+                              icon: Icons.square_foot, value: '${p.area} sqft'),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -294,15 +305,15 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 14),
-                    const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+                    const Divider(
+                        height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
                     const SizedBox(height: 14),
 
                     // Actions
                     Row(
                       children: [
                         Expanded(
-                            child: _detailAction(
-                                Icons.phone_outlined, 'Call')),
+                            child: _detailAction(Icons.phone_outlined, 'Call')),
                         const SizedBox(width: 8),
                         Expanded(child: _whatsAppAction(onTap: _openChat)),
                         const SizedBox(width: 8),
@@ -350,16 +361,22 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
 
   Future<void> _openChat() async {
     try {
-      final chatId = await ref.read(chatActionsProvider).openOrCreateChatForListing(
-            listingId: widget.property.id,
-            sellerId: widget.property.sellerId,
-          );
+      final chatId =
+          await ref.read(chatActionsProvider).openOrCreateChatForListing(
+                listingId: widget.property.id,
+                sellerId: widget.property.sellerId,
+              );
       if (!mounted) return;
       context.push('/chat/$chatId');
     } catch (e) {
       if (!mounted) return;
+      final message = e.toString().replaceAll('Exception: ', '');
+      if (message.toLowerCase().contains('please sign in first')) {
+        context.push(RouteNames.onboarding);
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+        SnackBar(content: Text(message)),
       );
     }
   }
