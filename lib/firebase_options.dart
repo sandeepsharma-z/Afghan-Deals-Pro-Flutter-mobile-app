@@ -19,19 +19,19 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAaEk_cEsWhc2cAiEvpGXJ_wqVdCxtQZVc',
-    appId: '1:7761798024:android:f11d7964e2e5d2c3f3503d',
-    messagingSenderId: '7761798024',
-    projectId: 'afghan-deals-pro',
-    storageBucket: 'afghan-deals-pro.firebasestorage.app',
+    apiKey: 'AIzaSyCWPbpaK30KfelMNyPzKbOfHx66Od0JQL4',
+    appId: '1:253988662059:android:b0a2c3c02588f4dbe8b36e',
+    messagingSenderId: '253988662059',
+    projectId: 'afghan-deals-pro-2',
+    storageBucket: 'afghan-deals-pro-2.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBO6JeWEaBCzRQuFZK64ydZpecIOPal5Fo',
-    appId: '1:7761798024:ios:37c9ef7a384422bbf3503d',
-    messagingSenderId: '7761798024',
-    projectId: 'afghan-deals-pro',
-    storageBucket: 'afghan-deals-pro.firebasestorage.app',
+    apiKey: 'AIzaSyA-qjwj9cuPpxqPsuaViKABE_PKIr61qP0',
+    appId: '1:253988662059:ios:e83b8c28fec986f7e8b36e',
+    messagingSenderId: '253988662059',
+    projectId: 'afghan-deals-pro-2',
+    storageBucket: 'afghan-deals-pro-2.firebasestorage.app',
     iosBundleId: 'com.afghandeals.afghanDealsPro',
   );
 }

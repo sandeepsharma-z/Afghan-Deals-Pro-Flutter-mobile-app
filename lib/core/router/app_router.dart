@@ -22,6 +22,7 @@ import '../../features/categories/cars/presentation/screens/cars_screen.dart';
 import '../../features/categories/properties/presentation/screens/properties_screen.dart';
 import '../../features/categories/mobiles/presentation/screens/mobiles_screen.dart';
 import '../../features/categories/spare_parts/presentation/screens/spare_parts_screen.dart';
+import '../../features/categories/electronics/presentation/screens/electronics_screen.dart';
 import '../../features/sell/presentation/screens/sell_screen.dart';
 import '../../features/sell/presentation/screens/post_ad_screen.dart';
 import '../../features/sell/presentation/screens/post_mobile_screen.dart';
@@ -164,6 +165,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.spareParts,
         builder: (context, state) => const SparePartsScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.electronics,
+        builder: (context, state) => const ElectronicsScreen(),
       ),
       GoRoute(
         path: RouteNames.sell,
