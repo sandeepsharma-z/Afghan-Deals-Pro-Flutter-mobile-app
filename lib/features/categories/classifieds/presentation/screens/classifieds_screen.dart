@@ -156,32 +156,81 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
     );
   }
 
-  Widget _buildSubcategoryGrid(List<ClassifiedSubcategory> subs) {
-    final fashion = subs.where((s) => s.sortOrder <= 7).toList();
-    final booksAndSports = subs.where((s) => s.sortOrder > 7).toList();
+  static const _fashionSlugs = {
+    'men', 'women', 'kids-fashion', 'bags', 'footwear', 'jewelry', 'watches-accessories',
+  };
+  static const _booksSportsSlugs = {
+    'academic-books', 'fiction-books', 'kids-book', 'exam-preparation',
+    'sports-accessories', 'cricket-gear', 'fitness-equipment',
+  };
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (fashion.isNotEmpty) ...[
-          _sectionLabel('Fashion'),
-          _categoryRows(fashion),
+  Widget _buildSubcategoryGrid(List<ClassifiedSubcategory> subs) {
+    final fashion = subs.where((s) => _fashionSlugs.contains(s.slug)).toList();
+    final booksAndSports = subs.where((s) => _booksSportsSlugs.contains(s.slug)).toList();
+
+    // fallback if Supabase slugs differ: split by index
+    final fashionList = fashion.isNotEmpty ? fashion : subs.take(7).toList();
+    final booksList = booksAndSports.isNotEmpty
+        ? booksAndSports
+        : (subs.length > 7 ? subs.skip(7).toList() : <ClassifiedSubcategory>[]);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: Column(
+        children: [
+          _sectionCard(
+            title: 'Fashion',
+            icon: Icons.checkroom_outlined,
+            items: fashionList,
+          ),
+          const SizedBox(height: 14),
+          _sectionCard(
+            title: 'Books & Sports',
+            icon: Icons.menu_book_outlined,
+            items: booksList,
+          ),
         ],
-        if (booksAndSports.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          _sectionLabel('Books & Sports'),
-          _categoryRows(booksAndSports),
-        ],
-      ],
+      ),
     );
   }
 
-  Widget _sectionLabel(String label) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 4, 14, 8),
-      child: Text(
-        label,
-        style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600, color: Colors.black87),
+  Widget _sectionCard({
+    required String title,
+    required IconData icon,
+    required List<ClassifiedSubcategory> items,
+  }) {
+    if (items.isEmpty) return const SizedBox.shrink();
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E5E5)),
+        boxShadow: const [BoxShadow(color: Color(0x12000000), blurRadius: 6, offset: Offset(0, 2))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+            decoration: BoxDecoration(
+              color: _kBlue.withValues(alpha: 0.07),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12), topRight: Radius.circular(12),
+              ),
+            ),
+            child: Row(children: [
+              Icon(icon, size: 16, color: _kBlue),
+              const SizedBox(width: 8),
+              Text(title,
+                  style: GoogleFonts.poppins(
+                      fontSize: 13.5, fontWeight: FontWeight.w600, color: _kBlue)),
+            ]),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 12, 8, 4),
+            child: _categoryRows(items),
+          ),
+        ],
       ),
     );
   }
