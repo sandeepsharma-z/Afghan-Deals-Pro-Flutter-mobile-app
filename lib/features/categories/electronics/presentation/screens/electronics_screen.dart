@@ -14,29 +14,26 @@ import 'electronics_detail_screen.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
-/// Fallback icon per subcategory slug
+/// Local SVG asset per subcategory slug (named to match Supabase slugs)
+const _kSlugAssets = <String, String>{
+  'tvs-video-audio':        'assets/icons/electronics/tvs-video-audio.svg',
+  'kitchen-other-appliance':'assets/icons/electronics/kitchen-other-appliance.svg',
+  'fridges':                'assets/icons/electronics/fridges.svg',
+  'cameras-lenses':         'assets/icons/electronics/cameras-lenses.svg',
+  'washing-machines':       'assets/icons/electronics/washing-machines.svg',
+  'acs':                    'assets/icons/electronics/acs.svg',
+  'games-entertainment':    'assets/icons/electronics/games-entertainment.svg',
+};
+
+/// Fallback Material icon if no local asset found
 IconData _iconForSlug(String slug) {
-  if (slug.contains('tv') || slug.contains('video') || slug.contains('audio')) {
-    return Icons.tv_outlined;
-  }
-  if (slug.contains('kitchen') || slug.contains('appliance')) {
-    return Icons.kitchen_outlined;
-  }
-  if (slug.contains('fridge') || slug.contains('refrigerator')) {
-    return Icons.ac_unit_outlined;
-  }
-  if (slug.contains('camera') || slug.contains('lens')) {
-    return Icons.camera_alt_outlined;
-  }
-  if (slug.contains('washing') || slug.contains('laundry')) {
-    return Icons.local_laundry_service_outlined;
-  }
-  if (slug.contains('ac') || slug.contains('air')) {
-    return Icons.wind_power_outlined;
-  }
-  if (slug.contains('game') || slug.contains('entertainment')) {
-    return Icons.sports_esports_outlined;
-  }
+  if (slug.contains('tv') || slug.contains('video') || slug.contains('audio')) return Icons.tv_outlined;
+  if (slug.contains('kitchen') || slug.contains('appliance')) return Icons.kitchen_outlined;
+  if (slug.contains('fridge') || slug.contains('refrigerator')) return Icons.ac_unit_outlined;
+  if (slug.contains('camera') || slug.contains('lens')) return Icons.camera_alt_outlined;
+  if (slug.contains('washing') || slug.contains('laundry')) return Icons.local_laundry_service_outlined;
+  if (slug.contains('ac') || slug.contains('air')) return Icons.wind_power_outlined;
+  if (slug.contains('game') || slug.contains('entertainment')) return Icons.sports_esports_outlined;
   return Icons.devices_other_outlined;
 }
 
@@ -207,11 +204,22 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
     bool isMore = false,
   }) {
     final fallbackIcon = isMore ? Icons.more_horiz : _iconForSlug(slug);
+    final localAsset = _kSlugAssets[slug];
 
     Widget iconWidget;
     if (isMore) {
       iconWidget = Icon(fallbackIcon, color: _kBlue, size: 22);
+    } else if (localAsset != null) {
+      // Always prefer bundled local SVG
+      iconWidget = SvgPicture.asset(
+        localAsset,
+        width: 26,
+        height: 26,
+        fit: BoxFit.contain,
+        placeholderBuilder: (_) => Icon(fallbackIcon, color: _kBlue, size: 22),
+      );
     } else if (iconUrl != null && iconUrl.isNotEmpty) {
+      // Fall back to Supabase-hosted icon
       if (iconUrl.toLowerCase().contains('.svg')) {
         iconWidget = SvgPicture.network(
           iconUrl,
