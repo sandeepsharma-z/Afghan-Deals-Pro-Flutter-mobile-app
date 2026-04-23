@@ -3,6 +3,61 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../../features/listings/data/models/electronics_listing_model.dart';
 
+// ── Subcategory model (fetched from Supabase) ──────────────────────────────
+class ElectronicsSubcategory {
+  final String name;
+  final String slug;
+  final String? iconUrl;
+  final int sortOrder;
+
+  const ElectronicsSubcategory({
+    required this.name,
+    required this.slug,
+    this.iconUrl,
+    required this.sortOrder,
+  });
+
+  factory ElectronicsSubcategory.fromMap(Map<String, dynamic> map) {
+    return ElectronicsSubcategory(
+      name: map['name']?.toString().trim() ?? '',
+      slug: map['slug']?.toString().trim() ?? '',
+      iconUrl: map['icon_url']?.toString(),
+      sortOrder: (map['sort_order'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+/// Fetches electronics subcategories from Supabase subcategories table
+final electronicsSubcategoriesProvider =
+    FutureProvider.autoDispose<List<ElectronicsSubcategory>>((ref) async {
+  final response = await Supabase.instance.client
+      .from('subcategories')
+      .select('name, slug, icon_url, sort_order')
+      .eq('category_slug', 'electronics')
+      .eq('is_active', true)
+      .order('sort_order', ascending: true)
+      .order('name', ascending: true);
+
+  final rows = (response as List<dynamic>)
+      .map((e) => ElectronicsSubcategory.fromMap(Map<String, dynamic>.from(e as Map)))
+      .where((s) => s.name.isNotEmpty && s.slug.isNotEmpty)
+      .toList();
+
+  if (rows.isNotEmpty) return rows;
+
+  // Fallback static list if Supabase has no subcategories yet
+  return const [
+    ElectronicsSubcategory(name: 'TVs, Video-Audio',          slug: 'tvs-video-audio',           sortOrder: 1),
+    ElectronicsSubcategory(name: 'Kitchen & Other Appliance', slug: 'kitchen-other-appliance',    sortOrder: 2),
+    ElectronicsSubcategory(name: 'Fridges',                   slug: 'fridges',                   sortOrder: 3),
+    ElectronicsSubcategory(name: 'Cameras & Lenses',          slug: 'cameras-lenses',            sortOrder: 4),
+    ElectronicsSubcategory(name: 'Washing Machines',          slug: 'washing-machines',          sortOrder: 5),
+    ElectronicsSubcategory(name: 'ACs',                       slug: 'acs',                       sortOrder: 6),
+    ElectronicsSubcategory(name: 'Games & Entertainment',     slug: 'games-entertainment',       sortOrder: 7),
+  ];
+});
+
+// ── Filter model ───────────────────────────────────────────────────────────
 class ElectronicsFilter {
   final List<String> brands;
   final List<String> models;
@@ -68,43 +123,38 @@ class ElectronicsFilter {
 final electronicsFilterProvider =
     StateProvider.autoDispose<ElectronicsFilter>((ref) => const ElectronicsFilter());
 
+// ── Listings providers ─────────────────────────────────────────────────────
 Future<List<ElectronicsListingModel>> _fetchElectronics({String subcategory = ''}) async {
   var query = Supabase.instance.client
       .from('listings')
       .select()
       .eq('category', 'electronics')
       .eq('is_active', true);
-
   if (subcategory.isNotEmpty) {
     query = query.eq('subcategory', subcategory);
   }
-
   final response = await query.order('created_at', ascending: false);
   return (response as List<dynamic>)
       .map((e) => ElectronicsListingModel.fromMap(e as Map<String, dynamic>))
       .toList();
 }
 
-/// All electronics listings
 final electronicsListingsProvider =
     FutureProvider.autoDispose<List<ElectronicsListingModel>>((ref) async {
   return _fetchElectronics();
 });
 
-/// Electronics by subcategory
 final electronicsBySubcategoryProvider =
     FutureProvider.autoDispose.family<List<ElectronicsListingModel>, String>(
         (ref, subcategory) async {
   return _fetchElectronics(subcategory: subcategory);
 });
 
-/// Filtered + sorted listings
 final electronicsFilteredProvider =
     FutureProvider.autoDispose.family<List<ElectronicsListingModel>, String>(
         (ref, subcategory) async {
   final filter = ref.watch(electronicsFilterProvider);
-  final all = await ref.watch(
-      electronicsBySubcategoryProvider(subcategory).future);
+  final all = await ref.watch(electronicsBySubcategoryProvider(subcategory).future);
 
   var result = all.where((item) {
     if (filter.brands.isNotEmpty &&
@@ -143,11 +193,11 @@ final electronicsFilteredProvider =
 
   switch (filter.sortBy) {
     case 'price_high':
-      result.sort((a, b) => (double.tryParse(b.price) ?? 0)
-          .compareTo(double.tryParse(a.price) ?? 0));
+      result.sort((a, b) =>
+          (double.tryParse(b.price) ?? 0).compareTo(double.tryParse(a.price) ?? 0));
     case 'price_low':
-      result.sort((a, b) => (double.tryParse(a.price) ?? 0)
-          .compareTo(double.tryParse(b.price) ?? 0));
+      result.sort((a, b) =>
+          (double.tryParse(a.price) ?? 0).compareTo(double.tryParse(b.price) ?? 0));
     case 'oldest':
       result.sort((a, b) => a.createdAt.compareTo(b.createdAt));
     default:
@@ -157,13 +207,14 @@ final electronicsFilteredProvider =
   return result;
 });
 
+// ── Filter option providers (dynamic from listings) ────────────────────────
 Future<List<String>> _distinctField(String field, {String subcategory = ''}) async {
   var query = Supabase.instance.client
       .from('listings')
       .select('category_data')
       .eq('category', 'electronics')
       .eq('is_active', true);
-  if (subcategory.isNotEmpty) query = query.eq('subcategory', subcategory);
+  if (subcategory.isNotEmpty) { query = query.eq('subcategory', subcategory); }
   final response = await query;
   return (response as List<dynamic>)
       .map((e) {
@@ -176,19 +227,19 @@ Future<List<String>> _distinctField(String field, {String subcategory = ''}) asy
     ..sort();
 }
 
+/// Brands fetched from listings data (dynamic)
 final electronicsBrandsProvider =
     FutureProvider.autoDispose<List<String>>((ref) => _distinctField('brand'));
 
+/// Models per brand (dynamic from listings)
 final electronicsModelsProvider =
-    FutureProvider.autoDispose.family<List<String>, String>(
-        (ref, brand) async {
-  var query = Supabase.instance.client
+    FutureProvider.autoDispose.family<List<String>, String>((ref, brand) async {
+  final response = await Supabase.instance.client
       .from('listings')
       .select('category_data')
       .eq('category', 'electronics')
       .eq('is_active', true);
-  final response = await query;
-  final all = (response as List<dynamic>)
+  return (response as List<dynamic>)
       .map((e) {
         final cd = (e as Map<String, dynamic>)['category_data'] as Map<String, dynamic>? ?? {};
         return (
@@ -197,38 +248,47 @@ final electronicsModelsProvider =
         );
       })
       .where((r) {
-        if (brand.isNotEmpty && r.brand.toLowerCase() != brand.toLowerCase()) return false;
+        if (brand.isNotEmpty && r.brand.toLowerCase() != brand.toLowerCase()) {
+          return false;
+        }
         return r.model.isNotEmpty;
       })
       .map((r) => r.model)
       .toSet()
       .toList()
     ..sort();
-  return all;
 });
 
+/// Conditions from listings (with static fallback)
 final electronicsConditionsProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
-  const fixed = ['Flawless', 'Excellent', 'Good', 'Average', 'Poor'];
-  return fixed;
+  final dynamic = await _distinctField('condition');
+  if (dynamic.isNotEmpty) return dynamic;
+  return const ['Flawless', 'Excellent', 'Good', 'Average', 'Poor'];
 });
 
+/// Ages from listings (with static fallback)
 final electronicsAgesProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
-  const fixed = [
+  final dynamic = await _distinctField('age');
+  if (dynamic.isNotEmpty) return dynamic;
+  return const [
     'Brand New', '0-1 month', '1-6 months', '6-12 months',
-    '1-2 years', '2-5 years', '5-10 years', '10+ years'
+    '1-2 years', '2-5 years', '5-10 years', '10+ years',
   ];
-  return fixed;
 });
 
 final electronicsWarrantiesProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
+  final dynamic = await _distinctField('warranty');
+  if (dynamic.isNotEmpty) return dynamic;
   return const ['Yes', 'No', 'Does not apply'];
 });
 
 final electronicsSellerTypesProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
+  final dynamic = await _distinctField('seller_type');
+  if (dynamic.isNotEmpty) return dynamic;
   return const ['All Sellers', 'Individuals', 'Businesses'];
 });
 
@@ -245,11 +305,4 @@ final electronicsCitiesProvider =
       .toSet()
       .toList()
     ..sort();
-});
-
-/// Distinct models per subcategory (for the model grid inside a subcategory)
-final electronicsSubcategoryModelsProvider =
-    FutureProvider.autoDispose.family<List<String>, String>(
-        (ref, subcategory) async {
-  return _distinctField('model', subcategory: subcategory);
 });
