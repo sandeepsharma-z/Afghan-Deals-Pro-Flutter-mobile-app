@@ -274,11 +274,11 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
         ),
         const SizedBox(height: 4),
         Text(
-          label,
+          label.contains(' ') ? label.replaceFirst(' ', '\n') : label,
           maxLines: 2,
           textAlign: TextAlign.center,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w400),
+          style: GoogleFonts.poppins(
+              fontSize: 11, height: 1.3, fontWeight: FontWeight.w400),
         ),
       ],
     );
@@ -787,11 +787,14 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
                           child: Center(child: iconWidget),
                         ),
                         const SizedBox(height: 4),
-                        Text(s.name,
+                        Text(
+                            s.name.contains(' ')
+                                ? s.name.replaceFirst(' ', '\n')
+                                : s.name,
                             maxLines: 2,
                             textAlign: TextAlign.center,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.poppins(fontSize: 11.5)),
+                            style: GoogleFonts.poppins(
+                                fontSize: 11, height: 1.3)),
                       ],
                     ),
                   ),
@@ -1243,12 +1246,15 @@ class _ClassifiedsCategoryScreenState extends ConsumerState<_ClassifiedsCategory
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(s.label,
+                    Text(
+                        s.label.contains(' ')
+                            ? s.label.replaceFirst(' ', '\n')
+                            : s.label,
                         maxLines: 2,
                         textAlign: TextAlign.center,
-                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
-                            fontSize: 11,
+                            fontSize: 10.5,
+                            height: 1.3,
                             fontWeight: _selectedSubType == s.slug
                                 ? FontWeight.w600
                                 : FontWeight.w400,
