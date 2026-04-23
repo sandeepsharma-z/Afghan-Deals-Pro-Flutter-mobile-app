@@ -157,35 +157,47 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
   }
 
   Widget _buildSubcategoryGrid(List<ClassifiedSubcategory> subs) {
-    final visible = subs.take(7).toList();
-    final slots = <Object?>[...visible, 'more'];
-    while (slots.length % 4 != 0) { slots.add(null); }
-    final rows = <List<Object?>>[];
-    for (int i = 0; i < slots.length; i += 4) { rows.add(slots.sublist(i, i + 4)); }
+    final fashion = subs.where((s) => s.sortOrder <= 7).toList();
+    final booksAndSports = subs.where((s) => s.sortOrder > 7).toList();
 
     return Column(
-      children: rows.map((r) {
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (fashion.isNotEmpty) ...[
+          _sectionLabel('Fashion'),
+          _categoryRows(fashion),
+        ],
+        if (booksAndSports.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          _sectionLabel('Books & Sports'),
+          _categoryRows(booksAndSports),
+        ],
+      ],
+    );
+  }
+
+  Widget _sectionLabel(String label) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 4, 14, 8),
+      child: Text(
+        label,
+        style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600, color: Colors.black87),
+      ),
+    );
+  }
+
+  Widget _categoryRows(List<ClassifiedSubcategory> items) {
+    final rows = <List<ClassifiedSubcategory>>[];
+    for (int i = 0; i < items.length; i += 4) {
+      rows.add(items.sublist(i, (i + 4).clamp(0, items.length)));
+    }
+    return Column(
+      children: rows.map((row) {
         return Padding(
           padding: const EdgeInsets.only(bottom: 14),
           child: Row(
-            children: r.map((slot) {
-              if (slot == null) return const Expanded(child: SizedBox());
-              if (slot == 'more') {
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => const ClassifiedsListingsScreen(
-                        subcategory: '',
-                        subcategoryLabel: 'All Classifieds',
-                      ),
-                    )),
-                    child: _subcategoryCircle(
-                        label: 'More', iconUrl: null, slug: 'more', isMore: true),
-                  ),
-                );
-              }
-              final s = slot as ClassifiedSubcategory;
-              return Expanded(
+            children: [
+              ...row.map((s) => Expanded(
                 child: GestureDetector(
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(
                     builder: (_) => ClassifiedsListingsScreen(
@@ -193,11 +205,11 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
                       subcategoryLabel: s.name,
                     ),
                   )),
-                  child: _subcategoryCircle(
-                      label: s.name, iconUrl: s.iconUrl, slug: s.slug),
+                  child: _subcategoryCircle(label: s.name, iconUrl: s.iconUrl, slug: s.slug),
                 ),
-              );
-            }).toList(),
+              )),
+              ...List.generate(4 - row.length, (_) => const Expanded(child: SizedBox())),
+            ],
           ),
         );
       }).toList(),
@@ -208,15 +220,12 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
     required String label,
     required String? iconUrl,
     required String slug,
-    bool isMore = false,
   }) {
-    final fallbackIcon = isMore ? Icons.more_horiz : _iconForSlug(slug);
+    final fallbackIcon = _iconForSlug(slug);
     final localAsset = _kSlugAssets[slug];
 
     Widget iconWidget;
-    if (isMore) {
-      iconWidget = Icon(fallbackIcon, color: _kBlue, size: 22);
-    } else if (localAsset != null) {
+    if (localAsset != null) {
       iconWidget = SvgPicture.asset(
         localAsset,
         width: 26, height: 26, fit: BoxFit.contain,
