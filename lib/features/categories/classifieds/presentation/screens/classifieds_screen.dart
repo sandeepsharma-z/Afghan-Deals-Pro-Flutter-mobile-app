@@ -585,91 +585,346 @@ class _CircleSlot {
       _CircleSlot._(isGroup: true, groupLabel: label, groupItems: items);
 }
 
-// ── Books & Sports sub-screen ─────────────────────────────────────────────────
-class _BooksAndSportsScreen extends StatelessWidget {
+// ── Books & Sports sub-screen (same UI as ClassifiedsScreen) ─────────────────
+class _BooksAndSportsScreen extends ConsumerStatefulWidget {
   final List<ClassifiedSubcategory> subcategories;
   const _BooksAndSportsScreen({required this.subcategories});
 
   @override
+  ConsumerState<_BooksAndSportsScreen> createState() => _BooksAndSportsScreenState();
+}
+
+class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
+  String _selectedChip = '';
+
+  static const _headerBoxDecoration = BoxDecoration(
+    color: Color(0xFFF6F6F6),
+    borderRadius: BorderRadius.all(Radius.circular(6)),
+    boxShadow: [BoxShadow(color: Color(0x40000000), blurRadius: 4, offset: Offset(0, 1))],
+  );
+
+  @override
   Widget build(BuildContext context) {
-    final rows = <List<ClassifiedSubcategory>>[];
-    for (int i = 0; i < subcategories.length; i += 4) {
-      rows.add(subcategories.sublist(i, (i + 4).clamp(0, subcategories.length)));
-    }
+    final listingsAsync = ref.watch(classifiedsListingsProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: GestureDetector(
-          onTap: () => Navigator.of(context).pop(),
-          child: const Icon(Icons.arrow_back_ios_new, size: 18, color: Colors.black87),
-        ),
-        title: Text(
-          'Books & Sports',
-          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: _buildSellFab(context),
+      bottomNavigationBar: _buildBottomNav(context),
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(context),
+            const SizedBox(height: 12),
+            _buildSearchBar(context),
+            const SizedBox(height: 14),
+            Expanded(
+              child: listingsAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator(color: _kBlue)),
+                error: (e, _) => Center(child: Text('Error: $e')),
+                data: (all) {
+                  final slugSet = widget.subcategories.map((s) => s.slug).toSet();
+                  final listings = all.where((l) => slugSet.contains(l.subcategory)).toList();
+                  return _buildBody(listings);
+                },
+              ),
+            ),
+          ],
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-        child: Column(
-          children: rows.map((row) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 18),
-              child: Row(
-                children: [
-                  ...row.map((s) {
-                    final localAsset = _kSlugAssets[s.slug];
-                    final fallbackIcon = _iconForSlug(s.slug);
-                    Widget iconWidget;
-                    if (localAsset != null) {
-                      iconWidget = SvgPicture.asset(
-                        localAsset, width: 26, height: 26, fit: BoxFit.contain,
-                        placeholderBuilder: (_) => Icon(fallbackIcon, color: _kBlue, size: 22),
-                      );
-                    } else {
-                      iconWidget = Icon(fallbackIcon, color: _kBlue, size: 22);
-                    }
-                    return Expanded(
-                      child: GestureDetector(
-                        onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => ClassifiedsListingsScreen(
-                            subcategory: s.slug,
-                            subcategoryLabel: s.name,
-                          ),
-                        )),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 55, height: 55,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white,
-                                border: Border.all(color: _kBlue, width: 1.5),
-                              ),
-                              child: Center(child: iconWidget),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              s.name,
-                              maxLines: 2,
-                              textAlign: TextAlign.center,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w400),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }),
-                  ...List.generate(4 - row.length, (_) => const Expanded(child: SizedBox())),
-                ],
-              ),
-            );
-          }).toList(),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Row(children: [
+        GestureDetector(
+          onTap: () => Navigator.of(context).pop(),
+          child: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black87),
         ),
+        const SizedBox(width: 10),
+        Text('Books & Sports',
+            style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600)),
+        const Spacer(),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          decoration: _headerBoxDecoration,
+          child: Row(children: [
+            Image.asset('assets/images/flags/afghanistan.png',
+                width: 22, height: 22, fit: BoxFit.cover),
+            const SizedBox(width: 5),
+            Text('Afghanistan',
+                style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w500)),
+          ]),
+        ),
+        const SizedBox(width: 10),
+        Container(
+            width: 34, height: 34, decoration: _headerBoxDecoration,
+            child: const Center(child: Icon(Icons.notifications_outlined, size: 22, color: Colors.black87))),
+      ]),
+    );
+  }
+
+  Widget _buildSearchBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: GestureDetector(
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => const ClassifiedsListingsScreen(
+            subcategory: '',
+            subcategoryLabel: 'Books & Sports',
+          ),
+        )),
+        child: Container(
+          height: 40,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFC2C2C2)),
+          ),
+          child: Row(children: [
+            const Icon(Icons.search, size: 16, color: Colors.black87),
+            const SizedBox(width: 8),
+            Expanded(child: Text('Search books & sports...',
+                style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400))),
+            const Icon(Icons.tune, size: 16, color: Colors.black54),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody(List<ClassifiedListingModel> listings) {
+    final filtered = _selectedChip.isEmpty
+        ? listings
+        : listings.where((l) => l.subcategory == _selectedChip).toList();
+
+    return RefreshIndicator(
+      onRefresh: () async => ref.invalidate(classifiedsListingsProvider),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildCircleGrid(),
+            const SizedBox(height: 16),
+            _buildTopDealsHeader(),
+            const SizedBox(height: 12),
+            if (filtered.isEmpty)
+              const SizedBox(
+                height: 260,
+                child: Center(
+                  child: Text('No listings yet', style: TextStyle(color: Colors.black45)),
+                ),
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    mainAxisExtent: 198,
+                  ),
+                  itemCount: filtered.length,
+                  itemBuilder: (_, i) => GestureDetector(
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => ClassifiedsDetailScreen(item: filtered[i]),
+                    )),
+                    child: _ClassifiedCard(item: filtered[i]),
+                  ),
+                ),
+              ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCircleGrid() {
+    final rows = <List<ClassifiedSubcategory>>[];
+    for (int i = 0; i < widget.subcategories.length; i += 4) {
+      rows.add(widget.subcategories.sublist(i, (i + 4).clamp(0, widget.subcategories.length)));
+    }
+    return Column(
+      children: rows.map((row) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 14),
+          child: Row(
+            children: [
+              ...row.map((s) {
+                final localAsset = _kSlugAssets[s.slug];
+                final fallback = _iconForSlug(s.slug);
+                final iconWidget = localAsset != null
+                    ? SvgPicture.asset(localAsset, width: 26, height: 26, fit: BoxFit.contain,
+                        placeholderBuilder: (_) => Icon(fallback, color: _kBlue, size: 22))
+                    : Icon(fallback, color: _kBlue, size: 22);
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => ClassifiedsListingsScreen(
+                        subcategory: s.slug,
+                        subcategoryLabel: s.name,
+                      ),
+                    )),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 55, height: 55,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                            border: Border.all(color: _kBlue, width: 1.5),
+                          ),
+                          child: Center(child: iconWidget),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(s.name,
+                            maxLines: 2,
+                            textAlign: TextAlign.center,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(fontSize: 11.5)),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+              ...List.generate(4 - row.length, (_) => const Expanded(child: SizedBox())),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildTopDealsHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(children: [
+            Text('Top Deals',
+                style: GoogleFonts.poppins(fontSize: 14.75, fontWeight: FontWeight.w600)),
+            const Spacer(),
+            GestureDetector(
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => const ClassifiedsListingsScreen(
+                  subcategory: '',
+                  subcategoryLabel: 'Books & Sports',
+                ),
+              )),
+              child: Text('See all',
+                  style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w500)),
+            ),
+          ]),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 34,
+          child: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            scrollDirection: Axis.horizontal,
+            children: [
+              _chip('All', ''),
+              ...widget.subcategories.map((s) => _chip(s.name, s.slug)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _chip(String label, String slug) {
+    final isSelected = _selectedChip == slug;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedChip = slug),
+      child: Container(
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? _kBlue : Colors.white,
+          border: Border.all(color: isSelected ? _kBlue : const Color(0xFFDDDDDD)),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(label,
+            style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: isSelected ? Colors.white : Colors.black87)),
+      ),
+    );
+  }
+
+  Widget _buildSellFab(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context.push(RouteNames.sell),
+      child: SizedBox(
+        width: 58, height: 58,
+        child: CustomPaint(
+          foregroundPainter: _SellRingPainter(),
+          child: Container(
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle, color: Colors.white,
+              boxShadow: [BoxShadow(color: Color(0x25000000), blurRadius: 8, offset: Offset(0, 2))],
+            ),
+            child: const Center(child: Icon(Icons.add, color: _kBlue, size: 28)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomNav(BuildContext context) {
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        boxShadow: [BoxShadow(color: Color(0x28000000), blurRadius: 12, offset: Offset(0, -4))],
+      ),
+      child: BottomAppBar(
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 8,
+        color: Colors.white,
+        elevation: 0,
+        child: SizedBox(
+          height: 66,
+          child: Row(children: [
+            Expanded(child: _navItem(Icons.home_rounded, 'HOME', () => context.go(RouteNames.home))),
+            Expanded(child: _navItem(Icons.chat_bubble_outline, 'CHATS', () => context.go(RouteNames.chats))),
+            Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+              Text('SELL',
+                  style: GoogleFonts.montserrat(
+                      fontSize: 10, fontWeight: FontWeight.w600, color: Colors.black38)),
+              const SizedBox(height: 8),
+            ])),
+            Expanded(child: _navItem(Icons.favorite_border, 'MY ADS', () => context.go(RouteNames.myAds))),
+            Expanded(child: _navItem(Icons.person_outline, 'ACCOUNT', () => context.go(RouteNames.account))),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  Widget _navItem(IconData icon, String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: double.infinity,
+        child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+          Icon(icon, size: 24, color: Colors.black38),
+          const SizedBox(height: 7),
+          Text(label,
+              style: GoogleFonts.montserrat(
+                  fontSize: 10, fontWeight: FontWeight.w700, color: Colors.black38)),
+          const SizedBox(height: 8),
+        ]),
       ),
     );
   }
