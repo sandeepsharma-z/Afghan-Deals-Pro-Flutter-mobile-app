@@ -938,78 +938,73 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
 class _SubType {
   final String label;
   final String slug;
-  final IconData? icon;
-  final String? abbr; // short text shown in circle when no matching icon exists
-
-  const _SubType.icon(this.label, this.slug, IconData i)
-      : icon = i, abbr = null;
-  const _SubType.text(this.label, this.slug, String a)
-      : icon = null, abbr = a;
+  final IconData icon;
+  const _SubType(this.label, this.slug, this.icon);
 }
 
 const _kSubTypes = <String, List<_SubType>>{
   'men': [
-    _SubType.icon('Shirts',         'shirts',        Icons.checkroom),
-    _SubType.icon('T-Shirts',       't-shirts',      Icons.dry_cleaning),
-    _SubType.text('Jeans',          'jeans',         'JNS'),
-    _SubType.text('Shalwar Kameez', 'shalwar-kameez','SK'),
-    _SubType.icon('Jackets',        'jackets',       Icons.layers),
-    _SubType.text('Kurta',          'kurta',         'KRT'),
-    _SubType.icon('Accessories',    'accessories',   Icons.watch),
+    _SubType('Shirts',         'shirts',        Icons.checkroom),
+    _SubType('T-Shirts',       't-shirts',      Icons.dry_cleaning),
+    _SubType('Jeans',          'jeans',         Icons.airline_seat_legroom_extra),
+    _SubType('Shalwar Kameez', 'shalwar-kameez',Icons.accessibility_new),
+    _SubType('Jackets',        'jackets',       Icons.layers),
+    _SubType('Kurta',          'kurta',         Icons.man),
+    _SubType('Accessories',    'accessories',   Icons.watch),
   ],
   'women': [
-    _SubType.icon('Dresses',        'dresses',       Icons.dry_cleaning),
-    _SubType.text('Shalwar Kameez', 'shalwar-kameez','SK'),
-    _SubType.text('Abayas',         'abayas',        'ABY'),
-    _SubType.icon('Tops',           'tops',          Icons.checkroom),
-    _SubType.text('Jeans',          'jeans',         'JNS'),
-    _SubType.icon('Dupatta/Scarf',  'dupatta-scarf', Icons.waves),
-    _SubType.icon('Accessories',    'accessories',   Icons.diamond),
+    _SubType('Dresses',        'dresses',       Icons.dry_cleaning),
+    _SubType('Shalwar Kameez', 'shalwar-kameez',Icons.accessibility_new),
+    _SubType('Abayas',         'abayas',        Icons.woman),
+    _SubType('Tops',           'tops',          Icons.checkroom),
+    _SubType('Jeans',          'jeans',         Icons.airline_seat_legroom_normal),
+    _SubType('Dupatta/Scarf',  'dupatta-scarf', Icons.waves),
+    _SubType('Accessories',    'accessories',   Icons.diamond),
   ],
   'kids-fashion': [
-    _SubType.icon('Boys Wear',      'boys-wear',     Icons.boy),
-    _SubType.icon('Girls Wear',     'girls-wear',    Icons.girl),
-    _SubType.icon('Baby Clothes',   'baby-clothes',  Icons.child_care),
-    _SubType.icon('School Uniform', 'school-uniform',Icons.school),
-    _SubType.icon('Party Wear',     'party-wear',    Icons.celebration),
-    _SubType.icon('Kids Shoes',     'kids-shoes',    Icons.directions_run),
-    _SubType.icon('Accessories',    'accessories',   Icons.toys),
+    _SubType('Boys Wear',      'boys-wear',     Icons.boy),
+    _SubType('Girls Wear',     'girls-wear',    Icons.girl),
+    _SubType('Baby Clothes',   'baby-clothes',  Icons.child_care),
+    _SubType('School Uniform', 'school-uniform',Icons.school),
+    _SubType('Party Wear',     'party-wear',    Icons.celebration),
+    _SubType('Kids Shoes',     'kids-shoes',    Icons.directions_run),
+    _SubType('Accessories',    'accessories',   Icons.toys),
   ],
   'bags': [
-    _SubType.icon('Handbags',       'handbags',      Icons.shopping_bag),
-    _SubType.icon('Backpacks',      'backpacks',     Icons.backpack),
-    _SubType.icon('School Bags',    'school-bags',   Icons.school),
-    _SubType.icon('Travel Bags',    'travel-bags',   Icons.luggage),
-    _SubType.icon('Wallets',        'wallets',       Icons.account_balance_wallet),
-    _SubType.text('Clutches',       'clutches',      'CLT'),
-    _SubType.icon('Pouches',        'pouches',       Icons.archive),
+    _SubType('Handbags',       'handbags',      Icons.shopping_bag),
+    _SubType('Backpacks',      'backpacks',     Icons.backpack),
+    _SubType('School Bags',    'school-bags',   Icons.school),
+    _SubType('Travel Bags',    'travel-bags',   Icons.luggage),
+    _SubType('Wallets',        'wallets',       Icons.account_balance_wallet),
+    _SubType('Clutches',       'clutches',      Icons.folder),
+    _SubType('Pouches',        'pouches',       Icons.archive),
   ],
   'footwear': [
-    _SubType.icon('Men\'s Shoes',   'mens-shoes',    Icons.directions_walk),
-    _SubType.icon('Women\'s Shoes', 'womens-shoes',  Icons.directions_walk),
-    _SubType.icon('Kids\' Shoes',   'kids-shoes',    Icons.directions_run),
-    _SubType.icon('Sandals',        'sandals',       Icons.beach_access),
-    _SubType.icon('Boots',          'boots',         Icons.hiking),
-    _SubType.icon('Sports Shoes',   'sports-shoes',  Icons.sports),
-    _SubType.text('Slippers',       'slippers',      'SLP'),
+    _SubType('Men\'s Shoes',   'mens-shoes',    Icons.directions_walk),
+    _SubType('Women\'s Shoes', 'womens-shoes',  Icons.directions_walk),
+    _SubType('Kids\' Shoes',   'kids-shoes',    Icons.directions_run),
+    _SubType('Sandals',        'sandals',       Icons.beach_access),
+    _SubType('Boots',          'boots',         Icons.hiking),
+    _SubType('Sports Shoes',   'sports-shoes',  Icons.sports),
+    _SubType('Slippers',       'slippers',      Icons.home),
   ],
   'jewelry': [
-    _SubType.icon('Necklaces',      'necklaces',     Icons.spa),
-    _SubType.icon('Earrings',       'earrings',      Icons.blur_on),
-    _SubType.icon('Rings',          'rings',         Icons.radio_button_unchecked),
-    _SubType.icon('Bracelets',      'bracelets',     Icons.data_usage),
-    _SubType.icon('Bangles',        'bangles',       Icons.fiber_manual_record),
-    _SubType.icon('Sets',           'sets',          Icons.diamond),
-    _SubType.icon('Anklets',        'anklets',       Icons.show_chart),
+    _SubType('Necklaces',      'necklaces',     Icons.spa),
+    _SubType('Earrings',       'earrings',      Icons.blur_on),
+    _SubType('Rings',          'rings',         Icons.radio_button_unchecked),
+    _SubType('Bracelets',      'bracelets',     Icons.data_usage),
+    _SubType('Bangles',        'bangles',       Icons.fiber_manual_record),
+    _SubType('Sets',           'sets',          Icons.diamond),
+    _SubType('Anklets',        'anklets',       Icons.show_chart),
   ],
   'watches-accessories': [
-    _SubType.icon('Watches',        'watches',       Icons.watch),
-    _SubType.icon('Sunglasses',     'sunglasses',    Icons.visibility),
-    _SubType.icon('Belts',          'belts',         Icons.linear_scale),
-    _SubType.icon('Caps & Hats',    'caps-hats',     Icons.sports_baseball),
-    _SubType.text('Ties',           'ties',          'TIE'),
-    _SubType.icon('Scarves',        'scarves',       Icons.waves),
-    _SubType.icon('Wallets',        'wallets',       Icons.account_balance_wallet),
+    _SubType('Watches',        'watches',       Icons.watch),
+    _SubType('Sunglasses',     'sunglasses',    Icons.visibility),
+    _SubType('Belts',          'belts',         Icons.linear_scale),
+    _SubType('Caps & Hats',    'caps-hats',     Icons.sports_baseball),
+    _SubType('Ties',           'ties',          Icons.straighten),
+    _SubType('Scarves',        'scarves',       Icons.waves),
+    _SubType('Wallets',        'wallets',       Icons.account_balance_wallet),
   ],
 };
 
@@ -1241,24 +1236,13 @@ class _ClassifiedsCategoryScreenState extends ConsumerState<_ClassifiedsCategory
                         border: Border.all(color: _kBlue, width: 1.5),
                       ),
                       child: Center(
-                        child: s.abbr != null
-                            ? Text(
-                                s.abbr!,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
-                                  color: _selectedSubType == s.slug
-                                      ? Colors.white
-                                      : _kBlue,
-                                ),
-                              )
-                            : Icon(
-                                s.icon!,
-                                size: 22,
-                                color: _selectedSubType == s.slug
-                                    ? Colors.white
-                                    : _kBlue,
-                              ),
+                        child: Icon(
+                          s.icon,
+                          size: 22,
+                          color: _selectedSubType == s.slug
+                              ? Colors.white
+                              : _kBlue,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 4),
