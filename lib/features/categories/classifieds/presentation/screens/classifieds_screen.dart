@@ -931,6 +931,80 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
   }
 }
 
+// ── Sub-type data ─────────────────────────────────────────────────────────────
+class _SubType {
+  final String label;
+  final String slug;
+  final IconData icon;
+  const _SubType(this.label, this.slug, this.icon);
+}
+
+const _kSubTypes = <String, List<_SubType>>{
+  'men': [
+    _SubType('Shirts',        'shirts',        Icons.dry_cleaning_outlined),
+    _SubType('T-Shirts',      't-shirts',      Icons.checkroom_outlined),
+    _SubType('Jeans',         'jeans',         Icons.straighten_outlined),
+    _SubType('Shalwar Kameez','shalwar-kameez',Icons.person_outline),
+    _SubType('Jackets',       'jackets',       Icons.ac_unit_outlined),
+    _SubType('Kurta',         'kurta',         Icons.checkroom_outlined),
+    _SubType('Accessories',   'accessories',   Icons.watch_outlined),
+  ],
+  'women': [
+    _SubType('Dresses',       'dresses',       Icons.dry_cleaning_outlined),
+    _SubType('Shalwar Kameez','shalwar-kameez',Icons.person_outline),
+    _SubType('Abayas',        'abayas',        Icons.checkroom_outlined),
+    _SubType('Tops',          'tops',          Icons.dry_cleaning_outlined),
+    _SubType('Jeans',         'jeans',         Icons.straighten_outlined),
+    _SubType('Dupatta/Scarf', 'dupatta-scarf', Icons.wind_power_outlined),
+    _SubType('Accessories',   'accessories',   Icons.diamond_outlined),
+  ],
+  'kids-fashion': [
+    _SubType('Boys Wear',     'boys-wear',     Icons.boy_outlined),
+    _SubType('Girls Wear',    'girls-wear',    Icons.girl_outlined),
+    _SubType('Baby Clothes',  'baby-clothes',  Icons.child_care_outlined),
+    _SubType('School Uniform','school-uniform',Icons.school_outlined),
+    _SubType('Party Wear',    'party-wear',    Icons.celebration_outlined),
+    _SubType('Kids Shoes',    'kids-shoes',    Icons.do_not_step_outlined),
+    _SubType('Accessories',   'accessories',   Icons.watch_outlined),
+  ],
+  'bags': [
+    _SubType('Handbags',      'handbags',      Icons.shopping_bag_outlined),
+    _SubType('Backpacks',     'backpacks',     Icons.backpack_outlined),
+    _SubType('School Bags',   'school-bags',   Icons.school_outlined),
+    _SubType('Travel Bags',   'travel-bags',   Icons.luggage_outlined),
+    _SubType('Wallets',       'wallets',       Icons.account_balance_wallet_outlined),
+    _SubType('Clutches',      'clutches',      Icons.shopping_bag_outlined),
+    _SubType('Pouches',       'pouches',       Icons.inventory_2_outlined),
+  ],
+  'footwear': [
+    _SubType('Men\'s Shoes',  'mens-shoes',    Icons.do_not_step_outlined),
+    _SubType('Women\'s Shoes','womens-shoes',  Icons.do_not_step_outlined),
+    _SubType('Kids\' Shoes',  'kids-shoes',    Icons.do_not_step_outlined),
+    _SubType('Sandals',       'sandals',       Icons.do_not_step_outlined),
+    _SubType('Boots',         'boots',         Icons.do_not_step_outlined),
+    _SubType('Sports Shoes',  'sports-shoes',  Icons.sports_outlined),
+    _SubType('Slippers',      'slippers',      Icons.do_not_step_outlined),
+  ],
+  'jewelry': [
+    _SubType('Necklaces',     'necklaces',     Icons.diamond_outlined),
+    _SubType('Earrings',      'earrings',      Icons.diamond_outlined),
+    _SubType('Rings',         'rings',         Icons.radio_button_unchecked),
+    _SubType('Bracelets',     'bracelets',     Icons.diamond_outlined),
+    _SubType('Bangles',       'bangles',       Icons.circle_outlined),
+    _SubType('Sets',          'sets',          Icons.diamond_outlined),
+    _SubType('Anklets',       'anklets',       Icons.diamond_outlined),
+  ],
+  'watches-accessories': [
+    _SubType('Watches',       'watches',       Icons.watch_outlined),
+    _SubType('Sunglasses',    'sunglasses',    Icons.wb_sunny_outlined),
+    _SubType('Belts',         'belts',         Icons.horizontal_rule),
+    _SubType('Caps & Hats',   'caps-hats',     Icons.sports_baseball_outlined),
+    _SubType('Ties',          'ties',          Icons.straighten_outlined),
+    _SubType('Scarves',       'scarves',       Icons.wind_power_outlined),
+    _SubType('Wallets',       'wallets',       Icons.account_balance_wallet_outlined),
+  ],
+};
+
 // ── Single subcategory screen (Men, Women, Bags, etc.) ───────────────────────
 class _ClassifiedsCategoryScreen extends ConsumerStatefulWidget {
   final String title;
@@ -942,6 +1016,8 @@ class _ClassifiedsCategoryScreen extends ConsumerStatefulWidget {
 }
 
 class _ClassifiedsCategoryScreenState extends ConsumerState<_ClassifiedsCategoryScreen> {
+  String _selectedSubType = '';
+
   static const _headerBoxDecoration = BoxDecoration(
     color: Color(0xFFF6F6F6),
     borderRadius: BorderRadius.all(Radius.circular(6)),
@@ -1041,61 +1117,171 @@ class _ClassifiedsCategoryScreenState extends ConsumerState<_ClassifiedsCategory
   }
 
   Widget _buildBody(List<ClassifiedListingModel> listings) {
+    final subTypes = _kSubTypes[widget.slug] ?? [];
+    final displayed = _selectedSubType.isEmpty
+        ? listings
+        : listings
+            .where((l) =>
+                l.subcategory.toLowerCase() == _selectedSubType ||
+                (l.title + l.description).toLowerCase().contains(_selectedSubType))
+            .toList();
+
     return RefreshIndicator(
       onRefresh: () async {
         ref.invalidate(classifiedsFilteredProvider(widget.slug));
         ref.invalidate(classifiedsListingsProvider);
       },
-      child: listings.isEmpty
-          ? const SingleChildScrollView(
-              physics: AlwaysScrollableScrollPhysics(),
-              child: SizedBox(
-                height: 400,
-                child: Center(
-                  child: Text('No listings yet', style: TextStyle(color: Colors.black45)),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Sub-type circles ──────────────────────────────────────────
+            if (subTypes.isNotEmpty) ...[
+              _buildSubTypeCircles(subTypes),
+              const SizedBox(height: 14),
+            ],
+            // ── Chips row ─────────────────────────────────────────────────
+            if (subTypes.isNotEmpty)
+              SizedBox(
+                height: 34,
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    _subChip('All', ''),
+                    ...subTypes.map((s) => _subChip(s.label, s.slug)),
+                  ],
                 ),
               ),
-            )
-          : SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Row(children: [
-                      Text('Top Deals',
-                          style: GoogleFonts.poppins(fontSize: 14.75, fontWeight: FontWeight.w600)),
-                      const Spacer(),
-                      Text('${listings.length} listings',
-                          style: GoogleFonts.poppins(fontSize: 11, color: Colors.black45)),
-                    ]),
+            if (subTypes.isNotEmpty) const SizedBox(height: 14),
+            // ── Listings header ───────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(children: [
+                Text('Top Deals',
+                    style: GoogleFonts.poppins(
+                        fontSize: 14.75, fontWeight: FontWeight.w600)),
+                const Spacer(),
+                Text('${displayed.length} listings',
+                    style: GoogleFonts.poppins(
+                        fontSize: 11, color: Colors.black45)),
+              ]),
+            ),
+            const SizedBox(height: 12),
+            // ── Grid ─────────────────────────────────────────────────────
+            if (displayed.isEmpty)
+              const SizedBox(
+                height: 260,
+                child: Center(
+                  child: Text('No listings yet',
+                      style: TextStyle(color: Colors.black45)),
+                ),
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    mainAxisExtent: 198,
                   ),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                        mainAxisExtent: 198,
+                  itemCount: displayed.length,
+                  itemBuilder: (_, i) => GestureDetector(
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => ClassifiedsDetailScreen(item: displayed[i]),
+                    )),
+                    child: _ClassifiedCard(item: displayed[i]),
+                  ),
+                ),
+              ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubTypeCircles(List<_SubType> subTypes) {
+    final rows = <List<_SubType>>[];
+    for (int i = 0; i < subTypes.length; i += 4) {
+      rows.add(subTypes.sublist(i, (i + 4).clamp(0, subTypes.length)));
+    }
+    return Column(
+      children: rows.map((row) => Padding(
+        padding: const EdgeInsets.only(bottom: 14),
+        child: Row(
+          children: [
+            ...row.map((s) => Expanded(
+              child: GestureDetector(
+                onTap: () => setState(() =>
+                    _selectedSubType = _selectedSubType == s.slug ? '' : s.slug),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 55, height: 55,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: _selectedSubType == s.slug
+                            ? _kBlue
+                            : Colors.white,
+                        border: Border.all(color: _kBlue, width: 1.5),
                       ),
-                      itemCount: listings.length,
-                      itemBuilder: (_, i) => GestureDetector(
-                        onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => ClassifiedsDetailScreen(item: listings[i]),
-                        )),
-                        child: _ClassifiedCard(item: listings[i]),
+                      child: Center(
+                        child: Icon(s.icon,
+                            size: 22,
+                            color: _selectedSubType == s.slug
+                                ? Colors.white
+                                : _kBlue),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                ],
+                    const SizedBox(height: 4),
+                    Text(s.label,
+                        maxLines: 2,
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            fontWeight: _selectedSubType == s.slug
+                                ? FontWeight.w600
+                                : FontWeight.w400,
+                            color: _selectedSubType == s.slug
+                                ? _kBlue
+                                : Colors.black87)),
+                  ],
+                ),
               ),
-            ),
+            )),
+            ...List.generate(4 - row.length, (_) => const Expanded(child: SizedBox())),
+          ],
+        ),
+      )).toList(),
+    );
+  }
+
+  Widget _subChip(String label, String slug) {
+    final isSelected = _selectedSubType == slug;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedSubType = slug),
+      child: Container(
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? _kBlue : Colors.white,
+          border: Border.all(color: isSelected ? _kBlue : const Color(0xFFDDDDDD)),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(label,
+            style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: isSelected ? Colors.white : Colors.black87)),
+      ),
     );
   }
 

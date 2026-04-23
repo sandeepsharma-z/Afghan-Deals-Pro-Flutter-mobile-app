@@ -32,6 +32,7 @@ import '../../features/sell/presentation/screens/post_mobile_screen.dart';
 import '../../features/sell/presentation/screens/post_car_screen.dart';
 import '../../features/sell/presentation/screens/post_property_screen.dart';
 import '../../features/admin/presentation/screens/admin_chats_screen.dart';
+import '../../features/admin/presentation/screens/admin_classifieds_screen.dart';
 import '../../features/profile/presentation/screens/my_ads_screen.dart';
 import 'route_names.dart';
 
@@ -211,6 +212,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.adminChats,
         builder: (context, state) => const AdminChatsScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.adminClassifieds,
+        builder: (context, state) => const AdminClassifiedsScreen(),
       ),
       GoRoute(
         path: RouteNames.myAds,

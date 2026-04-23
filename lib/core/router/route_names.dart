@@ -25,6 +25,7 @@ class RouteNames {
   static const postProperty = '/post-property';
 
   static const adminChats = '/admin-chats';
+  static const adminClassifieds = '/admin-classifieds';
 
   // Category screens
   static const cars = '/cars';
