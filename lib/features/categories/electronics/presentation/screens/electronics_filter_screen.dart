@@ -11,14 +11,23 @@ class ElectronicsFilterScreen extends ConsumerStatefulWidget {
   const ElectronicsFilterScreen({super.key, required this.subcategory});
 
   @override
-  ConsumerState<ElectronicsFilterScreen> createState() => _ElectronicsFilterScreenState();
+  ConsumerState<ElectronicsFilterScreen> createState() =>
+      _ElectronicsFilterScreenState();
 }
 
-class _ElectronicsFilterScreenState extends ConsumerState<ElectronicsFilterScreen> {
+class _ElectronicsFilterScreenState
+    extends ConsumerState<ElectronicsFilterScreen> {
   int _selectedSection = 0;
 
-  final _sections = const [
-    'Brand', 'Model', 'Condition', 'Price Range', 'Seller Type', 'Age', 'Warranty', 'Region',
+  static const _kSections = [
+    ('Brand',       Icons.label_outline),
+    ('Model',       Icons.devices),
+    ('Condition',   Icons.check_circle_outline),
+    ('Price Range', Icons.attach_money),
+    ('Seller Type', Icons.person_outline),
+    ('Age',         Icons.schedule),
+    ('Warranty',    Icons.security),
+    ('Region',      Icons.location_on_outlined),
   ];
 
   late ElectronicsFilter _draft;
@@ -27,88 +36,6 @@ class _ElectronicsFilterScreenState extends ConsumerState<ElectronicsFilterScree
   void initState() {
     super.initState();
     _draft = ref.read(electronicsFilterProvider);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: GestureDetector(
-          onTap: () => Navigator.of(context).pop(),
-          child: const Icon(Icons.arrow_back_ios_new, size: 18, color: Colors.black87),
-        ),
-        title: Text('Filter', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black)),
-        actions: [
-          TextButton(
-            onPressed: () {
-              setState(() => _draft = const ElectronicsFilter());
-              ref.read(electronicsFilterProvider.notifier).state = const ElectronicsFilter();
-            },
-            child: Text('Clear All', style: GoogleFonts.poppins(fontSize: 13, color: _kBlue)),
-          ),
-        ],
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: ElevatedButton(
-            onPressed: () {
-              ref.read(electronicsFilterProvider.notifier).state = _draft;
-              Navigator.of(context).pop();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _kBlue,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              minimumSize: const Size(double.infinity, 48),
-            ),
-            child: Text('Apply', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white)),
-          ),
-        ),
-      ),
-      body: Row(
-        children: [
-          // Left section list
-          Container(
-            width: 130,
-            decoration: const BoxDecoration(border: Border(right: BorderSide(color: Color(0xFFE8E8E8)))),
-            child: ListView.builder(
-              itemCount: _sections.length,
-              itemBuilder: (_, i) {
-                final isSelected = i == _selectedSection;
-                final hasValue = _sectionHasValue(i);
-                return GestureDetector(
-                  onTap: () => setState(() => _selectedSection = i),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                    decoration: BoxDecoration(
-                      border: const Border(bottom: BorderSide(color: Color(0xFFF0F0F0))),
-                      color: isSelected ? Colors.white : const Color(0xFFF8F8F8),
-                    ),
-                    child: Row(children: [
-                      Expanded(child: Text(_sections[i],
-                          style: GoogleFonts.poppins(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w400,
-                              color: isSelected ? _kBlue : Colors.black87))),
-                      if (hasValue)
-                        Container(
-                          width: 8, height: 8,
-                          decoration: const BoxDecoration(color: _kBlue, shape: BoxShape.circle),
-                        ),
-                    ]),
-                  ),
-                );
-              },
-            ),
-          ),
-          // Right content
-          Expanded(child: _buildSectionContent()),
-        ],
-      ),
-    );
   }
 
   bool _sectionHasValue(int i) {
@@ -125,66 +52,254 @@ class _ElectronicsFilterScreenState extends ConsumerState<ElectronicsFilterScree
     }
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black87),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text('Filter',
+            style: GoogleFonts.poppins(
+                fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87)),
+        actions: [
+          TextButton(
+            onPressed: () {
+              setState(() => _draft = const ElectronicsFilter());
+              ref.read(electronicsFilterProvider.notifier).state =
+                  const ElectronicsFilter();
+            },
+            child: Text('Clear All',
+                style: GoogleFonts.poppins(
+                    fontSize: 12, fontWeight: FontWeight.w400, color: _kBlue)),
+          ),
+        ],
+        scrolledUnderElevation: 0,
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+        ),
+      ),
+      bottomNavigationBar: _buildApplyBar(),
+      body: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ── Left panel ──────────────────────────────────────────
+                  Expanded(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height -
+                            MediaQuery.of(context).padding.top -
+                            MediaQuery.of(context).padding.bottom - 210,
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3F4F6),
+                          borderRadius: BorderRadius.circular(22),
+                          border: Border.all(color: const Color(0xFFD0D0D0), width: 1),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: List.generate(_kSections.length, _buildLeftItem),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  // ── Right panel ─────────────────────────────────────────
+                  Expanded(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height -
+                            MediaQuery.of(context).padding.top -
+                            MediaQuery.of(context).padding.bottom - 210,
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(9),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: SingleChildScrollView(
+                          child: _buildSectionContent(),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLeftItem(int i) {
+    final isActive = i == _selectedSection;
+    final hasValue = _sectionHasValue(i);
+    return InkWell(
+      onTap: () => setState(() => _selectedSection = i),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
+        decoration: const BoxDecoration(
+          color: Colors.transparent,
+          border: Border(bottom: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
+        ),
+        child: Row(
+          children: [
+            Icon(_kSections[i].$2,
+                size: 14,
+                color: isActive ? _kBlue : const Color(0xFF7C7D88)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                _kSections[i].$1,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                  height: 1.0,
+                  letterSpacing: 0,
+                  color: isActive ? _kBlue : Colors.black,
+                ),
+              ),
+            ),
+            if (hasValue) ...[
+              const SizedBox(width: 4),
+              const Icon(Icons.check_circle, color: Color(0xFF00BA00), size: 21),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildApplyBar() {
+    return ColoredBox(
+      color: Colors.white,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton(
+              onPressed: () {
+                ref.read(electronicsFilterProvider.notifier).state = _draft;
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _kBlue,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                elevation: 0,
+              ),
+              child: Text('Apply',
+                  style: GoogleFonts.poppins(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white)),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSectionContent() {
     switch (_selectedSection) {
-      case 0: return _checklistSection(ref.watch(electronicsBrandsProvider),
-          selected: _draft.brands,
-          onToggle: (v) => setState(() => _draft = _draft.copyWith(brands: _toggle(_draft.brands, v))));
-      case 1: return _checklistSection(ref.watch(electronicsModelsProvider(_draft.brands.isNotEmpty ? _draft.brands.first : '')),
-          selected: _draft.models,
-          onToggle: (v) => setState(() => _draft = _draft.copyWith(models: _toggle(_draft.models, v))));
-      case 2: return _checklistSection(ref.watch(electronicsConditionsProvider),
-          selected: _draft.conditions,
-          onToggle: (v) => setState(() => _draft = _draft.copyWith(conditions: _toggle(_draft.conditions, v))));
-      case 3: return _priceSection();
-      case 4: return _checklistSection(ref.watch(electronicsSellerTypesProvider),
-          selected: _draft.sellerTypes,
-          onToggle: (v) => setState(() => _draft = _draft.copyWith(sellerTypes: _toggle(_draft.sellerTypes, v))));
-      case 5: return _checklistSection(ref.watch(electronicsAgesProvider),
-          selected: _draft.ages,
-          onToggle: (v) => setState(() => _draft = _draft.copyWith(ages: _toggle(_draft.ages, v))));
-      case 6: return _checklistSection(ref.watch(electronicsWarrantiesProvider),
-          selected: _draft.warranties,
-          onToggle: (v) => setState(() => _draft = _draft.copyWith(warranties: _toggle(_draft.warranties, v))));
-      case 7: return _regionSection();
-      default: return const SizedBox();
+      case 0:
+        return _checklistSection(ref.watch(electronicsBrandsProvider),
+            selected: _draft.brands,
+            onToggle: (v) => setState(() =>
+                _draft = _draft.copyWith(brands: _toggle(_draft.brands, v))));
+      case 1:
+        return _checklistSection(
+            ref.watch(electronicsModelsProvider(
+                _draft.brands.isNotEmpty ? _draft.brands.first : '')),
+            selected: _draft.models,
+            onToggle: (v) => setState(() =>
+                _draft = _draft.copyWith(models: _toggle(_draft.models, v))));
+      case 2:
+        return _checklistSection(ref.watch(electronicsConditionsProvider),
+            selected: _draft.conditions,
+            onToggle: (v) => setState(() => _draft =
+                _draft.copyWith(conditions: _toggle(_draft.conditions, v))));
+      case 3:
+        return _priceSection();
+      case 4:
+        return _checklistSection(ref.watch(electronicsSellerTypesProvider),
+            selected: _draft.sellerTypes,
+            onToggle: (v) => setState(() => _draft =
+                _draft.copyWith(sellerTypes: _toggle(_draft.sellerTypes, v))));
+      case 5:
+        return _checklistSection(ref.watch(electronicsAgesProvider),
+            selected: _draft.ages,
+            onToggle: (v) => setState(
+                () => _draft = _draft.copyWith(ages: _toggle(_draft.ages, v))));
+      case 6:
+        return _checklistSection(ref.watch(electronicsWarrantiesProvider),
+            selected: _draft.warranties,
+            onToggle: (v) => setState(() => _draft =
+                _draft.copyWith(warranties: _toggle(_draft.warranties, v))));
+      case 7:
+        return _regionSection();
+      default:
+        return const SizedBox();
     }
   }
 
-  Widget _checklistSection(AsyncValue<List<String>> async, {required List<String> selected, required void Function(String) onToggle}) {
+  Widget _checklistSection(
+    AsyncValue<List<String>> async, {
+    required List<String> selected,
+    required void Function(String) onToggle,
+  }) {
     return async.when(
-      loading: () => const Center(child: CircularProgressIndicator(color: _kBlue)),
-      error: (e, _) => Center(child: Text('Error: $e')),
+      loading: () => const Padding(
+        padding: EdgeInsets.all(20),
+        child: Center(
+            child: CircularProgressIndicator(color: _kBlue, strokeWidth: 2)),
+      ),
+      error: (e, _) => Padding(
+        padding: const EdgeInsets.all(14),
+        child: Text('Error: $e',
+            style: GoogleFonts.poppins(fontSize: 12, color: Colors.red)),
+      ),
       data: (items) => items.isEmpty
-          ? Center(child: Text('No options', style: GoogleFonts.poppins(color: Colors.black45)))
-          : ListView.separated(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: items.length,
-              separatorBuilder: (_, __) => const Divider(height: 1, color: Color(0xFFF0F0F0)),
-              itemBuilder: (_, i) {
-                final isChecked = selected.any((s) => s.toLowerCase() == items[i].toLowerCase());
-                return InkWell(
-                  onTap: () => onToggle(items[i]),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    child: Row(children: [
-                      Container(
-                        width: 18, height: 18,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(3),
-                          border: Border.all(color: isChecked ? _kBlue : const Color(0xFFCCCCCC), width: 1.5),
-                          color: isChecked ? _kBlue : Colors.white,
-                        ),
-                        child: isChecked
-                            ? const Icon(Icons.check, size: 12, color: Colors.white)
-                            : null,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(child: Text(items[i], style: GoogleFonts.poppins(fontSize: 13, color: Colors.black87))),
-                    ]),
-                  ),
+          ? Padding(
+              padding: const EdgeInsets.all(14),
+              child: Text('No options',
+                  style: GoogleFonts.poppins(
+                      fontSize: 12, color: Colors.black45)),
+            )
+          : Column(
+              children: items.map((item) {
+                final isChecked = selected
+                    .any((s) => s.toLowerCase() == item.toLowerCase());
+                return _CheckRow(
+                  label: item,
+                  selected: isChecked,
+                  onTap: () => onToggle(item),
                 );
-              },
+              }).toList(),
             ),
     );
   }
@@ -195,7 +310,9 @@ class _ElectronicsFilterScreenState extends ConsumerState<ElectronicsFilterScree
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Max Price', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500)),
+          Text('Max Price',
+              style: GoogleFonts.poppins(
+                  fontSize: 13, fontWeight: FontWeight.w500)),
           const SizedBox(height: 12),
           TextFormField(
             initialValue: _draft.maxPrice?.toStringAsFixed(0) ?? '',
@@ -203,13 +320,17 @@ class _ElectronicsFilterScreenState extends ConsumerState<ElectronicsFilterScree
             decoration: InputDecoration(
               hintText: 'Max price AFN',
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             ),
             style: GoogleFonts.poppins(fontSize: 13),
-            onChanged: (v) => setState(() => _draft = _draft.copyWith(maxPrice: double.tryParse(v))),
+            onChanged: (v) => setState(
+                () => _draft = _draft.copyWith(maxPrice: double.tryParse(v))),
           ),
           const SizedBox(height: 16),
-          Text('Min Price', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500)),
+          Text('Min Price',
+              style: GoogleFonts.poppins(
+                  fontSize: 13, fontWeight: FontWeight.w500)),
           const SizedBox(height: 12),
           TextFormField(
             initialValue: _draft.minPrice?.toStringAsFixed(0) ?? '',
@@ -217,10 +338,12 @@ class _ElectronicsFilterScreenState extends ConsumerState<ElectronicsFilterScree
             decoration: InputDecoration(
               hintText: 'Min price AFN',
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             ),
             style: GoogleFonts.poppins(fontSize: 13),
-            onChanged: (v) => setState(() => _draft = _draft.copyWith(minPrice: double.tryParse(v))),
+            onChanged: (v) => setState(
+                () => _draft = _draft.copyWith(minPrice: double.tryParse(v))),
           ),
         ],
       ),
@@ -236,10 +359,12 @@ class _ElectronicsFilterScreenState extends ConsumerState<ElectronicsFilterScree
           hintText: 'Search region / city',
           prefixIcon: const Icon(Icons.location_on_outlined, size: 18),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         ),
         style: GoogleFonts.poppins(fontSize: 13),
-        onChanged: (v) => setState(() => _draft = _draft.copyWith(region: v)),
+        onChanged: (v) =>
+            setState(() => _draft = _draft.copyWith(region: v)),
       ),
     );
   }
@@ -250,5 +375,61 @@ class _ElectronicsFilterScreenState extends ConsumerState<ElectronicsFilterScree
       return list.where((e) => e.toLowerCase() != lower).toList();
     }
     return [...list, value];
+  }
+}
+
+// ── Shared checkbox row ────────────────────────────────────────────────────────
+class _CheckRow extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _CheckRow({required this.label, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(bottom: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 18,
+              height: 18,
+              decoration: BoxDecoration(
+                color: selected ? _kBlue : Colors.white,
+                border: Border.all(
+                    color: selected ? _kBlue : const Color(0xFFBBBBBB),
+                    width: 1.5),
+                borderRadius: BorderRadius.circular(3),
+              ),
+              child: selected
+                  ? const Center(
+                      child: Icon(Icons.check, size: 12, color: Colors.white))
+                  : null,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                  height: 1.0,
+                  letterSpacing: 0,
+                  color: selected ? _kBlue : Colors.black,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

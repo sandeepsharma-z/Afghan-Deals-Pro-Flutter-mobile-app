@@ -17,13 +17,13 @@ class JobsFilterScreen extends ConsumerStatefulWidget {
 class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
   int _selectedSection = 0;
 
-  final _sections = const [
+  static const _kSections = [
     ('Job Category',  Icons.category_outlined),
     ('Job Type',      Icons.work_outline),
-    ('Experience',    Icons.trending_up_outlined),
+    ('Experience',    Icons.trending_up),
     ('Salary Range',  Icons.attach_money),
-    ('Industry',      Icons.business_outlined),
-    ('Education',     Icons.school_outlined),
+    ('Industry',      Icons.business),
+    ('Education',     Icons.school),
     ('Seller Type',   Icons.person_outline),
     ('Region',        Icons.location_on_outlined),
   ];
@@ -34,98 +34,6 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
   void initState() {
     super.initState();
     _draft = ref.read(jobsFilterProvider);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: GestureDetector(
-          onTap: () => Navigator.of(context).pop(),
-          child: const Icon(Icons.arrow_back_ios_new, size: 18, color: Colors.black87),
-        ),
-        title: Text('Filter',
-            style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black)),
-        actions: [
-          TextButton(
-            onPressed: () {
-              setState(() => _draft = const JobsFilter());
-              ref.read(jobsFilterProvider.notifier).state = const JobsFilter();
-            },
-            child: Text('Clear All', style: GoogleFonts.poppins(fontSize: 13, color: _kBlue)),
-          ),
-        ],
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: ElevatedButton(
-            onPressed: () {
-              ref.read(jobsFilterProvider.notifier).state = _draft;
-              Navigator.of(context).pop();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _kBlue,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              minimumSize: const Size(double.infinity, 48),
-            ),
-            child: Text('Apply',
-                style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white)),
-          ),
-        ),
-      ),
-      body: Row(
-        children: [
-          // Left sidebar
-          Container(
-            width: 135,
-            decoration: const BoxDecoration(
-              border: Border(right: BorderSide(color: Color(0xFFE8E8E8))),
-            ),
-            child: ListView.builder(
-              itemCount: _sections.length,
-              itemBuilder: (_, i) {
-                final isSelected = i == _selectedSection;
-                final hasValue = _sectionHasValue(i);
-                return GestureDetector(
-                  onTap: () => setState(() => _selectedSection = i),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 13),
-                    decoration: BoxDecoration(
-                      border: const Border(bottom: BorderSide(color: Color(0xFFF0F0F0))),
-                      color: isSelected ? Colors.white : const Color(0xFFF8F8F8),
-                    ),
-                    child: Row(children: [
-                      Icon(_sections[i].$2,
-                          size: 15,
-                          color: isSelected ? _kBlue : Colors.black45),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(_sections[i].$1,
-                            style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400,
-                                color: isSelected ? _kBlue : Colors.black87)),
-                      ),
-                      if (hasValue)
-                        Container(
-                          width: 7, height: 7,
-                          decoration: const BoxDecoration(color: _kBlue, shape: BoxShape.circle),
-                        ),
-                    ]),
-                  ),
-                );
-              },
-            ),
-          ),
-          // Right content
-          Expanded(child: _buildSectionContent()),
-        ],
-      ),
-    );
   }
 
   bool _sectionHasValue(int i) {
@@ -140,6 +48,177 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
       case 7: return _draft.region.isNotEmpty;
       default: return false;
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black87),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text('Filter',
+            style: GoogleFonts.poppins(
+                fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87)),
+        actions: [
+          TextButton(
+            onPressed: () {
+              setState(() => _draft = const JobsFilter());
+              ref.read(jobsFilterProvider.notifier).state = const JobsFilter();
+            },
+            child: Text('Clear All',
+                style: GoogleFonts.poppins(
+                    fontSize: 12, fontWeight: FontWeight.w400, color: _kBlue)),
+          ),
+        ],
+        scrolledUnderElevation: 0,
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+        ),
+      ),
+      bottomNavigationBar: _buildApplyBar(),
+      body: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ── Left panel ──────────────────────────────────────────
+                  Expanded(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height -
+                            MediaQuery.of(context).padding.top -
+                            MediaQuery.of(context).padding.bottom - 210,
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3F4F6),
+                          borderRadius: BorderRadius.circular(22),
+                          border: Border.all(color: const Color(0xFFD0D0D0), width: 1),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: List.generate(_kSections.length, _buildLeftItem),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  // ── Right panel ─────────────────────────────────────────
+                  Expanded(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height -
+                            MediaQuery.of(context).padding.top -
+                            MediaQuery.of(context).padding.bottom - 210,
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(9),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: SingleChildScrollView(
+                          child: _buildSectionContent(),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLeftItem(int i) {
+    final isActive = i == _selectedSection;
+    final hasValue = _sectionHasValue(i);
+    return InkWell(
+      onTap: () => setState(() => _selectedSection = i),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
+        decoration: const BoxDecoration(
+          color: Colors.transparent,
+          border: Border(bottom: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
+        ),
+        child: Row(
+          children: [
+            Icon(_kSections[i].$2,
+                size: 14,
+                color: isActive ? _kBlue : const Color(0xFF7C7D88)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                _kSections[i].$1,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                  height: 1.0,
+                  letterSpacing: 0,
+                  color: isActive ? _kBlue : Colors.black,
+                ),
+              ),
+            ),
+            if (hasValue) ...[
+              const SizedBox(width: 4),
+              const Icon(Icons.check_circle, color: Color(0xFF00BA00), size: 21),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildApplyBar() {
+    return ColoredBox(
+      color: Colors.white,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton(
+              onPressed: () {
+                ref.read(jobsFilterProvider.notifier).state = _draft;
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _kBlue,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                elevation: 0,
+              ),
+              child: Text('Apply',
+                  style: GoogleFonts.poppins(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white)),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildSectionContent() {
@@ -190,37 +269,38 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
   }
 
   Widget _checklistSection(
-    AsyncValue<List<String>> asyncItems, {
+    AsyncValue<List<String>> async, {
     required List<String> selected,
     required void Function(String) onToggle,
   }) {
-    return asyncItems.when(
-      loading: () => const Center(child: CircularProgressIndicator(color: _kBlue)),
-      error: (e, _) => Center(child: Text('Error: $e')),
+    return async.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.all(20),
+        child: Center(
+            child: CircularProgressIndicator(color: _kBlue, strokeWidth: 2)),
+      ),
+      error: (e, _) => Padding(
+        padding: const EdgeInsets.all(14),
+        child: Text('Error: $e',
+            style: GoogleFonts.poppins(fontSize: 12, color: Colors.red)),
+      ),
       data: (items) => items.isEmpty
-          ? Center(child: Text('No options', style: GoogleFonts.poppins(color: Colors.black45)))
-          : ListView.separated(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: items.length,
-              separatorBuilder: (_, __) => const Divider(height: 1, color: Color(0xFFF0F0F0)),
-              itemBuilder: (_, i) {
-                final isChecked =
-                    selected.any((s) => s.toLowerCase() == items[i].toLowerCase());
-                return InkWell(
-                  onTap: () => onToggle(items[i]),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    child: Row(children: [
-                      _checkbox(isChecked),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(items[i],
-                            style: GoogleFonts.poppins(fontSize: 13, color: Colors.black87)),
-                      ),
-                    ]),
-                  ),
+          ? Padding(
+              padding: const EdgeInsets.all(14),
+              child: Text('No options',
+                  style: GoogleFonts.poppins(
+                      fontSize: 12, color: Colors.black45)),
+            )
+          : Column(
+              children: items.map((item) {
+                final isChecked = selected
+                    .any((s) => s.toLowerCase() == item.toLowerCase());
+                return _CheckRow(
+                  label: item,
+                  selected: isChecked,
+                  onTap: () => onToggle(item),
                 );
-              },
+              }).toList(),
             ),
     );
   }
@@ -231,7 +311,9 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Max Salary', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500)),
+          Text('Max Salary',
+              style: GoogleFonts.poppins(
+                  fontSize: 13, fontWeight: FontWeight.w500)),
           const SizedBox(height: 12),
           TextFormField(
             initialValue: _draft.maxSalary?.toStringAsFixed(0) ?? '',
@@ -239,14 +321,17 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
             decoration: InputDecoration(
               hintText: 'Max salary AFN',
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             ),
             style: GoogleFonts.poppins(fontSize: 13),
-            onChanged: (v) =>
-                setState(() => _draft = _draft.copyWith(maxSalary: double.tryParse(v))),
+            onChanged: (v) => setState(
+                () => _draft = _draft.copyWith(maxSalary: double.tryParse(v))),
           ),
           const SizedBox(height: 16),
-          Text('Min Salary', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500)),
+          Text('Min Salary',
+              style: GoogleFonts.poppins(
+                  fontSize: 13, fontWeight: FontWeight.w500)),
           const SizedBox(height: 12),
           TextFormField(
             initialValue: _draft.minSalary?.toStringAsFixed(0) ?? '',
@@ -254,11 +339,12 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
             decoration: InputDecoration(
               hintText: 'Min salary AFN',
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             ),
             style: GoogleFonts.poppins(fontSize: 13),
-            onChanged: (v) =>
-                setState(() => _draft = _draft.copyWith(minSalary: double.tryParse(v))),
+            onChanged: (v) => setState(
+                () => _draft = _draft.copyWith(minSalary: double.tryParse(v))),
           ),
         ],
       ),
@@ -274,23 +360,13 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
           hintText: 'Search region / city',
           prefixIcon: const Icon(Icons.location_on_outlined, size: 18),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         ),
         style: GoogleFonts.poppins(fontSize: 13),
-        onChanged: (v) => setState(() => _draft = _draft.copyWith(region: v)),
+        onChanged: (v) =>
+            setState(() => _draft = _draft.copyWith(region: v)),
       ),
-    );
-  }
-
-  Widget _checkbox(bool isChecked) {
-    return Container(
-      width: 18, height: 18,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(3),
-        border: Border.all(color: isChecked ? _kBlue : const Color(0xFFCCCCCC), width: 1.5),
-        color: isChecked ? _kBlue : Colors.white,
-      ),
-      child: isChecked ? const Icon(Icons.check, size: 12, color: Colors.white) : null,
     );
   }
 
@@ -300,5 +376,61 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
       return list.where((e) => e.toLowerCase() != lower).toList();
     }
     return [...list, value];
+  }
+}
+
+// ── Shared checkbox row ────────────────────────────────────────────────────────
+class _CheckRow extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _CheckRow({required this.label, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(bottom: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 18,
+              height: 18,
+              decoration: BoxDecoration(
+                color: selected ? _kBlue : Colors.white,
+                border: Border.all(
+                    color: selected ? _kBlue : const Color(0xFFBBBBBB),
+                    width: 1.5),
+                borderRadius: BorderRadius.circular(3),
+              ),
+              child: selected
+                  ? const Center(
+                      child: Icon(Icons.check, size: 12, color: Colors.white))
+                  : null,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                  height: 1.0,
+                  letterSpacing: 0,
+                  color: selected ? _kBlue : Colors.black,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
