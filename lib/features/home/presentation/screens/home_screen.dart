@@ -13,6 +13,7 @@ import '../../../categories/properties/presentation/screens/properties_screen.da
 import '../../../categories/spare_parts/presentation/screens/spare_parts_screen.dart';
 import '../../../categories/electronics/presentation/screens/electronics_screen.dart';
 import '../../../categories/furniture/presentation/screens/furniture_screen.dart';
+import '../../../categories/jobs/presentation/screens/jobs_screen.dart';
 import '../providers/home_provider.dart';
 import '../../data/models/home_category_model.dart';
 
@@ -240,6 +241,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (slug == 'furniture') {
       Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => const FurnitureScreen()),
+      );
+      return;
+    }
+    if (slug == 'jobs') {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const JobsScreen()),
       );
       return;
     }
