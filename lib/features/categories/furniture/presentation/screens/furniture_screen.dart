@@ -14,6 +14,19 @@ import 'furniture_detail_screen.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
+const _kSlugAssets = <String, String>{
+  'sofas':                 'assets/icons/furniture/sofas.svg',
+  'sofa':                  'assets/icons/furniture/sofas.svg',
+  'dining':                'assets/icons/furniture/dining.svg',
+  'kids-furniture':        'assets/icons/furniture/kids-furniture.svg',
+  'wardrobes':             'assets/icons/furniture/wardrobes.svg',
+  'home-decor-garden':     'assets/icons/furniture/home-decor-garden.svg',
+  'home-decor':            'assets/icons/furniture/home-decor-garden.svg',
+  'beds':                  'assets/icons/furniture/beds.svg',
+  'other-household-items': 'assets/icons/furniture/other-household-items.svg',
+  'other-household':       'assets/icons/furniture/other-household-items.svg',
+};
+
 IconData _iconForSlug(String slug) {
   if (slug.contains('sofa') || slug.contains('couch')) return Icons.chair_outlined;
   if (slug.contains('dining') || slug.contains('table')) return Icons.dinner_dining_outlined;
@@ -188,10 +201,17 @@ class _FurnitureScreenState extends ConsumerState<FurnitureScreen> {
     bool isMore = false,
   }) {
     final fallbackIcon = isMore ? Icons.more_horiz : _iconForSlug(slug);
+    final localAsset = _kSlugAssets[slug];
 
     Widget iconWidget;
     if (isMore) {
       iconWidget = Icon(fallbackIcon, color: _kBlue, size: 22);
+    } else if (localAsset != null) {
+      iconWidget = SvgPicture.asset(
+        localAsset,
+        width: 26, height: 26, fit: BoxFit.contain,
+        placeholderBuilder: (_) => Icon(fallbackIcon, color: _kBlue, size: 22),
+      );
     } else if (iconUrl != null && iconUrl.isNotEmpty) {
       if (iconUrl.toLowerCase().contains('.svg')) {
         iconWidget = SvgPicture.network(
