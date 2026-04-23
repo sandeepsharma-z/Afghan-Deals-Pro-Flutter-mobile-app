@@ -168,94 +168,55 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
     final fashion = subs.where((s) => _fashionSlugs.contains(s.slug)).toList();
     final booksAndSports = subs.where((s) => _booksSportsSlugs.contains(s.slug)).toList();
 
-    // fallback if Supabase slugs differ: split by index
+    // fallback: split by index
     final fashionList = fashion.isNotEmpty ? fashion : subs.take(7).toList();
     final booksList = booksAndSports.isNotEmpty
         ? booksAndSports
         : (subs.length > 7 ? subs.skip(7).toList() : <ClassifiedSubcategory>[]);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: Column(
-        children: [
-          _sectionCard(
-            title: 'Fashion',
-            icon: Icons.checkroom_outlined,
-            items: fashionList,
-          ),
-          const SizedBox(height: 14),
-          _sectionCard(
-            title: 'Books & Sports',
-            icon: Icons.menu_book_outlined,
-            items: booksList,
-          ),
-        ],
-      ),
-    );
-  }
+    // Build slots: 7 fashion + 1 "Books & Sports" group circle = 8 total (2 rows of 4)
+    final slots = <_CircleSlot>[
+      ...fashionList.map((s) => _CircleSlot.sub(s)),
+      if (booksList.isNotEmpty) _CircleSlot.group('Books & Sports', booksList),
+    ];
 
-  Widget _sectionCard({
-    required String title,
-    required IconData icon,
-    required List<ClassifiedSubcategory> items,
-  }) {
-    if (items.isEmpty) return const SizedBox.shrink();
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE5E5E5)),
-        boxShadow: const [BoxShadow(color: Color(0x12000000), blurRadius: 6, offset: Offset(0, 2))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-            decoration: BoxDecoration(
-              color: _kBlue.withValues(alpha: 0.07),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12), topRight: Radius.circular(12),
-              ),
-            ),
-            child: Row(children: [
-              Icon(icon, size: 16, color: _kBlue),
-              const SizedBox(width: 8),
-              Text(title,
-                  style: GoogleFonts.poppins(
-                      fontSize: 13.5, fontWeight: FontWeight.w600, color: _kBlue)),
-            ]),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(8, 12, 8, 4),
-            child: _categoryRows(items),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _categoryRows(List<ClassifiedSubcategory> items) {
-    final rows = <List<ClassifiedSubcategory>>[];
-    for (int i = 0; i < items.length; i += 4) {
-      rows.add(items.sublist(i, (i + 4).clamp(0, items.length)));
+    final rows = <List<_CircleSlot>>[];
+    for (int i = 0; i < slots.length; i += 4) {
+      rows.add(slots.sublist(i, (i + 4).clamp(0, slots.length)));
     }
+
     return Column(
       children: rows.map((row) {
         return Padding(
           padding: const EdgeInsets.only(bottom: 14),
           child: Row(
             children: [
-              ...row.map((s) => Expanded(
-                child: GestureDetector(
-                  onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => ClassifiedsListingsScreen(
-                      subcategory: s.slug,
-                      subcategoryLabel: s.name,
-                    ),
-                  )),
-                  child: _subcategoryCircle(label: s.name, iconUrl: s.iconUrl, slug: s.slug),
-                ),
+              ...row.map((slot) => Expanded(
+                child: slot.isGroup
+                    ? GestureDetector(
+                        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => _BooksAndSportsScreen(subcategories: slot.groupItems!),
+                        )),
+                        child: _subcategoryCircle(
+                          label: 'Books &\nSports',
+                          iconUrl: null,
+                          slug: '__books_sports__',
+                          customIcon: Icons.sports_outlined,
+                        ),
+                      )
+                    : GestureDetector(
+                        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => ClassifiedsListingsScreen(
+                            subcategory: slot.sub!.slug,
+                            subcategoryLabel: slot.sub!.name,
+                          ),
+                        )),
+                        child: _subcategoryCircle(
+                          label: slot.sub!.name,
+                          iconUrl: slot.sub!.iconUrl,
+                          slug: slot.sub!.slug,
+                        ),
+                      ),
               )),
               ...List.generate(4 - row.length, (_) => const Expanded(child: SizedBox())),
             ],
@@ -269,12 +230,15 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
     required String label,
     required String? iconUrl,
     required String slug,
+    IconData? customIcon,
   }) {
-    final fallbackIcon = _iconForSlug(slug);
+    final fallbackIcon = customIcon ?? _iconForSlug(slug);
     final localAsset = _kSlugAssets[slug];
 
     Widget iconWidget;
-    if (localAsset != null) {
+    if (customIcon != null) {
+      iconWidget = Icon(customIcon, color: _kBlue, size: 22);
+    } else if (localAsset != null) {
       iconWidget = SvgPicture.asset(
         localAsset,
         width: 26, height: 26, fit: BoxFit.contain,
@@ -603,6 +567,112 @@ class _ClassifiedCard extends StatelessWidget {
       height: 108, color: const Color(0xFFEDEDED),
       child: const Center(
           child: Icon(Icons.grid_view_outlined, color: Colors.grey, size: 34)));
+}
+
+// ── _CircleSlot helper ────────────────────────────────────────────────────────
+class _CircleSlot {
+  final ClassifiedSubcategory? sub;
+  final bool isGroup;
+  final String? groupLabel;
+  final List<ClassifiedSubcategory>? groupItems;
+
+  const _CircleSlot._({this.sub, this.isGroup = false, this.groupLabel, this.groupItems});
+
+  factory _CircleSlot.sub(ClassifiedSubcategory s) =>
+      _CircleSlot._(sub: s);
+
+  factory _CircleSlot.group(String label, List<ClassifiedSubcategory> items) =>
+      _CircleSlot._(isGroup: true, groupLabel: label, groupItems: items);
+}
+
+// ── Books & Sports sub-screen ─────────────────────────────────────────────────
+class _BooksAndSportsScreen extends StatelessWidget {
+  final List<ClassifiedSubcategory> subcategories;
+  const _BooksAndSportsScreen({required this.subcategories});
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = <List<ClassifiedSubcategory>>[];
+    for (int i = 0; i < subcategories.length; i += 4) {
+      rows.add(subcategories.sublist(i, (i + 4).clamp(0, subcategories.length)));
+    }
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: GestureDetector(
+          onTap: () => Navigator.of(context).pop(),
+          child: const Icon(Icons.arrow_back_ios_new, size: 18, color: Colors.black87),
+        ),
+        title: Text(
+          'Books & Sports',
+          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+        child: Column(
+          children: rows.map((row) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 18),
+              child: Row(
+                children: [
+                  ...row.map((s) {
+                    final localAsset = _kSlugAssets[s.slug];
+                    final fallbackIcon = _iconForSlug(s.slug);
+                    Widget iconWidget;
+                    if (localAsset != null) {
+                      iconWidget = SvgPicture.asset(
+                        localAsset, width: 26, height: 26, fit: BoxFit.contain,
+                        placeholderBuilder: (_) => Icon(fallbackIcon, color: _kBlue, size: 22),
+                      );
+                    } else {
+                      iconWidget = Icon(fallbackIcon, color: _kBlue, size: 22);
+                    }
+                    return Expanded(
+                      child: GestureDetector(
+                        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => ClassifiedsListingsScreen(
+                            subcategory: s.slug,
+                            subcategoryLabel: s.name,
+                          ),
+                        )),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 55, height: 55,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                                border: Border.all(color: _kBlue, width: 1.5),
+                              ),
+                              child: Center(child: iconWidget),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              s.name,
+                              maxLines: 2,
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w400),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                  ...List.generate(4 - row.length, (_) => const Expanded(child: SizedBox())),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
 }
 
 class _SellRingPainter extends CustomPainter {
