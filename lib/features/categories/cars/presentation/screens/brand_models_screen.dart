@@ -154,7 +154,7 @@ class _BrandModelsScreenState extends ConsumerState<BrandModelsScreen> {
           ),
           IconButton(
             onPressed: _openSortSheet,
-            icon: const Icon(Icons.swap_vert, color: Colors.black87, size: 20),
+            icon: SvgPicture.asset('assets/icons/bars_sort.svg', width: 20, height: 20),
           ),
           const SizedBox(width: 2),
         ],

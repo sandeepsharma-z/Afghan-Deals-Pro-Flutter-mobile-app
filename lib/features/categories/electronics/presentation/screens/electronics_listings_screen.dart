@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -51,7 +52,7 @@ class _ElectronicsListingsScreenState
         actions: [
           IconButton(
             onPressed: () => _showSortSheet(context),
-            icon: const Icon(Icons.sort, color: Colors.black87),
+            icon: SvgPicture.asset('assets/icons/bars_sort.svg', width: 20, height: 20),
           ),
           Stack(
             children: [

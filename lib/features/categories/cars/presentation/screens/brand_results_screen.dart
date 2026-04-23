@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -200,8 +201,7 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
           ),
           IconButton(
             onPressed: _openSortSheet,
-            icon: const Icon(Icons.swap_vert,
-                color: Colors.black87, size: 20),
+            icon: SvgPicture.asset('assets/icons/bars_sort.svg', width: 20, height: 20),
           ),
           const SizedBox(width: 2),
         ],
