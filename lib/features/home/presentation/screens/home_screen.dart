@@ -69,6 +69,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       name: 'Classifieds',
       slug: 'classifieds',
       icon: Icons.grid_view_outlined,
+      assetPath: 'assets/images/categories/classifieds.png',
     ),
     _CategoryTile(
       name: 'Jobs',
