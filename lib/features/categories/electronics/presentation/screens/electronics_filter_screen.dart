@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../providers/electronics_provider.dart';
 
 const _kBlue = Color(0xFF2258A8);
+const _kMaxPrice = 500000.0;
 
 class ElectronicsFilterScreen extends ConsumerStatefulWidget {
   final String subcategory;
@@ -32,10 +33,22 @@ class _ElectronicsFilterScreenState
 
   late ElectronicsFilter _draft;
 
+  final _brandSearchCtrl = TextEditingController();
+  final _modelSearchCtrl = TextEditingController();
+  String _modelBrand = '';
+
   @override
   void initState() {
     super.initState();
     _draft = ref.read(electronicsFilterProvider);
+    _modelBrand = _draft.brands.isNotEmpty ? _draft.brands.first : '';
+  }
+
+  @override
+  void dispose() {
+    _brandSearchCtrl.dispose();
+    _modelSearchCtrl.dispose();
+    super.dispose();
   }
 
   bool _sectionHasValue(int i) {
@@ -70,7 +83,12 @@ class _ElectronicsFilterScreenState
         actions: [
           TextButton(
             onPressed: () {
-              setState(() => _draft = const ElectronicsFilter());
+              setState(() {
+                _draft = const ElectronicsFilter();
+                _brandSearchCtrl.clear();
+                _modelSearchCtrl.clear();
+                _modelBrand = '';
+              });
               ref.read(electronicsFilterProvider.notifier).state =
                   const ElectronicsFilter();
             },
@@ -227,17 +245,9 @@ class _ElectronicsFilterScreenState
   Widget _buildSectionContent() {
     switch (_selectedSection) {
       case 0:
-        return _checklistSection(ref.watch(electronicsBrandsProvider),
-            selected: _draft.brands,
-            onToggle: (v) => setState(() =>
-                _draft = _draft.copyWith(brands: _toggle(_draft.brands, v))));
+        return _brandSection();
       case 1:
-        return _checklistSection(
-            ref.watch(electronicsModelsProvider(
-                _draft.brands.isNotEmpty ? _draft.brands.first : '')),
-            selected: _draft.models,
-            onToggle: (v) => setState(() =>
-                _draft = _draft.copyWith(models: _toggle(_draft.models, v))));
+        return _modelSection();
       case 2:
         return _checklistSection(ref.watch(electronicsConditionsProvider),
             selected: _draft.conditions,
@@ -267,6 +277,320 @@ class _ElectronicsFilterScreenState
     }
   }
 
+  // ── Brand section with search ────────────────────────────────────────────
+  Widget _brandSection() {
+    return ref.watch(electronicsBrandsProvider).when(
+      loading: () => const Padding(
+        padding: EdgeInsets.all(20),
+        child: Center(child: CircularProgressIndicator(color: _kBlue, strokeWidth: 2)),
+      ),
+      error: (e, _) => Padding(
+        padding: const EdgeInsets.all(14),
+        child: Text('Error: $e', style: GoogleFonts.poppins(fontSize: 12, color: Colors.red)),
+      ),
+      data: (brands) {
+        final query = _brandSearchCtrl.text.toLowerCase();
+        final filtered = query.isEmpty
+            ? brands
+            : brands.where((b) => b.toLowerCase().contains(query)).toList();
+        return Column(
+          children: [
+            // Search bar
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
+              child: TextField(
+                controller: _brandSearchCtrl,
+                onChanged: (_) => setState(() {}),
+                style: GoogleFonts.poppins(fontSize: 12),
+                decoration: InputDecoration(
+                  hintText: 'Search',
+                  hintStyle: GoogleFonts.poppins(fontSize: 12, color: Colors.black38),
+                  prefixIcon: const Icon(Icons.search, size: 16, color: Colors.black45),
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
+                  ),
+                ),
+              ),
+            ),
+            if (filtered.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(14),
+                child: Text('No brands found',
+                    style: GoogleFonts.poppins(fontSize: 12, color: Colors.black45)),
+              )
+            else
+              ...filtered.map((brand) {
+                final isChecked = _draft.brands
+                    .any((b) => b.toLowerCase() == brand.toLowerCase());
+                return _CheckRow(
+                  label: brand,
+                  selected: isChecked,
+                  onTap: () {
+                    final newBrands = _toggle(_draft.brands, brand);
+                    setState(() {
+                      _draft = _draft.copyWith(brands: newBrands);
+                      if (_modelBrand.isEmpty && newBrands.isNotEmpty) {
+                        _modelBrand = newBrands.first;
+                      } else if (newBrands.isEmpty) {
+                        _modelBrand = '';
+                      }
+                    });
+                  },
+                );
+              }),
+          ],
+        );
+      },
+    );
+  }
+
+  // ── Model section with search + brand dropdown ───────────────────────────
+  Widget _modelSection() {
+    final activeBrand = _modelBrand.isNotEmpty
+        ? _modelBrand
+        : (_draft.brands.isNotEmpty ? _draft.brands.first : '');
+
+    return ref.watch(electronicsModelsProvider(activeBrand)).when(
+      loading: () => const Padding(
+        padding: EdgeInsets.all(20),
+        child: Center(child: CircularProgressIndicator(color: _kBlue, strokeWidth: 2)),
+      ),
+      error: (e, _) => Padding(
+        padding: const EdgeInsets.all(14),
+        child: Text('Error: $e', style: GoogleFonts.poppins(fontSize: 12, color: Colors.red)),
+      ),
+      data: (models) {
+        final query = _modelSearchCtrl.text.toLowerCase();
+        final filtered = query.isEmpty
+            ? models
+            : models.where((m) => m.toLowerCase().contains(query)).toList();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Search bar
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
+              child: TextField(
+                controller: _modelSearchCtrl,
+                onChanged: (_) => setState(() {}),
+                style: GoogleFonts.poppins(fontSize: 12),
+                decoration: InputDecoration(
+                  hintText: 'Search',
+                  hintStyle: GoogleFonts.poppins(fontSize: 12, color: Colors.black38),
+                  prefixIcon: const Icon(Icons.search, size: 16, color: Colors.black45),
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
+                  ),
+                ),
+              ),
+            ),
+            // Brand dropdown (only when brands are selected)
+            if (_draft.brands.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 0, 10, 6),
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: const Color(0xFFDDDDDD)),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _modelBrand.isNotEmpty ? _modelBrand : _draft.brands.first,
+                      isExpanded: true,
+                      icon: const Icon(Icons.keyboard_arrow_down, size: 18, color: Colors.black54),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      style: GoogleFonts.poppins(fontSize: 13, color: Colors.black87),
+                      items: _draft.brands
+                          .map((b) => DropdownMenuItem(value: b, child: Text(b)))
+                          .toList(),
+                      onChanged: (v) {
+                        if (v != null) setState(() => _modelBrand = v);
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            if (filtered.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(14),
+                child: Text(
+                  _draft.brands.isEmpty ? 'Select a brand first' : 'No models found',
+                  style: GoogleFonts.poppins(fontSize: 12, color: Colors.black45),
+                ),
+              )
+            else
+              ...filtered.map((model) {
+                final isChecked = _draft.models
+                    .any((m) => m.toLowerCase() == model.toLowerCase());
+                return _CheckRow(
+                  label: model,
+                  selected: isChecked,
+                  onTap: () => setState(() =>
+                      _draft = _draft.copyWith(models: _toggle(_draft.models, model))),
+                );
+              }),
+          ],
+        );
+      },
+    );
+  }
+
+  // ── Price section with vertical slider ───────────────────────────────────
+  Widget _priceSection() {
+    const maxVal = _kMaxPrice;
+    final currentMax = (_draft.maxPrice ?? maxVal).clamp(0.0, maxVal);
+
+    return Padding(
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Vertical slider
+          SizedBox(
+            height: 220,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Price labels
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    _priceLabel('${(maxVal / 1000).toInt()}K+',
+                        isHighlighted: currentMax >= maxVal * 0.9),
+                    _priceLabel('${(maxVal * 0.75 / 1000).toInt()}K',
+                        isHighlighted: currentMax >= maxVal * 0.625 && currentMax < maxVal * 0.9),
+                    _priceLabel('${(maxVal * 0.5 / 1000).toInt()}K',
+                        isHighlighted: currentMax >= maxVal * 0.375 && currentMax < maxVal * 0.625),
+                    _priceLabel('${(maxVal * 0.25 / 1000).toInt()}K',
+                        isHighlighted: currentMax >= maxVal * 0.125 && currentMax < maxVal * 0.375),
+                    _priceLabel('0',
+                        isHighlighted: currentMax < maxVal * 0.125),
+                  ],
+                ),
+                const SizedBox(width: 8),
+                // Vertical slider (rotated horizontal)
+                SizedBox(
+                  width: 36,
+                  child: RotatedBox(
+                    quarterTurns: 3,
+                    child: SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        activeTrackColor: _kBlue,
+                        inactiveTrackColor: const Color(0xFFDDDDDD),
+                        thumbColor: _kBlue,
+                        overlayColor: _kBlue.withValues(alpha: 0.15),
+                        trackHeight: 3,
+                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+                      ),
+                      child: Slider(
+                        value: currentMax,
+                        min: 0,
+                        max: maxVal,
+                        onChanged: (v) => setState(
+                            () => _draft = _draft.copyWith(maxPrice: v == 0 ? null : v)),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          // Max price field
+          TextFormField(
+            key: ValueKey('max_${_draft.maxPrice}'),
+            initialValue: _draft.maxPrice != null
+                ? _draft.maxPrice!.toStringAsFixed(0)
+                : '',
+            keyboardType: TextInputType.number,
+            style: GoogleFonts.poppins(fontSize: 13),
+            decoration: InputDecoration(
+              hintText: 'Max price AFN',
+              hintStyle: GoogleFonts.poppins(fontSize: 13, color: Colors.black38),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            ),
+            onChanged: (v) {
+              final parsed = double.tryParse(v);
+              setState(() => _draft = _draft.copyWith(maxPrice: parsed));
+            },
+          ),
+          const SizedBox(height: 12),
+          // Min price field
+          TextFormField(
+            key: ValueKey('min_${_draft.minPrice}'),
+            initialValue: _draft.minPrice != null
+                ? _draft.minPrice!.toStringAsFixed(0)
+                : '',
+            keyboardType: TextInputType.number,
+            style: GoogleFonts.poppins(fontSize: 13),
+            decoration: InputDecoration(
+              hintText: 'Min price AFN',
+              hintStyle: GoogleFonts.poppins(fontSize: 13, color: Colors.black38),
+              labelText: _draft.minPrice != null ? 'Min price AFN' : null,
+              labelStyle: GoogleFonts.poppins(fontSize: 12, color: Colors.black45),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            ),
+            onChanged: (v) {
+              final parsed = double.tryParse(v);
+              setState(() => _draft = _draft.copyWith(minPrice: parsed));
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _priceLabel(String text, {required bool isHighlighted}) {
+    return Text(
+      text,
+      style: GoogleFonts.poppins(
+        fontSize: 11,
+        fontWeight: isHighlighted ? FontWeight.w600 : FontWeight.w400,
+        color: isHighlighted ? _kBlue : Colors.black45,
+      ),
+    );
+  }
+
+  // ── Region section ────────────────────────────────────────────────────────
+  Widget _regionSection() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: TextFormField(
+        initialValue: _draft.region,
+        decoration: InputDecoration(
+          hintText: 'Search region / city',
+          prefixIcon: const Icon(Icons.location_on_outlined, size: 18),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        ),
+        style: GoogleFonts.poppins(fontSize: 13),
+        onChanged: (v) =>
+            setState(() => _draft = _draft.copyWith(region: v)),
+      ),
+    );
+  }
+
+  // ── Generic checklist section ─────────────────────────────────────────────
   Widget _checklistSection(
     AsyncValue<List<String>> async, {
     required List<String> selected,
@@ -301,71 +625,6 @@ class _ElectronicsFilterScreenState
                 );
               }).toList(),
             ),
-    );
-  }
-
-  Widget _priceSection() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Max Price',
-              style: GoogleFonts.poppins(
-                  fontSize: 13, fontWeight: FontWeight.w500)),
-          const SizedBox(height: 12),
-          TextFormField(
-            initialValue: _draft.maxPrice?.toStringAsFixed(0) ?? '',
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              hintText: 'Max price AFN',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            ),
-            style: GoogleFonts.poppins(fontSize: 13),
-            onChanged: (v) => setState(
-                () => _draft = _draft.copyWith(maxPrice: double.tryParse(v))),
-          ),
-          const SizedBox(height: 16),
-          Text('Min Price',
-              style: GoogleFonts.poppins(
-                  fontSize: 13, fontWeight: FontWeight.w500)),
-          const SizedBox(height: 12),
-          TextFormField(
-            initialValue: _draft.minPrice?.toStringAsFixed(0) ?? '',
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              hintText: 'Min price AFN',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            ),
-            style: GoogleFonts.poppins(fontSize: 13),
-            onChanged: (v) => setState(
-                () => _draft = _draft.copyWith(minPrice: double.tryParse(v))),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _regionSection() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: TextFormField(
-        initialValue: _draft.region,
-        decoration: InputDecoration(
-          hintText: 'Search region / city',
-          prefixIcon: const Icon(Icons.location_on_outlined, size: 18),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        ),
-        style: GoogleFonts.poppins(fontSize: 13),
-        onChanged: (v) =>
-            setState(() => _draft = _draft.copyWith(region: v)),
-      ),
     );
   }
 
