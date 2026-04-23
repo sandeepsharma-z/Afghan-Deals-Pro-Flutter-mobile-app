@@ -206,9 +206,9 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
                       )
                     : GestureDetector(
                         onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => ClassifiedsListingsScreen(
-                            subcategory: slot.sub!.slug,
-                            subcategoryLabel: slot.sub!.name,
+                          builder: (_) => _ClassifiedsCategoryScreen(
+                            title: slot.sub!.name,
+                            slug: slot.sub!.slug,
                           ),
                         )),
                         child: _subcategoryCircle(
@@ -768,9 +768,9 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
                 return Expanded(
                   child: GestureDetector(
                     onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => ClassifiedsListingsScreen(
-                        subcategory: s.slug,
-                        subcategoryLabel: s.name,
+                      builder: (_) => _ClassifiedsCategoryScreen(
+                        title: s.name,
+                        slug: s.slug,
                       ),
                     )),
                     child: Column(
@@ -860,6 +860,228 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
                 fontWeight: FontWeight.w500,
                 color: isSelected ? Colors.white : Colors.black87)),
       ),
+    );
+  }
+
+  Widget _buildSellFab(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context.push(RouteNames.sell),
+      child: SizedBox(
+        width: 58, height: 58,
+        child: CustomPaint(
+          foregroundPainter: _SellRingPainter(),
+          child: Container(
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle, color: Colors.white,
+              boxShadow: [BoxShadow(color: Color(0x25000000), blurRadius: 8, offset: Offset(0, 2))],
+            ),
+            child: const Center(child: Icon(Icons.add, color: _kBlue, size: 28)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomNav(BuildContext context) {
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        boxShadow: [BoxShadow(color: Color(0x28000000), blurRadius: 12, offset: Offset(0, -4))],
+      ),
+      child: BottomAppBar(
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 8,
+        color: Colors.white,
+        elevation: 0,
+        child: SizedBox(
+          height: 66,
+          child: Row(children: [
+            Expanded(child: _navItem(Icons.home_rounded, 'HOME', () => context.go(RouteNames.home))),
+            Expanded(child: _navItem(Icons.chat_bubble_outline, 'CHATS', () => context.go(RouteNames.chats))),
+            Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+              Text('SELL',
+                  style: GoogleFonts.montserrat(
+                      fontSize: 10, fontWeight: FontWeight.w600, color: Colors.black38)),
+              const SizedBox(height: 8),
+            ])),
+            Expanded(child: _navItem(Icons.favorite_border, 'MY ADS', () => context.go(RouteNames.myAds))),
+            Expanded(child: _navItem(Icons.person_outline, 'ACCOUNT', () => context.go(RouteNames.account))),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  Widget _navItem(IconData icon, String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: double.infinity,
+        child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+          Icon(icon, size: 24, color: Colors.black38),
+          const SizedBox(height: 7),
+          Text(label,
+              style: GoogleFonts.montserrat(
+                  fontSize: 10, fontWeight: FontWeight.w700, color: Colors.black38)),
+          const SizedBox(height: 8),
+        ]),
+      ),
+    );
+  }
+}
+
+// ── Single subcategory screen (Men, Women, Bags, etc.) ───────────────────────
+class _ClassifiedsCategoryScreen extends ConsumerStatefulWidget {
+  final String title;
+  final String slug;
+  const _ClassifiedsCategoryScreen({required this.title, required this.slug});
+
+  @override
+  ConsumerState<_ClassifiedsCategoryScreen> createState() => _ClassifiedsCategoryScreenState();
+}
+
+class _ClassifiedsCategoryScreenState extends ConsumerState<_ClassifiedsCategoryScreen> {
+  static const _headerBoxDecoration = BoxDecoration(
+    color: Color(0xFFF6F6F6),
+    borderRadius: BorderRadius.all(Radius.circular(6)),
+    boxShadow: [BoxShadow(color: Color(0x40000000), blurRadius: 4, offset: Offset(0, 1))],
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final listingsAsync = ref.watch(classifiedsFilteredProvider(widget.slug));
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: _buildSellFab(context),
+      bottomNavigationBar: _buildBottomNav(context),
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(context),
+            const SizedBox(height: 12),
+            _buildSearchBar(context),
+            const SizedBox(height: 14),
+            Expanded(
+              child: listingsAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator(color: _kBlue)),
+                error: (e, _) => Center(child: Text('Error: $e')),
+                data: (listings) => _buildBody(listings),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Row(children: [
+        GestureDetector(
+          onTap: () => Navigator.of(context).pop(),
+          child: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black87),
+        ),
+        const SizedBox(width: 10),
+        Text(widget.title,
+            style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600)),
+        const Spacer(),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          decoration: _headerBoxDecoration,
+          child: Row(children: [
+            Image.asset('assets/images/flags/afghanistan.png',
+                width: 22, height: 22, fit: BoxFit.cover),
+            const SizedBox(width: 5),
+            Text('Afghanistan',
+                style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w500)),
+          ]),
+        ),
+        const SizedBox(width: 10),
+        Container(
+            width: 34, height: 34, decoration: _headerBoxDecoration,
+            child: const Center(
+                child: Icon(Icons.notifications_outlined, size: 22, color: Colors.black87))),
+      ]),
+    );
+  }
+
+  Widget _buildSearchBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: Container(
+        height: 40,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFC2C2C2)),
+        ),
+        child: Row(children: [
+          const Icon(Icons.search, size: 16, color: Colors.black87),
+          const SizedBox(width: 8),
+          Expanded(child: Text('Search ${widget.title.toLowerCase()}...',
+              style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400))),
+          const Icon(Icons.tune, size: 16, color: Colors.black54),
+        ]),
+      ),
+    );
+  }
+
+  Widget _buildBody(List<ClassifiedListingModel> listings) {
+    return RefreshIndicator(
+      onRefresh: () async => ref.invalidate(classifiedsFilteredProvider(widget.slug)),
+      child: listings.isEmpty
+          ? const SingleChildScrollView(
+              physics: AlwaysScrollableScrollPhysics(),
+              child: SizedBox(
+                height: 400,
+                child: Center(
+                  child: Text('No listings yet', style: TextStyle(color: Colors.black45)),
+                ),
+              ),
+            )
+          : SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Row(children: [
+                      Text('Top Deals',
+                          style: GoogleFonts.poppins(fontSize: 14.75, fontWeight: FontWeight.w600)),
+                      const Spacer(),
+                      Text('${listings.length} listings',
+                          style: GoogleFonts.poppins(fontSize: 11, color: Colors.black45)),
+                    ]),
+                  ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                        mainAxisExtent: 198,
+                      ),
+                      itemCount: listings.length,
+                      itemBuilder: (_, i) => GestureDetector(
+                        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => ClassifiedsDetailScreen(item: listings[i]),
+                        )),
+                        child: _ClassifiedCard(item: listings[i]),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
     );
   }
 
