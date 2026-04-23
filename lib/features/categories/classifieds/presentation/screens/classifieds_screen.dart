@@ -625,8 +625,9 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
                 error: (e, _) => Center(child: Text('Error: $e')),
                 data: (all) {
                   final slugSet = widget.subcategories.map((s) => s.slug).toSet();
-                  final listings = all.where((l) => slugSet.contains(l.subcategory)).toList();
-                  return _buildBody(listings);
+                  final filtered = all.where((l) => slugSet.contains(l.subcategory)).toList();
+                  // if no subcategory-specific listings, show all classifieds
+                  return _buildBody(filtered.isNotEmpty ? filtered : all);
                 },
               ),
             ),
@@ -949,7 +950,9 @@ class _ClassifiedsCategoryScreenState extends ConsumerState<_ClassifiedsCategory
 
   @override
   Widget build(BuildContext context) {
-    final listingsAsync = ref.watch(classifiedsFilteredProvider(widget.slug));
+    // Try subcategory-specific first, fall back to all classifieds
+    final specificAsync = ref.watch(classifiedsFilteredProvider(widget.slug));
+    final allAsync = ref.watch(classifiedsListingsProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -964,10 +967,18 @@ class _ClassifiedsCategoryScreenState extends ConsumerState<_ClassifiedsCategory
             _buildSearchBar(context),
             const SizedBox(height: 14),
             Expanded(
-              child: listingsAsync.when(
+              child: specificAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator(color: _kBlue)),
                 error: (e, _) => Center(child: Text('Error: $e')),
-                data: (listings) => _buildBody(listings),
+                data: (specific) {
+                  // if subcategory has listings, show them; else show all classifieds
+                  if (specific.isNotEmpty) return _buildBody(specific);
+                  return allAsync.when(
+                    loading: () => const Center(child: CircularProgressIndicator(color: _kBlue)),
+                    error: (e, _) => Center(child: Text('Error: $e')),
+                    data: (all) => _buildBody(all),
+                  );
+                },
               ),
             ),
           ],
@@ -1031,7 +1042,10 @@ class _ClassifiedsCategoryScreenState extends ConsumerState<_ClassifiedsCategory
 
   Widget _buildBody(List<ClassifiedListingModel> listings) {
     return RefreshIndicator(
-      onRefresh: () async => ref.invalidate(classifiedsFilteredProvider(widget.slug)),
+      onRefresh: () async {
+        ref.invalidate(classifiedsFilteredProvider(widget.slug));
+        ref.invalidate(classifiedsListingsProvider);
+      },
       child: listings.isEmpty
           ? const SingleChildScrollView(
               physics: AlwaysScrollableScrollPhysics(),
