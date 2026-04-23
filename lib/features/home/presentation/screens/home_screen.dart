@@ -162,6 +162,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  static const _slugAssets = {
+    'cars':        'assets/images/categories/car.png',
+    'properties':  'assets/images/categories/home.png',
+    'mobiles':     'assets/images/categories/mobile.png',
+    'spare-parts': 'assets/images/categories/spare_parts.png',
+    'spare_parts': 'assets/images/categories/spare_parts.png',
+    'electronics': 'assets/images/categories/appliance.png',
+    'furniture':   'assets/images/categories/furniture.png',
+    'classifieds': 'assets/images/categories/classifieds.png',
+    'jobs':        'assets/images/categories/jobs.png',
+  };
+
   List<_CategoryTile> _mapRemoteCategories(List<HomeCategoryModel> items) {
     return items
         .map(
@@ -170,6 +182,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             slug: item.slug,
             icon: _iconForCategory(item.slug),
             imageUrl: item.imageUrl,
+            assetPath: _slugAssets[item.slug],
           ),
         )
         .toList();
@@ -478,9 +491,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         cat.imageUrl!,
         fit: BoxFit.contain,
         width: double.infinity,
-        errorBuilder: (_, __, ___) => Center(
-          child: Icon(cat.icon, size: 52, color: Colors.grey.shade400),
-        ),
+        errorBuilder: (_, __, ___) => cat.assetPath != null
+            ? Image.asset(cat.assetPath!, fit: BoxFit.contain, width: double.infinity)
+            : Center(child: Icon(cat.icon, size: 52, color: Colors.grey.shade400)),
       );
     }
 
