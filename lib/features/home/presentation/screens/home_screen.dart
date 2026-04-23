@@ -14,6 +14,7 @@ import '../../../categories/spare_parts/presentation/screens/spare_parts_screen.
 import '../../../categories/electronics/presentation/screens/electronics_screen.dart';
 import '../../../categories/furniture/presentation/screens/furniture_screen.dart';
 import '../../../categories/jobs/presentation/screens/jobs_screen.dart';
+import '../../../categories/classifieds/presentation/screens/classifieds_screen.dart';
 import '../providers/home_provider.dart';
 import '../../data/models/home_category_model.dart';
 
@@ -261,6 +262,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (slug == 'jobs') {
       Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => const JobsScreen()),
+      );
+      return;
+    }
+    if (slug == 'classifieds') {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const ClassifiedsScreen()),
       );
       return;
     }

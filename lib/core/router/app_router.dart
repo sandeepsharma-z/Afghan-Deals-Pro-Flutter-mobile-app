@@ -25,6 +25,7 @@ import '../../features/categories/spare_parts/presentation/screens/spare_parts_s
 import '../../features/categories/electronics/presentation/screens/electronics_screen.dart';
 import '../../features/categories/furniture/presentation/screens/furniture_screen.dart';
 import '../../features/categories/jobs/presentation/screens/jobs_screen.dart';
+import '../../features/categories/classifieds/presentation/screens/classifieds_screen.dart';
 import '../../features/sell/presentation/screens/sell_screen.dart';
 import '../../features/sell/presentation/screens/post_ad_screen.dart';
 import '../../features/sell/presentation/screens/post_mobile_screen.dart';
@@ -179,6 +180,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.jobs,
         builder: (context, state) => const JobsScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.classifieds,
+        builder: (context, state) => const ClassifiedsScreen(),
       ),
       GoRoute(
         path: RouteNames.sell,
