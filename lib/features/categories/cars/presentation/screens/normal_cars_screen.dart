@@ -120,7 +120,6 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (e, _) => Center(child: Text('Error: $e')),
                 data: (cars) {
-                  // brands from car_makes table; fallback to listing makes
                   final dbBrands = asyncBrands.valueOrNull ?? [];
                   final brandNames = dbBrands
                       .where((b) => b.isActive)
@@ -129,18 +128,25 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
                       .toList();
                   final filterOptions = ['All', ...brandNames.take(4)];
                   final filtered = _sortCars(_applyFilters(cars));
-                  return RefreshIndicator(
-                    onRefresh: () => ref
-                        .refresh(carListingsProvider(widget.subcategory).future),
-                    child: cars.isEmpty
-                        ? SingleChildScrollView(
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── Sticky: search bar + brand pills ──────────
+                      const SizedBox(height: 16),
+                      _buildSearchBar(cars),
+                      const SizedBox(height: 12),
+                      _buildFilterChips(filterOptions),
+                      const SizedBox(height: 14),
+                      // ── Scrollable: brands grid + cards ───────────
+                      Expanded(
+                        child: RefreshIndicator(
+                          onRefresh: () => ref
+                              .refresh(carListingsProvider(widget.subcategory).future),
+                          child: SingleChildScrollView(
                             physics: const AlwaysScrollableScrollPhysics(),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const SizedBox(height: 16),
-                                _buildSearchBar(cars),
-                                const SizedBox(height: 20),
                                 _BrandsGrid(
                                   brands: dbBrands,
                                   subcategory: widget.subcategory,
@@ -148,55 +154,38 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
                                 const SizedBox(height: 20),
                                 _buildTopDealsHeader(),
                                 const SizedBox(height: 12),
-                                _buildFilterChips(filterOptions),
-                                const SizedBox(height: 24),
-                                const SizedBox(
-                                  height: 320,
-                                  child: Center(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(Icons.directions_car_outlined,
-                                            size: 64, color: Color(0xFFCCCCCC)),
-                                        SizedBox(height: 12),
-                                        Text('No listings yet',
-                                            style: TextStyle(
-                                                fontSize: 15,
-                                                color: Colors.black45)),
-                                        SizedBox(height: 4),
-                                        Text('Add listings from admin dashboard',
-                                            style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.black38)),
-                                      ],
+                                if (cars.isEmpty)
+                                  const SizedBox(
+                                    height: 320,
+                                    child: Center(
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.directions_car_outlined,
+                                              size: 64, color: Color(0xFFCCCCCC)),
+                                          SizedBox(height: 12),
+                                          Text('No listings yet',
+                                              style: TextStyle(
+                                                  fontSize: 15,
+                                                  color: Colors.black45)),
+                                          SizedBox(height: 4),
+                                          Text('Add listings from admin dashboard',
+                                              style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.black38)),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : SingleChildScrollView(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 16),
-                                _buildSearchBar(cars),
-                                const SizedBox(height: 20),
-                                _BrandsGrid(
-                                  brands: dbBrands,
-                                  subcategory: widget.subcategory,
-                                ),
-                                const SizedBox(height: 20),
-                                _buildTopDealsHeader(),
-                                const SizedBox(height: 12),
-                                _buildFilterChips(filterOptions),
-                                const SizedBox(height: 14),
-                                _buildCarsGrid(filtered),
+                                  )
+                                else
+                                  _buildCarsGrid(filtered),
                                 const SizedBox(height: 20),
                               ],
                             ),
                           ),
+                        ),
+                      ),
+                    ],
                   );
                 },
               ),
