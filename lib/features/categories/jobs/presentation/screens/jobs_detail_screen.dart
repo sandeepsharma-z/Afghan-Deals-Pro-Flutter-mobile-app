@@ -140,10 +140,10 @@ class _JobsDetailScreenState extends State<JobsDetailScreen> {
       onTap: onTap,
       child: Container(
         width: 36, height: 36,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
           shape: BoxShape.circle,
-          boxShadow: const [BoxShadow(color: Color(0x30000000), blurRadius: 4)],
+          boxShadow: [BoxShadow(color: Color(0x30000000), blurRadius: 4)],
         ),
         child: Icon(icon, size: 18, color: color),
       ),

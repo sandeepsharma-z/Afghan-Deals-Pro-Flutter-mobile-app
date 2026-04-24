@@ -33,8 +33,12 @@ class _AdminPriceSettingsScreenState
 
   @override
   void dispose() {
-    for (final c in _maxCtrls.values) c.dispose();
-    for (final c in _minCtrls.values) c.dispose();
+    for (final c in _maxCtrls.values) {
+      c.dispose();
+    }
+    for (final c in _minCtrls.values) {
+      c.dispose();
+    }
     super.dispose();
   }
 
