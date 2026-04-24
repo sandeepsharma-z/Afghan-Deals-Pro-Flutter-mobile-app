@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../../features/listings/data/models/electronics_listing_model.dart';
+import '../../../../admin/presentation/providers/admin_dynamic_provider.dart';
 
 // ── Subcategory model (fetched from Supabase) ──────────────────────────────
 class ElectronicsSubcategory {
@@ -259,36 +260,46 @@ final electronicsModelsProvider =
     ..sort();
 });
 
-/// Conditions from listings (with static fallback)
+/// Conditions — admin table → listings → static fallback
 final electronicsConditionsProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
-  final dynamic = await _distinctField('condition');
-  if (dynamic.isNotEmpty) return dynamic;
+  final admin = await fetchAdminFilterOptions('electronics', 'condition');
+  if (admin.isNotEmpty) return admin;
+  final fromListings = await _distinctField('condition');
+  if (fromListings.isNotEmpty) return fromListings;
   return const ['Flawless', 'Excellent', 'Good', 'Average', 'Poor'];
 });
 
-/// Ages from listings (with static fallback)
+/// Ages — admin table → listings → static fallback
 final electronicsAgesProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
-  final dynamic = await _distinctField('age');
-  if (dynamic.isNotEmpty) return dynamic;
+  final admin = await fetchAdminFilterOptions('electronics', 'age');
+  if (admin.isNotEmpty) return admin;
+  final fromListings = await _distinctField('age');
+  if (fromListings.isNotEmpty) return fromListings;
   return const [
     'Brand New', '0-1 month', '1-6 months', '6-12 months',
     '1-2 years', '2-5 years', '5-10 years', '10+ years',
   ];
 });
 
+/// Warranties — admin table → listings → static fallback
 final electronicsWarrantiesProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
-  final dynamic = await _distinctField('warranty');
-  if (dynamic.isNotEmpty) return dynamic;
+  final admin = await fetchAdminFilterOptions('electronics', 'warranty');
+  if (admin.isNotEmpty) return admin;
+  final fromListings = await _distinctField('warranty');
+  if (fromListings.isNotEmpty) return fromListings;
   return const ['Yes', 'No', 'Does not apply'];
 });
 
+/// Seller Types — admin table → listings → static fallback
 final electronicsSellerTypesProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
-  final dynamic = await _distinctField('seller_type');
-  if (dynamic.isNotEmpty) return dynamic;
+  final admin = await fetchAdminFilterOptions('electronics', 'seller_type');
+  if (admin.isNotEmpty) return admin;
+  final fromListings = await _distinctField('seller_type');
+  if (fromListings.isNotEmpty) return fromListings;
   return const ['All Sellers', 'Individuals', 'Businesses'];
 });
 

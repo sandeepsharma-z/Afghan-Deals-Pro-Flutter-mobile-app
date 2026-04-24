@@ -83,66 +83,56 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
         ),
       ),
       bottomNavigationBar: _buildApplyBar(),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ── Left panel ──────────────────────────────────────────
-                  Expanded(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxHeight: MediaQuery.of(context).size.height -
-                            MediaQuery.of(context).padding.top -
-                            MediaQuery.of(context).padding.bottom - 210,
-                      ),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF3F4F6),
-                          borderRadius: BorderRadius.circular(22),
-                          border: Border.all(color: const Color(0xFFD0D0D0), width: 1),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: SingleChildScrollView(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: List.generate(_kSections.length, _buildLeftItem),
-                          ),
-                        ),
-                      ),
+      body: Builder(builder: (context) {
+        final panelH = (MediaQuery.of(context).size.height -
+                MediaQuery.of(context).padding.top -
+                MediaQuery.of(context).padding.bottom - 210)
+            .clamp(200.0, double.infinity);
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Left panel ──────────────────────────────────────────
+              SizedBox(
+                width: (MediaQuery.of(context).size.width - 34) / 2,
+                height: panelH,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF3F4F6),
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: const Color(0xFFD0D0D0), width: 1),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(_kSections.length, _buildLeftItem),
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  // ── Right panel ─────────────────────────────────────────
-                  Expanded(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxHeight: MediaQuery.of(context).size.height -
-                            MediaQuery.of(context).padding.top -
-                            MediaQuery.of(context).padding.bottom - 210,
-                      ),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(9),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: SingleChildScrollView(
-                          child: _buildSectionContent(),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
+              const SizedBox(width: 10),
+              // ── Right panel ─────────────────────────────────────────
+              Expanded(
+                child: SizedBox(
+                  height: panelH,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(9),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: SingleChildScrollView(
+                      child: _buildSectionContent(),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
     );
   }
 

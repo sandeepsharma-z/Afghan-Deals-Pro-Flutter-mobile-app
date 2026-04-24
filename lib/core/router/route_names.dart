@@ -24,8 +24,14 @@ class RouteNames {
   static const postCar = '/post-car';
   static const postProperty = '/post-property';
 
+  // Admin
   static const adminChats = '/admin-chats';
   static const adminClassifieds = '/admin-classifieds';
+  static const adminDashboard = '/admin-dashboard';
+  static const adminFilterOptions = '/admin-filter-options';
+  static const adminRegions = '/admin-regions';
+  static const adminPriceSettings = '/admin-price-settings';
+  static const adminSubcategories = '/admin-subcategories';
 
   // Category screens
   static const cars = '/cars';

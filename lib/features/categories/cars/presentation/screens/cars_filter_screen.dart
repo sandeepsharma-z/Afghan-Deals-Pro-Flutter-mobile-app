@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../../../../../features/admin/presentation/providers/admin_dynamic_provider.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -138,14 +141,14 @@ extension _CatX on _Cat {
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 
-class CarsFilterScreen extends StatefulWidget {
+class CarsFilterScreen extends ConsumerStatefulWidget {
   const CarsFilterScreen({super.key});
 
   @override
-  State<CarsFilterScreen> createState() => _CarsFilterScreenState();
+  ConsumerState<CarsFilterScreen> createState() => _CarsFilterScreenState();
 }
 
-class _CarsFilterScreenState extends State<CarsFilterScreen> {
+class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
   _Cat _active = _Cat.make;
 
   final Set<String> _makes         = {};
@@ -260,29 +263,28 @@ class _CarsFilterScreenState extends State<CarsFilterScreen> {
         ),
       ),
       bottomNavigationBar: _buildApplyBar(),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── Left panel ──────────────────────────────────────
-                Expanded(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxHeight: MediaQuery.of(context).size.height -
-                          MediaQuery.of(context).padding.top -
-                          MediaQuery.of(context).padding.bottom - 210,
-                    ),
+      body: Builder(builder: (context) {
+        final panelH = (MediaQuery.of(context).size.height -
+                MediaQuery.of(context).padding.top -
+                MediaQuery.of(context).padding.bottom - 210)
+            .clamp(200.0, double.infinity);
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ── Left panel ──────────────────────────────────────
+                  SizedBox(
+                    width: (MediaQuery.of(context).size.width - 34) / 2,
+                    height: panelH,
                     child: Container(
                       decoration: BoxDecoration(
                         color: const Color(0xFFF3F4F6),
                         borderRadius: BorderRadius.circular(22),
-                        border: Border.all(
-                            color: const Color(0xFFD0D0D0), width: 1),
+                        border: Border.all(color: const Color(0xFFD0D0D0), width: 1),
                       ),
                       clipBehavior: Clip.antiAlias,
                       child: SingleChildScrollView(
@@ -293,39 +295,43 @@ class _CarsFilterScreenState extends State<CarsFilterScreen> {
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                // ── Right panel ─────────────────────────────────────
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(9),
+                  const SizedBox(width: 10),
+                  // ── Right panel ─────────────────────────────────────
+                  Expanded(
+                    child: SizedBox(
+                      height: panelH,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(9),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: SingleChildScrollView(
+                          child: _buildRight(),
+                        ),
+                      ),
                     ),
-                    clipBehavior: Clip.antiAlias,
-                    child: _buildRight(),
+                  ),
+                ],
+              ),
+              if (_active == _Cat.city && _regions.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Text(
+                    'Select Region First!',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        height: 1.0,
+                        letterSpacing: 0,
+                        color: const Color(0xFFC92325)),
                   ),
                 ),
-              ],
-            ),
-            ),
-            if (_active == _Cat.city && _regions.isEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: Text(
-                  'Select Region First!',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                      height: 1.0,
-                      letterSpacing: 0,
-                      color: const Color(0xFFC92325)),
-                ),
-              ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      }),
     );
   }
 
@@ -481,8 +487,12 @@ class _CarsFilterScreenState extends State<CarsFilterScreen> {
         return _buildColorList(_intColors, _interiorColorMap);
 
       case _Cat.region:
+        final regionsData = ref.watch(allRegionsProvider);
+        final regionNames = regionsData.valueOrNull
+            ?.map((r) => r.regionName)
+            .toList() ?? _regionList;
         return _buildCheckList(
-          items: _regionList.where((r) =>
+          items: regionNames.where((r) =>
               r.toLowerCase().contains(_regionSearch.toLowerCase())).toList(),
           selected: _regions,
           showSearch: true,
@@ -493,8 +503,12 @@ class _CarsFilterScreenState extends State<CarsFilterScreen> {
 
       case _Cat.city:
         if (_regions.isEmpty) return const SizedBox.shrink();
+        final regionsForCity = ref.watch(allRegionsProvider);
+        final cityMap = regionsForCity.valueOrNull != null
+            ? {for (final r in regionsForCity.valueOrNull!) r.regionName: r.cities}
+            : _cityMap;
         final cityItems = _regions
-            .expand((r) => _cityMap[r] ?? <String>[])
+            .expand((r) => cityMap[r] ?? <String>[])
             .where((c) => c.toLowerCase().contains(_citySearch.toLowerCase()))
             .toList();
         return _buildCheckList(

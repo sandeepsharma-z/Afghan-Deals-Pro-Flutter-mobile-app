@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../../features/listings/data/models/furniture_listing_model.dart';
+import '../../../../admin/presentation/providers/admin_dynamic_provider.dart';
 
 // ── Subcategory model ──────────────────────────────────────────────────────
 class FurnitureSubcategory {
@@ -293,15 +294,19 @@ final furnitureBrandsProvider =
 
 final furnitureConditionsProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
-  final dynamic = await _distinctFurnitureField('condition');
-  if (dynamic.isNotEmpty) return dynamic;
+  final admin = await fetchAdminFilterOptions('furniture', 'condition');
+  if (admin.isNotEmpty) return admin;
+  final fromListings = await _distinctFurnitureField('condition');
+  if (fromListings.isNotEmpty) return fromListings;
   return const ['Flawless', 'Excellent', 'Good', 'Average', 'Poor'];
 });
 
 final furnitureAgesProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
-  final dynamic = await _distinctFurnitureField('age');
-  if (dynamic.isNotEmpty) return dynamic;
+  final admin = await fetchAdminFilterOptions('furniture', 'age');
+  if (admin.isNotEmpty) return admin;
+  final fromListings = await _distinctFurnitureField('age');
+  if (fromListings.isNotEmpty) return fromListings;
   return const [
     'Brand New', '0-1 month', '1-6 months', '6-12 months',
     '1-2 years', '2-5 years', '5-10 years', '10+ years',
@@ -310,22 +315,28 @@ final furnitureAgesProvider =
 
 final furnitureUsagesProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
-  final dynamic = await _distinctFurnitureField('usage');
-  if (dynamic.isNotEmpty) return dynamic;
+  final admin = await fetchAdminFilterOptions('furniture', 'usage');
+  if (admin.isNotEmpty) return admin;
+  final fromListings = await _distinctFurnitureField('usage');
+  if (fromListings.isNotEmpty) return fromListings;
   return const ['Never Used', 'Used Once', 'Light Usage', 'Normal Usage', 'Heavy Usage'];
 });
 
 final furnitureRoomTypesProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
-  final dynamic = await _distinctFurnitureField('room_type');
-  if (dynamic.isNotEmpty) return dynamic;
+  final admin = await fetchAdminFilterOptions('furniture', 'room_type');
+  if (admin.isNotEmpty) return admin;
+  final fromListings = await _distinctFurnitureField('room_type');
+  if (fromListings.isNotEmpty) return fromListings;
   return const ['Living Room', 'Bedroom', 'Dining Room', 'Kids Room', 'Office', 'Outdoor', 'Private Room', 'Bed Space'];
 });
 
 final furnitureItemShapesProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
-  final dynamic = await _distinctFurnitureField('item_shape');
-  if (dynamic.isNotEmpty) return dynamic;
+  final admin = await fetchAdminFilterOptions('furniture', 'item_shape');
+  if (admin.isNotEmpty) return admin;
+  final fromListings = await _distinctFurnitureField('item_shape');
+  if (fromListings.isNotEmpty) return fromListings;
   return const [
     'A-Shape', 'Conical', 'Cubical', 'Diamond', 'Hexagonal',
     'L-Shape', 'Oblong', 'Octagonal', 'Other', 'Oval',
@@ -335,8 +346,10 @@ final furnitureItemShapesProvider =
 
 final furnitureFillMaterialsProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
-  final dynamic = await _distinctFurnitureField('fill_material');
-  if (dynamic.isNotEmpty) return dynamic;
+  final admin = await fetchAdminFilterOptions('furniture', 'fill_material');
+  if (admin.isNotEmpty) return admin;
+  final fromListings = await _distinctFurnitureField('fill_material');
+  if (fromListings.isNotEmpty) return fromListings;
   return const [
     'Cotton', 'Feather', 'Fibre', 'Foam', 'High Density Foam',
     'Memory Foam', 'Polyester', 'Polyurethane Foam', 'Others',
@@ -345,8 +358,10 @@ final furnitureFillMaterialsProvider =
 
 final furnitureColorsProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
-  final dynamic = await _distinctFurnitureField('color');
-  if (dynamic.isNotEmpty) return dynamic;
+  final admin = await fetchAdminFilterOptions('furniture', 'color');
+  if (admin.isNotEmpty) return admin;
+  final fromListings = await _distinctFurnitureField('color');
+  if (fromListings.isNotEmpty) return fromListings;
   return const [
     'White', 'Silver', 'Grey', 'Black', 'Red', 'Gold',
     'Orange', 'Blue', 'Beige', 'Yellow', 'Purple', 'Cement',
@@ -356,15 +371,19 @@ final furnitureColorsProvider =
 
 final furnitureShapesProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
-  final dynamic = await _distinctFurnitureField('shape');
-  if (dynamic.isNotEmpty) return dynamic;
+  final admin = await fetchAdminFilterOptions('furniture', 'shape');
+  if (admin.isNotEmpty) return admin;
+  final fromListings = await _distinctFurnitureField('shape');
+  if (fromListings.isNotEmpty) return fromListings;
   return const ['Corner', 'Free Shape', 'L-Shape', 'Modular', 'Square', 'Standard', 'U-Shape', 'Others'];
 });
 
 final furnitureTypesProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
-  final dynamic = await _distinctFurnitureField('type');
-  if (dynamic.isNotEmpty) return dynamic;
+  final admin = await fetchAdminFilterOptions('furniture', 'type');
+  if (admin.isNotEmpty) return admin;
+  final fromListings = await _distinctFurnitureField('type');
+  if (fromListings.isNotEmpty) return fromListings;
   return const [
     'Convertible', 'Futon', 'Loveseat', 'Sectional',
     'Sleeper', 'Sofa Bed', 'Sofa Chaise', 'Standard', 'Others',
@@ -373,14 +392,18 @@ final furnitureTypesProvider =
 
 final furnitureMaterialsProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
-  final dynamic = await _distinctFurnitureField('material');
-  if (dynamic.isNotEmpty) return dynamic;
+  final admin = await fetchAdminFilterOptions('furniture', 'material');
+  if (admin.isNotEmpty) return admin;
+  final fromListings = await _distinctFurnitureField('material');
+  if (fromListings.isNotEmpty) return fromListings;
   return const ['Coated Fabric', 'Fabric', 'Leather', 'Metal', 'Plastic', 'Rattan', 'Solid Wood', 'Others'];
 });
 
 final furnitureSellerTypesProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
-  final dynamic = await _distinctFurnitureField('seller_type');
-  if (dynamic.isNotEmpty) return dynamic;
+  final admin = await fetchAdminFilterOptions('furniture', 'seller_type');
+  if (admin.isNotEmpty) return admin;
+  final fromListings = await _distinctFurnitureField('seller_type');
+  if (fromListings.isNotEmpty) return fromListings;
   return const ['All Sellers', 'Individuals', 'Businesses'];
 });

@@ -33,6 +33,10 @@ import '../../features/sell/presentation/screens/post_car_screen.dart';
 import '../../features/sell/presentation/screens/post_property_screen.dart';
 import '../../features/admin/presentation/screens/admin_chats_screen.dart';
 import '../../features/admin/presentation/screens/admin_classifieds_screen.dart';
+import '../../features/admin/presentation/screens/admin_dashboard_screen.dart';
+import '../../features/admin/presentation/screens/admin_filter_options_screen.dart';
+import '../../features/admin/presentation/screens/admin_regions_screen.dart';
+import '../../features/admin/presentation/screens/admin_price_settings_screen.dart';
 import '../../features/profile/presentation/screens/my_ads_screen.dart';
 import 'route_names.dart';
 
@@ -215,6 +219,26 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: RouteNames.adminClassifieds,
+        builder: (context, state) => const AdminClassifiedsScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.adminDashboard,
+        builder: (context, state) => const AdminDashboardScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.adminFilterOptions,
+        builder: (context, state) => const AdminFilterOptionsScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.adminRegions,
+        builder: (context, state) => const AdminRegionsScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.adminPriceSettings,
+        builder: (context, state) => const AdminPriceSettingsScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.adminSubcategories,
         builder: (context, state) => const AdminClassifiedsScreen(),
       ),
       GoRoute(

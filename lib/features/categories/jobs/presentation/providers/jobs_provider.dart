@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../../features/listings/data/models/jobs_listing_model.dart';
+import '../../../../admin/presentation/providers/admin_dynamic_provider.dart';
 
 // ── Subcategory model ──────────────────────────────────────────────────────
 class JobsSubcategory {
@@ -225,15 +226,19 @@ Future<List<String>> _distinctJobsField(String field) async {
 
 final jobsTypesProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
-  final dynamic = await _distinctJobsField('job_type');
-  if (dynamic.isNotEmpty) return dynamic;
+  final admin = await fetchAdminFilterOptions('jobs', 'job_type');
+  if (admin.isNotEmpty) return admin;
+  final fromListings = await _distinctJobsField('job_type');
+  if (fromListings.isNotEmpty) return fromListings;
   return const ['Full-time', 'Part-time', 'Contract', 'Freelance', 'Internship', 'Remote'];
 });
 
 final jobsExperiencesProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
-  final dynamic = await _distinctJobsField('experience');
-  if (dynamic.isNotEmpty) return dynamic;
+  final admin = await fetchAdminFilterOptions('jobs', 'experience');
+  if (admin.isNotEmpty) return admin;
+  final fromListings = await _distinctJobsField('experience');
+  if (fromListings.isNotEmpty) return fromListings;
   return const [
     'No Experience', 'Less than 1 year', '1-2 years',
     '2-5 years', '5-10 years', '10+ years',
@@ -242,8 +247,10 @@ final jobsExperiencesProvider =
 
 final jobsIndustriesProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
-  final dynamic = await _distinctJobsField('industry');
-  if (dynamic.isNotEmpty) return dynamic;
+  final admin = await fetchAdminFilterOptions('jobs', 'industry');
+  if (admin.isNotEmpty) return admin;
+  final fromListings = await _distinctJobsField('industry');
+  if (fromListings.isNotEmpty) return fromListings;
   return const [
     'Technology', 'Education', 'Healthcare', 'Finance & Accounting',
     'Sales & Marketing', 'Construction', 'Transportation', 'Hospitality',
@@ -253,8 +260,10 @@ final jobsIndustriesProvider =
 
 final jobsEducationsProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
-  final dynamic = await _distinctJobsField('education');
-  if (dynamic.isNotEmpty) return dynamic;
+  final admin = await fetchAdminFilterOptions('jobs', 'education');
+  if (admin.isNotEmpty) return admin;
+  final fromListings = await _distinctJobsField('education');
+  if (fromListings.isNotEmpty) return fromListings;
   return const [
     'High School', 'Diploma', "Bachelor's Degree",
     "Master's Degree", 'PhD', 'Any',
@@ -263,7 +272,9 @@ final jobsEducationsProvider =
 
 final jobsSellerTypesProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
-  final dynamic = await _distinctJobsField('seller_type');
-  if (dynamic.isNotEmpty) return dynamic;
+  final admin = await fetchAdminFilterOptions('jobs', 'seller_type');
+  if (admin.isNotEmpty) return admin;
+  final fromListings = await _distinctJobsField('seller_type');
+  if (fromListings.isNotEmpty) return fromListings;
   return const ['All', 'Individual', 'Company'];
 });
