@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../../features/admin/presentation/providers/admin_dynamic_provider.dart';
+import '../providers/car_filter_provider.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -420,8 +421,9 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
   Widget _buildRight() {
     switch (_active) {
       case _Cat.make:
+        final allMakes = ref.watch(carMakesProvider).valueOrNull ?? _makeList;
         return _buildCheckList(
-          items: _makeList.where((m) =>
+          items: allMakes.where((m) =>
               m.toLowerCase().contains(_makeSearch.toLowerCase())).toList(),
           selected: _makes,
           showSearch: true,
@@ -442,36 +444,51 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
         return _buildSubModelPanel();
 
       case _Cat.dealType:
+        final dealItems = ref.watch(carDealTypesProvider).valueOrNull;
         return _buildCheckList(
-          items: ['Sale Only', 'Sale or Exchange', 'Exchange Only'],
+          items: (dealItems?.isNotEmpty == true)
+              ? dealItems!
+              : ['Sale Only', 'Sale or Exchange', 'Exchange Only'],
           selected: _dealTypes,
           fontSize: 12,
         );
 
       case _Cat.transmission:
+        final txItems = ref.watch(carTransmissionsProvider).valueOrNull;
         return _buildCheckList(
-          items: ['Automatic', 'Manual'],
+          items: (txItems?.isNotEmpty == true)
+              ? txItems!
+              : ['Automatic', 'Manual'],
           selected: _transmissions,
           fontSize: 12,
         );
 
       case _Cat.driveline:
+        final dlItems = ref.watch(carDrivelinesProvider).valueOrNull;
         return _buildCheckList(
-          items: ['Front', 'Rear', '4X4'],
+          items: (dlItems?.isNotEmpty == true)
+              ? dlItems!
+              : ['Front', 'Rear', '4X4'],
           selected: _driveLines,
           fontSize: 12,
         );
 
       case _Cat.fuelType:
+        final ftItems = ref.watch(carFuelTypesProvider).valueOrNull;
         return _buildCheckList(
-          items: ['Petrol', 'Hybrid', 'Diesel', 'Electric'],
+          items: (ftItems?.isNotEmpty == true)
+              ? ftItems!
+              : ['Petrol', 'Hybrid', 'Diesel', 'Electric'],
           selected: _fuelTypes,
           fontSize: 12,
         );
 
       case _Cat.cylinders:
+        final cylItems = ref.watch(carCylindersProvider).valueOrNull;
         return _buildCheckList(
-          items: ['2', '3', '4', '6', '8', '10', '12'],
+          items: (cylItems?.isNotEmpty == true)
+              ? cylItems!
+              : ['2', '3', '4', '6', '8', '10', '12'],
           selected: _cylinders,
           fontSize: 12,
         );
@@ -480,10 +497,14 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
         return _buildPriceRange();
 
       case _Cat.exteriorColor:
-        return _buildColorList(_extColors, _exteriorColorMap);
+        final dbExtColors = ref.watch(carColorsProvider).valueOrNull;
+        return _buildColorList(_extColors,
+            _buildColorMap(dbExtColors, _exteriorColorMap));
 
       case _Cat.interiorColor:
-        return _buildColorList(_intColors, _interiorColorMap);
+        final dbIntColors = ref.watch(carColorsProvider).valueOrNull;
+        return _buildColorList(_intColors,
+            _buildColorMap(dbIntColors, _interiorColorMap));
 
       case _Cat.region:
         final regionsData = ref.watch(allRegionsProvider);
@@ -560,7 +581,10 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
 
   Widget _buildModelPanel() {
     final activeMake = _makes.isNotEmpty ? _makes.first : _modelMake;
-    final models = (_modelMap[activeMake] ?? [])
+    final allMakesForModel = ref.watch(carMakesProvider).valueOrNull ?? _makeList;
+    final allModels = ref.watch(carModelsForMakeProvider(activeMake)).valueOrNull
+        ?? (_modelMap[activeMake] ?? []);
+    final models = allModels
         .where((m) => m.toLowerCase().contains(_modelSearch.toLowerCase()))
         .toList();
 
@@ -626,7 +650,7 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
                 child: ListView(
                   padding: EdgeInsets.zero,
                   shrinkWrap: true,
-                  children: _makeList.map((m) => InkWell(
+                  children: allMakesForModel.map((m) => InkWell(
                     onTap: () => setState(() {
                       _modelMake = m;
                       _modelDropOpen = false;
@@ -654,6 +678,7 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
 
   Widget _buildSubModelPanel() {
     final activeMake = _makes.isNotEmpty ? _makes.first : _subModelMake;
+    final allMakesForSubModel = ref.watch(carMakesProvider).valueOrNull ?? _makeList;
     final groups = _subModelMap[activeMake] ?? {};
     final allEntries = groups.entries.toList();
 
@@ -767,7 +792,7 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
                 child: ListView(
                   padding: EdgeInsets.zero,
                   shrinkWrap: true,
-                  children: _makeList.map((m) => InkWell(
+                  children: allMakesForSubModel.map((m) => InkWell(
                     onTap: () => setState(() {
                       _subModelMake = m;
                       _subModelDropOpen = false;
@@ -1085,6 +1110,15 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
         ),
       ),
     );
+  }
+
+  // ── Color map builder ──────────────────────────────────────────────────────
+
+  Map<String, Color> _buildColorMap(
+      List<String>? dbColors, Map<String, Color> staticMap) {
+    if (dbColors == null || dbColors.isEmpty) return staticMap;
+    const fallback = Color(0xFF9E9E9E);
+    return {for (final c in dbColors) c: staticMap[c] ?? fallback};
   }
 
   // ── Color list ─────────────────────────────────────────────────────────────
