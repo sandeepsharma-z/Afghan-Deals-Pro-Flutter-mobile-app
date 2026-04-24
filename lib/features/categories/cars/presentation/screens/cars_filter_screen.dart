@@ -306,9 +306,7 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
                           borderRadius: BorderRadius.circular(9),
                         ),
                         clipBehavior: Clip.antiAlias,
-                        child: SingleChildScrollView(
-                          child: _buildRight(),
-                        ),
+                        child: _buildRight(),
                       ),
                     ),
                   ),
