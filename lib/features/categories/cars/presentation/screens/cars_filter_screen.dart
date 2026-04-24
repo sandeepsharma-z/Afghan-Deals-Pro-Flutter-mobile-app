@@ -273,33 +273,34 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ── Left panel ──────────────────────────────────────
-                  SizedBox(
-                    width: (MediaQuery.of(context).size.width - 34) / 2,
-                    height: panelH,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF3F4F6),
-                        borderRadius: BorderRadius.circular(22),
-                        border: Border.all(color: const Color(0xFFD0D0D0), width: 1),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: _Cat.values.map(_buildLeftItem).toList(),
+              // SizedBox gives the Row a tight height so Expanded(ListView)
+              // inside _buildRight() receives tight constraints and renders.
+              SizedBox(
+                height: panelH,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // ── Left panel ──────────────────────────────────────
+                    SizedBox(
+                      width: (MediaQuery.of(context).size.width - 34) / 2,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3F4F6),
+                          borderRadius: BorderRadius.circular(22),
+                          border: Border.all(color: const Color(0xFFD0D0D0), width: 1),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: _Cat.values.map(_buildLeftItem).toList(),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  // ── Right panel ─────────────────────────────────────
-                  Expanded(
-                    child: SizedBox(
-                      height: panelH,
+                    const SizedBox(width: 10),
+                    // ── Right panel ─────────────────────────────────────
+                    Expanded(
                       child: Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -309,8 +310,8 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
                         child: _buildRight(),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               if (_active == _Cat.city && _regions.isEmpty)
                 Padding(
