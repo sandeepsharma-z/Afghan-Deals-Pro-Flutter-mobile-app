@@ -87,23 +87,8 @@ class _MyAdsScreenState extends ConsumerState<MyAdsScreen> {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      try {
-                        if (mounted && Navigator.of(context).canPop()) {
-                          Navigator.of(context).pop();
-                        } else if (mounted) {
-                          // If can't pop from navigator, exit the app
-                          Navigator.of(context).pop();
-                        }
-                      } catch (e) {
-                        debugPrint('Back navigation error: $e');
-                        // Try to navigate away using the router
-                        if (mounted) {
-                          try {
-                            Navigator.of(context).maybePop();
-                          } catch (e2) {
-                            debugPrint('Fallback navigation failed: $e2');
-                          }
-                        }
+                      if (mounted) {
+                        Navigator.of(context).maybePop();
                       }
                     },
                     child: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black87),
