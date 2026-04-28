@@ -145,7 +145,7 @@ class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
     return Stack(
       children: [
         SizedBox(
-          height: 312,
+          height: 280,
           child: images.isEmpty
               ? Container(
                   color: const Color(0xFFEDEDED),
