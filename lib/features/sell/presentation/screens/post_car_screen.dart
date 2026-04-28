@@ -97,16 +97,17 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
   final _modelCtrl   = TextEditingController();
   final _cityCtrl    = TextEditingController();
 
-  String    _subcategory  = '';
-  String    _make         = '';
-  String    _model        = '';
-  String    _year         = '';
-  String    _transmission = '';
-  String    _fuelType     = '';
-  String    _bodyType     = '';
-  String    _condition    = '';
-  String    _color        = '';
-  String    _sellerType   = 'Individual';
+  String    _subcategory     = '';
+  String    _rentalDuration = '';
+  String    _make          = '';
+  String    _model         = '';
+  String    _year          = '';
+  String    _transmission  = '';
+  String    _fuelType      = '';
+  String    _bodyType      = '';
+  String    _condition     = '';
+  String    _color         = '';
+  String    _sellerType    = 'Individual';
 
   String    _currency     = 'AFN';
   _Country  _country      = _kCountries.first;
@@ -136,6 +137,7 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_condition.isEmpty) { _showError('Please select condition'); return; }
+    if (_subcategory.toLowerCase().contains('rental') && _rentalDuration.isEmpty) { _showError('Please select rental duration'); return; }
 
     await ref.read(sellProvider.notifier).createListing(
       category: 'cars',
@@ -149,16 +151,17 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
         'subcategory': _normalizeSubcategory(_subcategory),
       },
       categoryData: {
-        'make':         _make,
-        'model':        _model,
-        'year':         _year,
-        'mileage':      _mileageCtrl.text.trim(),
-        'transmission': _transmission,
-        'fuel_type':    _fuelType,
-        'body_type':    _bodyType,
-        'condition':    _condition,
-        'color':        _color,
-        'seller_type':  _sellerType,
+        'make':              _make,
+        'model':             _model,
+        'year':              _year,
+        'mileage':           _mileageCtrl.text.trim(),
+        'transmission':      _transmission,
+        'fuel_type':         _fuelType,
+        'body_type':         _bodyType,
+        'condition':         _condition,
+        'color':             _color,
+        'seller_type':       _sellerType,
+        'rental_duration':   _rentalDuration,
       },
     );
   }
@@ -350,9 +353,21 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
                   child: _FullWidthChipGroup(
                     options: _kSubcategories,
                     selected: _subcategory,
-                    onSelect: (v) => setState(() => _subcategory = v),
+                    onSelect: (v) => setState(() {
+                      _subcategory = v;
+                      if (!v.toLowerCase().contains('rental')) _rentalDuration = '';
+                    }),
                   ),
                 ),
+                if (_subcategory.toLowerCase().contains('rental'))
+                  _Field(
+                    label: 'Rental Duration *',
+                    child: _RowChipGroup(
+                      options: const ['Daily Rentals', 'Weekly Rentals', 'Monthly Rentals'],
+                      selected: _rentalDuration,
+                      onSelect: (v) => setState(() => _rentalDuration = v),
+                    ),
+                  ),
               ]),
               const SizedBox(height: 8),
 

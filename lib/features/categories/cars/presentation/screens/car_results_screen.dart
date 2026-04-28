@@ -1,12 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/router/route_names.dart';
 import '../../../../chat/presentation/providers/chat_provider.dart';
 import '../../../../../features/listings/data/models/rental_car_model.dart';
+import '../../../../profile/presentation/providers/favorites_provider.dart';
 import '../providers/rental_cars_provider.dart';
 
 class CarResultsScreen extends ConsumerStatefulWidget {
@@ -25,6 +28,19 @@ class CarResultsScreen extends ConsumerStatefulWidget {
 
 class _CarResultsScreenState extends ConsumerState<CarResultsScreen> {
   String _selectedSort = 'Popular';
+  Set<String> _selectedSeats = {};
+  Set<String> _selectedColors = {};
+  Set<String> _selectedYears = {};
+  Set<String> _selectedInsurance = {};
+  Set<String> _selectedModels = {};
+  Set<String> _selectedDoors = {};
+  Set<String> _selectedLuggage = {};
+  Set<String> _selectedDailyRental = {};
+  Set<String> _selectedTrim = {};
+  Set<String> _selectedHorsepower = {};
+  Set<String> _selectedLocation = {};
+  Set<String> _selectedRentalDuration = {};
+  List<RentalCarModel> _allCars = [];
 
   static const _sortOptions = [
     'Popular',
@@ -34,6 +50,61 @@ class _CarResultsScreenState extends ConsumerState<CarResultsScreen> {
     'Price Highest to Lowest',
     'Price Lowest to Highest',
   ];
+
+  List<RentalCarModel> _filterCars(List<RentalCarModel> cars) {
+    return cars.where((car) {
+      // Filter by rental duration (from category selection)
+      if (widget.rentalDuration != 'all') {
+        if (car.rentalDuration != widget.rentalDuration) return false;
+      }
+
+      if (_selectedSeats.isNotEmpty && !_selectedSeats.contains('All')) {
+        if (!_selectedSeats.contains(car.seats.toString())) return false;
+      }
+      if (_selectedColors.isNotEmpty && !_selectedColors.contains('All')) {
+        if (!_selectedColors.contains(car.interiorColor)) return false;
+      }
+      if (_selectedYears.isNotEmpty && !_selectedYears.contains('All')) {
+        if (!_selectedYears.contains(car.year)) return false;
+      }
+      if (_selectedInsurance.isNotEmpty) {
+        final hasIns = car.hasInsurance;
+        final wantsWith = _selectedInsurance.contains('With Insurance');
+        final wantsWithout = _selectedInsurance.contains('Without Insurance');
+        if (wantsWith && !hasIns) return false;
+        if (wantsWithout && hasIns) return false;
+      }
+      if (_selectedModels.isNotEmpty && !_selectedModels.contains('All')) {
+        if (!_selectedModels.contains(car.carModel)) return false;
+      }
+      if (_selectedDoors.isNotEmpty && !_selectedDoors.contains('All')) {
+        if (!_selectedDoors.contains(car.doors.toString())) return false;
+      }
+      if (_selectedLuggage.isNotEmpty && !_selectedLuggage.contains('All')) {
+        if (!_selectedLuggage.contains(car.luggage.toString())) return false;
+      }
+      if (_selectedDailyRental.isNotEmpty) {
+        final hasDaily = car.hasDayRental;
+        final wantsYes = _selectedDailyRental.contains('Yes');
+        final wantsNo = _selectedDailyRental.contains('No');
+        if (wantsYes && !hasDaily) return false;
+        if (wantsNo && hasDaily) return false;
+      }
+      if (_selectedTrim.isNotEmpty && !_selectedTrim.contains('All')) {
+        if (!_selectedTrim.contains(car.trim)) return false;
+      }
+      if (_selectedHorsepower.isNotEmpty && !_selectedHorsepower.contains('All')) {
+        if (!_selectedHorsepower.contains(car.horsepower)) return false;
+      }
+      if (_selectedLocation.isNotEmpty && !_selectedLocation.contains('All')) {
+        if (!_selectedLocation.contains(car.location)) return false;
+      }
+      if (_selectedRentalDuration.isNotEmpty && !_selectedRentalDuration.contains('All')) {
+        if (!_selectedRentalDuration.contains(car.rentalDuration)) return false;
+      }
+      return true;
+    }).toList();
+  }
 
   void _openSortSheet() {
     showModalBottomSheet(
@@ -138,59 +209,41 @@ class _CarResultsScreenState extends ConsumerState<CarResultsScreen> {
   }
 
   void _openFilterSheet() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(22),
-          topRight: Radius.circular(22),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => _RentalFilterScreen(
+          allCars: _allCars,
+          selectedSeats: _selectedSeats,
+          selectedColors: _selectedColors,
+          selectedYears: _selectedYears,
+          selectedInsurance: _selectedInsurance,
+          selectedModels: _selectedModels,
+          selectedDoors: _selectedDoors,
+          selectedLuggage: _selectedLuggage,
+          selectedDailyRental: _selectedDailyRental,
+          selectedTrim: _selectedTrim,
+          selectedHorsepower: _selectedHorsepower,
+          selectedLocation: _selectedLocation,
+          selectedRentalDuration: _selectedRentalDuration,
+          onApply: (seats, colors, years, insurance, models, doors, luggage, dailyRental, trim, horsepower, location, rentalDuration) {
+            setState(() {
+              _selectedSeats = seats;
+              _selectedColors = colors;
+              _selectedYears = years;
+              _selectedInsurance = insurance;
+              _selectedModels = models;
+              _selectedDoors = doors;
+              _selectedLuggage = luggage;
+              _selectedDailyRental = dailyRental;
+              _selectedTrim = trim;
+              _selectedHorsepower = horsepower;
+              _selectedLocation = location;
+              _selectedRentalDuration = rentalDuration;
+            });
+          },
         ),
       ),
-      builder: (_) {
-        return SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFCFCFCF),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  'Filter',
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    height: 28 / 18,
-                    letterSpacing: 0,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Filter options will be added here.',
-                  style: GoogleFonts.poppins(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.black54,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 
@@ -202,18 +255,16 @@ class _CarResultsScreenState extends ConsumerState<CarResultsScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: Colors.black87, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
+        leading: GestureDetector(
+          onTap: () => Navigator.of(context).pop(),
+          child: const Icon(Icons.arrow_back_ios_new,
+              size: 16, color: Colors.black87),
         ),
         title: Text(
           'Results',
           style: GoogleFonts.poppins(
-            fontSize: 15,
+            fontSize: 16,
             fontWeight: FontWeight.w600,
-            height: 28 / 15,
-            letterSpacing: 0,
             color: Colors.black87,
           ),
         ),
@@ -224,43 +275,84 @@ class _CarResultsScreenState extends ConsumerState<CarResultsScreen> {
           ),
           IconButton(
             onPressed: _openSortSheet,
-            icon: const Icon(Icons.swap_vert, color: Colors.black87, size: 20),
+            icon: SvgPicture.asset('assets/icons/bars_sort.svg', width: 20, height: 20),
           ),
           const SizedBox(width: 2),
         ],
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1, thickness: 1, color: Color(0xFFE8E8E8)),
+          child: Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
         ),
       ),
       body: ref.watch(rentalCarsProvider(widget.rentalDuration)).when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, _) => Center(child: Text('Error: $e')),
-            data: (cars) => RefreshIndicator(
-              onRefresh: () =>
-                  ref.refresh(rentalCarsProvider(widget.rentalDuration).future),
-              child: cars.isEmpty
-                  ? const SingleChildScrollView(
-                      physics: AlwaysScrollableScrollPhysics(),
-                      child: SizedBox(
-                        height: 400,
-                        child: Center(child: Text('No rental cars found')),
+            data: (cars) {
+              _allCars = cars;
+              final filtered = _filterCars(cars);
+              return RefreshIndicator(
+                onRefresh: () =>
+                    ref.refresh(rentalCarsProvider(widget.rentalDuration).future),
+                child: filtered.isEmpty
+                    ? const SingleChildScrollView(
+                        physics: AlwaysScrollableScrollPhysics(),
+                        child: SizedBox(
+                          height: 400,
+                          child: Center(child: Text('No rental cars found')),
+                        ),
+                      )
+                    : SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: Container(
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: const Color(0xFFC2C2C2)),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const SizedBox(width: 12),
+                                    const Icon(Icons.search, size: 16, color: Colors.black87),
+                                    const SizedBox(width: 8),
+                                    const Expanded(
+                                      child: Text('Search',
+                                          style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w400,
+                                              height: 18 / 11,
+                                              color: Colors.black87)),
+                                    ),
+                                    const SizedBox(width: 12),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              padding: const EdgeInsets.fromLTRB(8, 0, 8, 18),
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                mainAxisSpacing: 8,
+                                crossAxisSpacing: 8,
+                                mainAxisExtent: 340,
+                              ),
+                              itemCount: filtered.length,
+                              itemBuilder: (_, i) => _CarCard(car: filtered[i]),
+                            ),
+                          ],
+                        ),
                       ),
-                    )
-                  : GridView.builder(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(8, 8, 8, 18),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 8,
-                        crossAxisSpacing: 8,
-                        mainAxisExtent: 340,
-                      ),
-                      itemCount: cars.length,
-                      itemBuilder: (_, i) => _CarCard(car: cars[i]),
-                    ),
-            ),
+              );
+            },
           ),
     );
   }
@@ -611,6 +703,9 @@ class _RentalCarDetailScreenState
   @override
   Widget build(BuildContext context) {
     final car = widget.car;
+    final favorites = ref.watch(favoritesProvider);
+    final isFavorite = favorites.contains(car.id);
+
     return Scaffold(
       backgroundColor: const Color(0xFFFFFFFF),
       body: SafeArea(
@@ -725,14 +820,25 @@ class _RentalCarDetailScreenState
                   children: [
                     Transform.translate(
                       offset: const Offset(0, -14),
-                      child: const Align(
+                      child: Align(
                         alignment: Alignment.topRight,
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            _DetailTopCircleButton(icon: Icons.reply_outlined),
-                            SizedBox(width: 10),
-                            _DetailTopCircleButton(icon: Icons.favorite_border),
+                            _DetailTopCircleButton(
+                              icon: Icons.reply_outlined,
+                              onTap: _shareItem,
+                            ),
+                            const SizedBox(width: 10),
+                            _DetailTopCircleButton(
+                              icon: isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              onTap: _toggleFavorite,
+                              iconColor: isFavorite
+                                  ? const Color(0xFFE53935)
+                                  : const Color(0xFF222222),
+                            ),
                           ],
                         ),
                       ),
@@ -913,6 +1019,126 @@ class _RentalCarDetailScreenState
     }
   }
 
+  void _shareItem() {
+    final carName = '${widget.car.name} ${widget.car.carModel}'.trim();
+    final shareText =
+        'Check out this rental car: $carName - AED ${widget.car.priceDaily}/day on Afghan Deals Pro';
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      builder: (_) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Share Listing',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: const Icon(Icons.copy, color: Color(0xFF2258A8)),
+                title: Text(
+                  'Copy to Clipboard',
+                  style: GoogleFonts.poppins(fontSize: 14),
+                ),
+                onTap: () {
+                  Clipboard.setData(
+                    ClipboardData(text: shareText),
+                  );
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Copied: $carName'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.message, color: Color(0xFF2258A8)),
+                title: Text(
+                  'Share via Message',
+                  style: GoogleFonts.poppins(fontSize: 14),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Shared: $carName'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.link, color: Color(0xFF2258A8)),
+                title: Text(
+                  'Copy Link',
+                  style: GoogleFonts.poppins(fontSize: 14),
+                ),
+                onTap: () {
+                  Clipboard.setData(
+                    ClipboardData(text: 'afghan-deals-pro://car/${widget.car.id}'),
+                  );
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Link copied for $carName'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _toggleFavorite() {
+    final favorites = ref.read(favoritesProvider.notifier);
+    final wasFavorite = ref.read(favoritesProvider).contains(widget.car.id);
+
+    favorites.toggleFavorite(widget.car.id);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            wasFavorite ? 'Removed from My Ads' : 'Added to My Ads',
+          ),
+          duration: const Duration(seconds: 2),
+          backgroundColor: wasFavorite ? Colors.red : Colors.green,
+        ),
+      );
+    }
+  }
+
   Widget _detailAction(IconData icon, String? label, {VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
@@ -972,25 +1198,31 @@ class _RentalCarDetailScreenState
 
 class _DetailTopCircleButton extends StatelessWidget {
   final IconData icon;
-  const _DetailTopCircleButton({required this.icon});
+  final Function()? onTap;
+  final Color? iconColor;
+  const _DetailTopCircleButton({required this.icon, this.onTap, this.iconColor});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 24,
-      height: 24,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x40000000),
-            blurRadius: 4,
-            offset: Offset(0, 0),
-          ),
-        ],
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        width: 24,
+        height: 24,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x40000000),
+              blurRadius: 4,
+              offset: Offset(0, 0),
+            ),
+          ],
+        ),
+        child: Icon(icon, color: iconColor ?? const Color(0xFF222222), size: 14),
       ),
-      child: Icon(icon, color: const Color(0xFF222222), size: 14),
     );
   }
 }
@@ -1248,6 +1480,325 @@ class _ActionButton extends StatelessWidget {
           color: const Color(0xFFF7F7F7),
         ),
         child: Icon(icon, color: const Color(0xFF2258A8), size: 14),
+      ),
+    );
+  }
+}
+
+// ── Rental Filter Screen ────────────────────────────────────────────────────
+
+class _RentalFilterScreen extends StatefulWidget {
+  final List<RentalCarModel> allCars;
+  final Set<String> selectedSeats;
+  final Set<String> selectedColors;
+  final Set<String> selectedYears;
+  final Set<String> selectedInsurance;
+  final Set<String> selectedModels;
+  final Set<String> selectedDoors;
+  final Set<String> selectedLuggage;
+  final Set<String> selectedDailyRental;
+  final Set<String> selectedTrim;
+  final Set<String> selectedHorsepower;
+  final Set<String> selectedLocation;
+  final Set<String> selectedRentalDuration;
+  final Function(Set<String>, Set<String>, Set<String>, Set<String>, Set<String>, Set<String>, Set<String>, Set<String>, Set<String>, Set<String>, Set<String>, Set<String>) onApply;
+
+  const _RentalFilterScreen({
+    required this.allCars,
+    required this.selectedSeats,
+    required this.selectedColors,
+    required this.selectedYears,
+    required this.selectedInsurance,
+    required this.selectedModels,
+    required this.selectedDoors,
+    required this.selectedLuggage,
+    required this.selectedDailyRental,
+    required this.selectedTrim,
+    required this.selectedHorsepower,
+    required this.selectedLocation,
+    required this.selectedRentalDuration,
+    required this.onApply,
+  });
+
+  @override
+  State<_RentalFilterScreen> createState() => _RentalFilterScreenState();
+}
+
+class _RentalFilterScreenState extends State<_RentalFilterScreen> {
+  late Set<String> _seats;
+  late Set<String> _colors;
+  late Set<String> _years;
+  late Set<String> _insurance;
+  late Set<String> _models;
+  late Set<String> _doors;
+  late Set<String> _luggage;
+  late Set<String> _dailyRental;
+  late Set<String> _trim;
+  late Set<String> _horsepower;
+  late Set<String> _location;
+  late Set<String> _rentalDuration;
+  String _activeFilter = 'seats';
+
+  late List<String> _seatList;
+  late List<String> _colorList;
+  late List<String> _yearList;
+  late List<String> _modelList;
+  late List<String> _doorList;
+  late List<String> _luggageList;
+  late List<String> _trimList;
+  late List<String> _horsepowerList;
+  late List<String> _locationList;
+  late List<String> _rentalDurationList;
+
+  @override
+  void initState() {
+    super.initState();
+    _seats = Set.from(widget.selectedSeats);
+    _colors = Set.from(widget.selectedColors);
+    _years = Set.from(widget.selectedYears);
+    _insurance = Set.from(widget.selectedInsurance);
+    _models = Set.from(widget.selectedModels);
+    _doors = Set.from(widget.selectedDoors);
+    _luggage = Set.from(widget.selectedLuggage);
+    _dailyRental = Set.from(widget.selectedDailyRental);
+    _trim = Set.from(widget.selectedTrim);
+    _horsepower = Set.from(widget.selectedHorsepower);
+    _location = Set.from(widget.selectedLocation);
+    _rentalDuration = Set.from(widget.selectedRentalDuration);
+
+    // Extract unique values from cars
+    _seatList = ['All', ...widget.allCars.map((c) => c.seats.toString()).toSet().toList()..sort()];
+    _colorList = ['All', ...widget.allCars.where((c) => c.interiorColor.isNotEmpty).map((c) => c.interiorColor).toSet().toList()..sort()];
+    _yearList = ['All', ...widget.allCars.map((c) => c.year).toSet().toList()..sort((a, b) => b.compareTo(a))];
+    _modelList = ['All', ...widget.allCars.where((c) => c.carModel.isNotEmpty).map((c) => c.carModel).toSet().toList()..sort()];
+    _doorList = ['All', ...widget.allCars.map((c) => c.doors.toString()).toSet().toList()..sort()];
+    _luggageList = ['All', ...widget.allCars.map((c) => c.luggage.toString()).toSet().toList()..sort()];
+    _trimList = ['All', ...widget.allCars.where((c) => c.trim.isNotEmpty).map((c) => c.trim).toSet().toList()..sort()];
+    _horsepowerList = ['All', ...widget.allCars.where((c) => c.horsepower.isNotEmpty).map((c) => c.horsepower).toSet().toList()..sort()];
+    _locationList = ['All', ...widget.allCars.map((c) => c.location).toSet().toList()..sort()];
+    _rentalDurationList = ['All', ...widget.allCars.map((c) => c.rentalDuration).toSet().toList()..sort()];
+  }
+
+  void _clearAll() => setState(() {
+    _seats.clear();
+    _colors.clear();
+    _years.clear();
+    _insurance.clear();
+    _models.clear();
+    _doors.clear();
+    _luggage.clear();
+    _dailyRental.clear();
+    _trim.clear();
+    _horsepower.clear();
+    _location.clear();
+    _rentalDuration.clear();
+    _activeFilter = 'seats';
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black87),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text('Filter', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600)),
+        actions: [
+          TextButton(
+            onPressed: _clearAll,
+            child: Text('Clear All', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w400, color: const Color(0xFF2258A8))),
+          ),
+        ],
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+        ),
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(12),
+        child: SizedBox(
+          width: double.infinity,
+          height: 44,
+          child: ElevatedButton(
+            onPressed: () {
+              widget.onApply(_seats, _colors, _years, _insurance, _models, _doors, _luggage, _dailyRental, _trim, _horsepower, _location, _rentalDuration);
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2258A8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              elevation: 0,
+            ),
+            child: Text('Apply', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white)),
+          ),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Left Panel
+            Container(
+              width: (MediaQuery.of(context).size.width - 34) / 2,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3F4F6),
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: const Color(0xFFD0D0D0), width: 1),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildLeftItem('rentalDuration', 'Rental Duration', Icons.access_time),
+                    _buildLeftItem('seats', 'Seats', Icons.event_seat),
+                    _buildLeftItem('model', 'Car Model', Icons.directions_car),
+                    _buildLeftItem('year', 'Year', Icons.calendar_today),
+                    _buildLeftItem('color', 'Interior Color', Icons.palette),
+                    _buildLeftItem('doors', 'Doors', Icons.meeting_room),
+                    _buildLeftItem('luggage', 'Luggage', Icons.luggage),
+                    _buildLeftItem('trim', 'Trim', Icons.info_outline),
+                    _buildLeftItem('horsepower', 'Horsepower', Icons.bolt),
+                    _buildLeftItem('location', 'Location', Icons.location_on),
+                    _buildLeftItem('insurance', 'Insurance', Icons.shield),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            // Right Panel
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(9),
+                  border: Border.all(color: const Color(0xFFD0D0D0), width: 1),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: _buildRightPanel(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLeftItem(String id, String label, IconData icon) {
+    final active = _activeFilter == id;
+    final hasVal = switch (id) {
+      'seats' => _seats.isNotEmpty,
+      'model' => _models.isNotEmpty,
+      'year' => _years.isNotEmpty,
+      'color' => _colors.isNotEmpty,
+      'doors' => _doors.isNotEmpty,
+      'luggage' => _luggage.isNotEmpty,
+      'dailyRental' => _dailyRental.isNotEmpty,
+      'trim' => _trim.isNotEmpty,
+      'horsepower' => _horsepower.isNotEmpty,
+      'location' => _location.isNotEmpty,
+      'rentalDuration' => _rentalDuration.isNotEmpty,
+      'insurance' => _insurance.isNotEmpty,
+      _ => false,
+    };
+
+    return InkWell(
+      onTap: () => setState(() => _activeFilter = id),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
+        decoration: const BoxDecoration(
+          color: Colors.transparent,
+          border: Border(bottom: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 14, color: active ? const Color(0xFF2258A8) : const Color(0xFF7C7D88)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                  height: 1.0,
+                  letterSpacing: 0,
+                  color: active ? const Color(0xFF2258A8) : Colors.black,
+                ),
+              ),
+            ),
+            if (hasVal) const Icon(Icons.check_circle, color: Color(0xFF00BA00), size: 21),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRightPanel() {
+    return switch (_activeFilter) {
+      'rentalDuration' => ListView(children: _rentalDurationList.map((duration) => _buildCheckRow(duration, _rentalDuration, (v) => _rentalDuration.contains(v) ? _rentalDuration.remove(v) : _rentalDuration.add(v))).toList()),
+      'seats' => ListView(children: _seatList.map((seat) => _buildCheckRow(seat, _seats, (v) => _seats.contains(v) ? _seats.remove(v) : _seats.add(v))).toList()),
+      'model' => ListView(children: _modelList.map((model) => _buildCheckRow(model, _models, (v) => _models.contains(v) ? _models.remove(v) : _models.add(v))).toList()),
+      'year' => ListView(children: _yearList.map((year) => _buildCheckRow(year, _years, (v) => _years.contains(v) ? _years.remove(v) : _years.add(v))).toList()),
+      'color' => ListView(children: _colorList.map((color) => _buildCheckRow(color, _colors, (v) => _colors.contains(v) ? _colors.remove(v) : _colors.add(v))).toList()),
+      'doors' => ListView(children: _doorList.map((door) => _buildCheckRow(door, _doors, (v) => _doors.contains(v) ? _doors.remove(v) : _doors.add(v))).toList()),
+      'luggage' => ListView(children: _luggageList.map((luggage) => _buildCheckRow(luggage, _luggage, (v) => _luggage.contains(v) ? _luggage.remove(v) : _luggage.add(v))).toList()),
+      'dailyRental' => ListView(children: ['Yes', 'No'].map((rental) => _buildCheckRow(rental, _dailyRental, (v) => _dailyRental.contains(v) ? _dailyRental.remove(v) : _dailyRental.add(v))).toList()),
+      'trim' => ListView(children: _trimList.map((trim) => _buildCheckRow(trim, _trim, (v) => _trim.contains(v) ? _trim.remove(v) : _trim.add(v))).toList()),
+      'horsepower' => ListView(children: _horsepowerList.map((hp) => _buildCheckRow(hp, _horsepower, (v) => _horsepower.contains(v) ? _horsepower.remove(v) : _horsepower.add(v))).toList()),
+      'location' => ListView(children: _locationList.map((loc) => _buildCheckRow(loc, _location, (v) => _location.contains(v) ? _location.remove(v) : _location.add(v))).toList()),
+      'insurance' => ListView(children: ['With Insurance', 'Without Insurance'].map((ins) => _buildCheckRow(ins, _insurance, (v) => _insurance.contains(v) ? _insurance.remove(v) : _insurance.add(v))).toList()),
+      _ => const SizedBox(),
+    };
+  }
+
+  Widget _buildCheckRow(String label, Set<String> selected, Function(String) onTap) {
+    final isSelected = selected.contains(label);
+    return InkWell(
+      onTap: () => setState(() => onTap(label)),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(bottom: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 18,
+              height: 18,
+              decoration: BoxDecoration(
+                color: isSelected ? const Color(0xFF2258A8) : Colors.white,
+                border: Border.all(
+                  color: isSelected ? const Color(0xFF2258A8) : const Color(0xFFBBBBBB),
+                  width: 1.5,
+                ),
+                borderRadius: BorderRadius.circular(3),
+              ),
+              child: isSelected ? const Icon(Icons.check, size: 12, color: Colors.white) : null,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
+                  height: 1.0,
+                  letterSpacing: 0,
+                  color: isSelected ? const Color(0xFF2258A8) : Colors.black,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

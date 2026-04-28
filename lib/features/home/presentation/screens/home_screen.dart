@@ -16,6 +16,7 @@ import '../../../categories/furniture/presentation/screens/furniture_screen.dart
 import '../../../categories/jobs/presentation/screens/jobs_screen.dart';
 import '../../../categories/classifieds/presentation/screens/classifieds_screen.dart';
 import '../providers/home_provider.dart';
+import '../providers/country_provider.dart';
 import '../../data/models/home_category_model.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -27,7 +28,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _activeIndex = 0;
-  String _selectedCountry = 'Afghanistan';
 
   static const _fallbackCategories = [
     _CategoryTile(
@@ -154,9 +154,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           _Country('KSA', 'SA', 'assets/images/flags/ksa.png', '+966'),
           _Country('Syria', 'SY', 'assets/images/flags/syria.png', '+963'),
         ],
-        selected: _selectedCountry,
+        selected: ref.watch(selectedCountryProvider),
         onSelect: (c) {
-          setState(() => _selectedCountry = c);
+          ref.read(selectedCountryProvider.notifier).setCountry(c);
           Navigator.pop(context);
         },
       ),
@@ -349,14 +349,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _flagImageFor(_selectedCountry) != null
-                      ? Image.asset(_flagImageFor(_selectedCountry)!,
+                  _flagImageFor(ref.watch(selectedCountryProvider)) != null
+                      ? Image.asset(_flagImageFor(ref.watch(selectedCountryProvider))!,
                           width: 22, height: 22, fit: BoxFit.cover)
-                      : Text(_flagFor(_selectedCountry),
+                      : Text(_flagFor(ref.watch(selectedCountryProvider)),
                           style: const TextStyle(fontSize: 15)),
                   const SizedBox(width: 5),
                   Text(
-                    _selectedCountry,
+                    ref.watch(selectedCountryProvider),
                     style: GoogleFonts.montserrat(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,

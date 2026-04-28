@@ -25,6 +25,23 @@ class PropertiesScreen extends ConsumerStatefulWidget {
 
 class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
   String _activeType = 'All';
+  late final TextEditingController _searchCtrl;
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchCtrl = TextEditingController();
+    _searchCtrl.addListener(() {
+      setState(() => _searchQuery = _searchCtrl.text.toLowerCase().trim());
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
 
   static const _headerBoxDecoration = BoxDecoration(
     color: Color(0xFFF6F6F6),
@@ -78,9 +95,18 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
       ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
 
     final chips = ['All', ...types.take(4)];
-    final filtered = _activeType == 'All'
+    var filtered = _activeType == 'All'
         ? listings
         : listings.where((l) => l.propertyType.toLowerCase().contains(_activeType.toLowerCase())).toList();
+
+    if (_searchQuery.isNotEmpty) {
+      filtered = filtered
+          .where((l) =>
+              l.title.toLowerCase().contains(_searchQuery) ||
+              l.description.toLowerCase().contains(_searchQuery) ||
+              l.location.toLowerCase().contains(_searchQuery))
+          .toList();
+    }
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -325,19 +351,46 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Container(
         height: 40,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
           border: Border.all(color: const Color(0xFFC2C2C2)),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           children: [
+            const SizedBox(width: 12),
             const Icon(Icons.search, size: 16, color: Colors.black87),
             const SizedBox(width: 8),
             Expanded(
-              child: Text('Search', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400)),
+              child: TextField(
+                controller: _searchCtrl,
+                decoration: InputDecoration(
+                  hintText: 'Search properties...',
+                  hintStyle: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.black45),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400),
+              ),
             ),
-            const Icon(Icons.tune, size: 16, color: Colors.black54),
+            if (_searchCtrl.text.isNotEmpty)
+              GestureDetector(
+                onTap: () {
+                  _searchCtrl.clear();
+                  setState(() => _searchQuery = '');
+                },
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8),
+                  child: Icon(Icons.close, size: 16, color: Colors.black54),
+                ),
+              )
+            else
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                child: Icon(Icons.tune, size: 16, color: Colors.black54),
+              ),
           ],
         ),
       ),

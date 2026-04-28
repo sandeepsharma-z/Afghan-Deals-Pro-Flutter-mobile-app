@@ -45,6 +45,24 @@ class ElectronicsScreen extends ConsumerStatefulWidget {
 }
 
 class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
+  late final TextEditingController _searchCtrl;
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchCtrl = TextEditingController();
+    _searchCtrl.addListener(() {
+      setState(() => _searchQuery = _searchCtrl.text.toLowerCase().trim());
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
   static const _headerBoxDecoration = BoxDecoration(
     color: Color(0xFFF6F6F6),
     borderRadius: BorderRadius.all(Radius.circular(6)),
@@ -66,7 +84,7 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
           children: [
             _buildHeader(context),
             const SizedBox(height: 12),
-            _buildSearchBar(context),
+            _buildSearchBar(),
             const SizedBox(height: 14),
             Expanded(
               child: listingsAsync.when(
@@ -85,6 +103,16 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
     List<ElectronicsListingModel> listings,
     AsyncValue<List<ElectronicsSubcategory>> subcategoriesAsync,
   ) {
+    var filtered = listings;
+    if (_searchQuery.isNotEmpty) {
+      filtered = listings
+          .where((l) =>
+              l.title.toLowerCase().contains(_searchQuery) ||
+              l.description.toLowerCase().contains(_searchQuery) ||
+              l.subcategory.toLowerCase().contains(_searchQuery))
+          .toList();
+    }
+
     return RefreshIndicator(
       onRefresh: () async {
         ref.invalidate(electronicsListingsProvider);
@@ -104,9 +132,9 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
               data: (subs) => _buildSubcategoryGrid(subs),
             ),
             const SizedBox(height: 18),
-            _buildTopDealsHeader(listings),
+            _buildTopDealsHeader(filtered),
             const SizedBox(height: 12),
-            if (listings.isEmpty)
+            if (filtered.isEmpty)
               const SizedBox(
                 height: 280,
                 child: Center(
@@ -123,14 +151,14 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
                     crossAxisCount: 2,
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
-                    mainAxisExtent: 204,
+                    mainAxisExtent: 176,
                   ),
-                  itemCount: listings.length,
+                  itemCount: filtered.length,
                   itemBuilder: (_, i) => GestureDetector(
                     onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => ElectronicsDetailScreen(item: listings[i]),
+                      builder: (_) => ElectronicsDetailScreen(item: filtered[i]),
                     )),
-                    child: _ElectronicsCard(item: listings[i]),
+                    child: _ElectronicsCard(item: filtered[i]),
                   ),
                 ),
               ),
@@ -320,30 +348,52 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
     );
   }
 
-  Widget _buildSearchBar(BuildContext context) {
+  Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: GestureDetector(
-        onTap: () => Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => const ElectronicsListingsScreen(
-            subcategory: '',
-            subcategoryLabel: 'All Electronics',
-          ),
-        )),
-        child: Container(
-          height: 40,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFC2C2C2)),
-          ),
-          child: Row(children: [
+      child: Container(
+        height: 40,
+        decoration: BoxDecoration(
+          border: Border.all(color: const Color(0xFFC2C2C2)),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            const SizedBox(width: 12),
             const Icon(Icons.search, size: 16, color: Colors.black87),
             const SizedBox(width: 8),
-            Expanded(child: Text('Search electronics...',
-                style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400))),
-            const Icon(Icons.tune, size: 16, color: Colors.black54),
-          ]),
+            Expanded(
+              child: TextField(
+                controller: _searchCtrl,
+                decoration: InputDecoration(
+                  hintText: 'Search electronics...',
+                  hintStyle: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.black45),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400),
+              ),
+            ),
+            if (_searchCtrl.text.isNotEmpty)
+              GestureDetector(
+                onTap: () {
+                  _searchCtrl.clear();
+                  setState(() => _searchQuery = '');
+                },
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8),
+                  child: Icon(Icons.close, size: 16, color: Colors.black54),
+                ),
+              )
+            else
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                child: Icon(Icons.tune, size: 16, color: Colors.black54),
+              ),
+          ],
         ),
       ),
     );
@@ -435,7 +485,7 @@ class _ElectronicsCard extends StatelessWidget {
               ),
               child: item.images.isEmpty
                   ? _placeholder()
-                  : Image.network(item.imageUrl, height: 110, width: double.infinity, fit: BoxFit.cover,
+                  : Image.network(item.imageUrl, height: 101.27, width: double.infinity, fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => _placeholder()),
             ),
             if (item.isFeatured)
@@ -451,21 +501,13 @@ class _ElectronicsCard extends StatelessWidget {
             )),
           ]),
           Padding(
-            padding: const EdgeInsets.fromLTRB(8, 5, 8, 5),
+            padding: const EdgeInsets.fromLTRB(8, 6, 8, 5),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(item.formattedPrice,
                   style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, height: 1.3, color: _kBlue)),
-              const SizedBox(height: 3),
+              const SizedBox(height: 4),
               Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w400, height: 1.3, color: Colors.black87)),
-              if (item.age.isNotEmpty || item.brand.isNotEmpty) ...[
-                const SizedBox(height: 3),
-                Text(
-                  [if (item.age.isNotEmpty) 'Age: ${item.age}', if (item.brand.isNotEmpty) item.brand].join(' · '),
-                  maxLines: 1, overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400, height: 1.3, color: Colors.black54),
-                ),
-              ],
               const SizedBox(height: 5),
               Row(children: [
                 const Icon(Icons.location_on_outlined, size: 12, color: Color(0xFF505050)),
@@ -480,7 +522,7 @@ class _ElectronicsCard extends StatelessWidget {
     );
   }
 
-  Widget _placeholder() => Container(height: 110, color: const Color(0xFFEDEDED),
+  Widget _placeholder() => Container(height: 101.27, color: const Color(0xFFEDEDED),
       child: const Center(child: Icon(Icons.devices_other, color: Colors.grey, size: 34)));
 }
 

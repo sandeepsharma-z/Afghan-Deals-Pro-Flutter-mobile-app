@@ -24,6 +24,7 @@ class RentalCarModel {
   final String interiorColor;
   final String trim;
   final String horsepower;
+  final String rentalDuration;
 
   const RentalCarModel({
     required this.id,
@@ -49,6 +50,7 @@ class RentalCarModel {
     required this.interiorColor,
     required this.trim,
     required this.horsepower,
+    required this.rentalDuration,
   });
 
   String get imageUrl => images.isNotEmpty ? images.first : '';
@@ -108,6 +110,7 @@ class RentalCarModel {
       interiorColor: cd['interior_color']?.toString() ?? '',
       trim: cd['trim']?.toString() ?? '',
       horsepower: cd['horsepower']?.toString() ?? '',
+      rentalDuration: cd['rental_duration']?.toString() ?? map['subcategory']?.toString() ?? 'all',
     );
   }
 }

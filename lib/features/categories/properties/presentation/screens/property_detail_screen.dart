@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../chat/presentation/providers/chat_provider.dart';
 import '../../../../../core/router/route_names.dart';
+import '../../../../profile/presentation/providers/favorites_provider.dart';
 import '../../data/models/property_listing_model.dart';
 
 class PropertyDetailScreen extends ConsumerStatefulWidget {
@@ -69,9 +71,93 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
     return '${dt.day}th ${months[dt.month - 1]}, ${dt.year}';
   }
 
+  void _shareItem() {
+    final shareText =
+        'Check out this property: ${widget.property.title} on Afghan Deals Pro';
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      builder: (_) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Share Listing',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: const Icon(Icons.copy, color: Color(0xFF2258A8)),
+                title: Text('Copy to Clipboard',
+                    style: GoogleFonts.poppins(fontSize: 14)),
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: shareText));
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Copied: ${widget.property.title}'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _toggleFavorite() {
+    final favorites = ref.read(favoritesProvider.notifier);
+    final wasFavorite =
+        ref.read(favoritesProvider).contains(widget.property.id);
+
+    favorites.toggleFavorite(widget.property.id);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            wasFavorite ? 'Removed from Favorites' : 'Added to Favorites',
+          ),
+          duration: const Duration(seconds: 2),
+          backgroundColor: wasFavorite ? Colors.red : Colors.green,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final p = widget.property;
+    final favorites = ref.watch(favoritesProvider);
+    final isFavorite = favorites.contains(p.id);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -191,14 +277,25 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
                     // Share + Favourite floating above
                     Transform.translate(
                       offset: const Offset(0, -14),
-                      child: const Align(
+                      child: Align(
                         alignment: Alignment.topRight,
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            _TopCircleButton(icon: Icons.reply_outlined),
-                            SizedBox(width: 10),
-                            _TopCircleButton(icon: Icons.favorite_border),
+                            _TopCircleButton(
+                              icon: Icons.reply_outlined,
+                              onTap: _shareItem,
+                            ),
+                            const SizedBox(width: 10),
+                            _TopCircleButton(
+                              icon: isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              onTap: _toggleFavorite,
+                              iconColor: isFavorite
+                                  ? const Color(0xFFE53935)
+                                  : const Color(0xFF222222),
+                            ),
                           ],
                         ),
                       ),
@@ -429,22 +526,28 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
 
 class _TopCircleButton extends StatelessWidget {
   final IconData icon;
-  const _TopCircleButton({required this.icon});
+  final Function()? onTap;
+  final Color? iconColor;
+  const _TopCircleButton({required this.icon, this.onTap, this.iconColor});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 24,
-      height: 24,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-              color: Color(0x40000000), blurRadius: 4, offset: Offset(0, 0)),
-        ],
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        width: 24,
+        height: 24,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+                color: Color(0x40000000), blurRadius: 4, offset: Offset(0, 0)),
+          ],
+        ),
+        child: Icon(icon, color: iconColor ?? const Color(0xFF222222), size: 14),
       ),
-      child: Icon(icon, color: const Color(0xFF222222), size: 14),
     );
   }
 }

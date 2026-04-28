@@ -130,7 +130,7 @@ class _FurnitureScreenState extends ConsumerState<FurnitureScreen> {
                     crossAxisCount: 2,
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
-                    mainAxisExtent: 200,
+                    mainAxisExtent: 176,
                   ),
                   itemCount: filteredListings.length,
                   itemBuilder: (_, i) => GestureDetector(
@@ -352,15 +352,15 @@ class _FurnitureScreenState extends ConsumerState<FurnitureScreen> {
   }
 
   Widget _buildSearchBar(BuildContext context) {
+    final searchCtrl = TextEditingController();
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: GestureDetector(
-        onTap: () => Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => const FurnitureListingsScreen(
-            subcategory: '',
-            subcategoryLabel: 'All Furniture',
-          ),
-        )),
+        onTap: () {
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => _FurnitureSearchScreen(searchCtrl: searchCtrl),
+          ));
+        },
         child: Container(
           height: 40,
           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -372,7 +372,7 @@ class _FurnitureScreenState extends ConsumerState<FurnitureScreen> {
             const Icon(Icons.search, size: 16, color: Colors.black87),
             const SizedBox(width: 8),
             Expanded(child: Text('Search furniture...',
-                style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400))),
+                style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400, color: Colors.black45))),
             const Icon(Icons.tune, size: 16, color: Colors.black54),
           ]),
         ),
@@ -453,8 +453,8 @@ class _FurnitureCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(7),
-        boxShadow: const [BoxShadow(color: Color(0x40000000), blurRadius: 4, offset: Offset(0, 1))],
+        borderRadius: BorderRadius.circular(7.38),
+        boxShadow: const [BoxShadow(color: Color(0x40000000), blurRadius: 4.22, offset: Offset(0, 1.05))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -462,11 +462,11 @@ class _FurnitureCard extends StatelessWidget {
           Stack(children: [
             ClipRRect(
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(7), topRight: Radius.circular(7),
+                topLeft: Radius.circular(7.38), topRight: Radius.circular(7.38),
               ),
               child: item.images.isEmpty
                   ? _placeholder()
-                  : Image.network(item.imageUrl, height: 108, width: double.infinity, fit: BoxFit.cover,
+                  : Image.network(item.imageUrl, height: 101.27, width: double.infinity, fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => _placeholder()),
             ),
             if (item.isFeatured)
@@ -482,27 +482,19 @@ class _FurnitureCard extends StatelessWidget {
             )),
           ]),
           Padding(
-            padding: const EdgeInsets.fromLTRB(8, 5, 8, 5),
+            padding: const EdgeInsets.fromLTRB(8, 6, 8, 5),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(item.formattedPrice,
-                  style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w700, color: _kBlue)),
-              const SizedBox(height: 3),
+                  style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, height: 1.3, color: _kBlue)),
+              const SizedBox(height: 4),
               Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w400, color: Colors.black87)),
-              if (item.age.isNotEmpty || item.usage.isNotEmpty) ...[
-                const SizedBox(height: 2),
-                Text(
-                  [if (item.age.isNotEmpty) item.age, if (item.usage.isNotEmpty) item.usage].join(' · '),
-                  maxLines: 1, overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(fontSize: 10.5, color: Colors.black45),
-                ),
-              ],
+                  style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w400, height: 1.3, color: Colors.black87)),
               const SizedBox(height: 5),
               Row(children: [
                 const Icon(Icons.location_on_outlined, size: 12, color: Color(0xFF505050)),
                 const SizedBox(width: 3),
                 Expanded(child: Text(item.location, maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF505050)))),
+                    style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400, height: 1.3, color: const Color(0xFF505050)))),
               ]),
             ]),
           ),
@@ -511,8 +503,124 @@ class _FurnitureCard extends StatelessWidget {
     );
   }
 
-  Widget _placeholder() => Container(height: 108, color: const Color(0xFFEDEDED),
-      child: const Center(child: Icon(Icons.chair_outlined, color: Colors.grey, size: 34)));
+  Widget _placeholder() => Container(height: 101.27, color: const Color(0xFFF0F0F0),
+      child: const Center(child: Icon(Icons.chair_outlined, color: Color(0xFFCCCCCC), size: 40)));
+}
+
+class _FurnitureSearchScreen extends ConsumerStatefulWidget {
+  final TextEditingController searchCtrl;
+  const _FurnitureSearchScreen({required this.searchCtrl});
+
+  @override
+  ConsumerState<_FurnitureSearchScreen> createState() => _FurnitureSearchScreenState();
+}
+
+class _FurnitureSearchScreenState extends ConsumerState<_FurnitureSearchScreen> {
+  late final TextEditingController _searchCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchCtrl = TextEditingController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).requestFocus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final listingsAsync = ref.watch(furnitureListingsProvider);
+    final searchQuery = _searchCtrl.text.toLowerCase().trim();
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: GestureDetector(
+          onTap: () => Navigator.of(context).pop(),
+          child: const Icon(Icons.arrow_back_ios_new, size: 18, color: Colors.black87),
+        ),
+        title: TextField(
+          controller: _searchCtrl,
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: 'Search furniture...',
+            hintStyle: GoogleFonts.poppins(fontSize: 14, color: Colors.black45),
+            border: InputBorder.none,
+            contentPadding: EdgeInsets.zero,
+          ),
+          style: GoogleFonts.poppins(fontSize: 14, color: Colors.black87),
+          onChanged: (_) => setState(() {}),
+        ),
+        actions: [
+          if (_searchCtrl.text.isNotEmpty)
+            GestureDetector(
+              onTap: () {
+                _searchCtrl.clear();
+                setState(() {});
+              },
+              child: const Padding(
+                padding: EdgeInsets.all(16),
+                child: Icon(Icons.close, size: 18, color: Colors.black87),
+              ),
+            ),
+        ],
+      ),
+      body: listingsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator(color: _kBlue)),
+        error: (e, _) => Center(child: Text('Error: $e')),
+        data: (listings) {
+          final filtered = searchQuery.isEmpty
+              ? listings
+              : listings
+                  .where((item) =>
+                      item.title.toLowerCase().contains(searchQuery) ||
+                      item.description.toLowerCase().contains(searchQuery) ||
+                      item.subcategory.toLowerCase().contains(searchQuery))
+                  .toList();
+
+          return filtered.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.search_off_outlined, size: 64, color: Colors.black26),
+                      const SizedBox(height: 12),
+                      Text('No furniture found',
+                          style: GoogleFonts.poppins(fontSize: 15, color: Colors.black45)),
+                      if (searchQuery.isNotEmpty)
+                        Text('Try different keywords',
+                            style: GoogleFonts.poppins(fontSize: 12, color: Colors.black38)),
+                    ],
+                  ),
+                )
+              : GridView.builder(
+                  padding: const EdgeInsets.all(12),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    mainAxisExtent: 176,
+                  ),
+                  itemCount: filtered.length,
+                  itemBuilder: (_, i) => GestureDetector(
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => FurnitureDetailScreen(item: filtered[i]),
+                    )),
+                    child: _FurnitureCard(item: filtered[i]),
+                  ),
+                );
+        },
+      ),
+    );
+  }
 }
 
 class _SellRingPainter extends CustomPainter {

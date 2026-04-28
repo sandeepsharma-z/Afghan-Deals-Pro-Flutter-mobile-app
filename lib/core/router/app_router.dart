@@ -47,7 +47,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     navigatorKey: appNavigatorKey,
     initialLocation: RouteNames.splash,
     redirect: (context, state) {
-      // Use Supabase directly — avoids GoRouter rebuild on auth change
       final isAuthenticated = Supabase.instance.client.auth.currentUser != null;
       final location = state.matchedLocation;
 

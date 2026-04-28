@@ -2,11 +2,36 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../features/listings/data/models/listing_model.dart';
+import '../../../../features/listings/data/models/rental_car_model.dart';
+import '../providers/favorites_provider.dart';
+
+final favoriteRentalCarsProvider =
+    StreamProvider.autoDispose<List<RentalCarModel>>((ref) {
+  final favorites = ref.watch(favoritesProvider);
+
+  return Supabase.instance.client
+      .from('listings')
+      .stream(primaryKey: const ['id'])
+      .map((rows) {
+        final items = <RentalCarModel>[];
+        for (final row in rows) {
+          try {
+            final map = Map<String, dynamic>.from(row);
+            if (map['category'] == 'cars' &&
+                map['subcategory'] == 'rental' &&
+                favorites.contains(map['id'])) {
+              final car = RentalCarModel.fromMap(map);
+              items.add(car);
+            }
+          } catch (_) {}
+        }
+        return items;
+      });
+});
 
 final myAdsProvider = StreamProvider.autoDispose<List<ListingModel>>((ref) {
   final me = Supabase.instance.client.auth.currentUser;
@@ -96,215 +121,164 @@ class _MyAdsScreenState extends ConsumerState<MyAdsScreen> {
                 ),
               ),
               data: (ads) {
-                if (ads.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.inventory_2_outlined,
-                          size: 58,
-                          color: Colors.black26,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'No ads yet',
-                          style: GoogleFonts.montserrat(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Tap SELL to post your first listing.',
-                          style: GoogleFonts.montserrat(
-                            fontSize: 12,
-                            color: Colors.black45,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                final displayAds = _showAllAds ? ads : ads.take(2).toList();
-
-                return RefreshIndicator(
-                  onRefresh: () async => ref.invalidate(myAdsProvider),
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(14),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'All My Ads',
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                Text(
-                                  '${ads.length} ad${ads.length == 1 ? '' : 's'}',
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.black54,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const Spacer(),
-                            if (ads.length > 2)
-                              GestureDetector(
-                                onTap: () {
-                                  setState(() => _showAllAds = !_showAllAds);
-                                },
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      _showAllAds ? 'Show Less' : 'View All',
-                                      style: GoogleFonts.montserrat(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                    if (!_showAllAds) ...[
-                                      const SizedBox(width: 4),
-                                      const Icon(
-                                        Icons.arrow_forward,
-                                        size: 14,
-                                        color: Colors.black87,
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        GridView.builder(
-                          itemCount: displayAds.length,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            mainAxisSpacing: 10,
-                            crossAxisSpacing: 14,
-                            mainAxisExtent: 164,
-                          ),
-                          itemBuilder: (context, index) {
-                            return _AdCard(ad: displayAds[index]);
-                          },
-                        ),
-                        const SizedBox(height: 26),
-                        Text(
-                          'Personalized Favorite lists',
-                          style: GoogleFonts.montserrat(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 18),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.fromLTRB(18, 30, 18, 30),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: const Color(0xFFE7E7E7)),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x40000000),
-                                blurRadius: 4,
-                                offset: Offset.zero,
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              SvgPicture.asset(
-                                'assets/icons/blue_heart.svg',
-                                width: 42,
-                                height: 42,
-                              ),
-                              const SizedBox(height: 14),
-                              Text(
-                                'Create your personalized list',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.black87,
-                                  height: 1.35,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                'Organize your favorites',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 13,
-                                  color: Colors.black54,
-                                  height: 1.4,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                'Invite friends to view or collaborate on your list',
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 12,
-                                  color: Colors.black45,
-                                  height: 1.45,
-                                ),
-                              ),
-                              const SizedBox(height: 18),
-                              OutlinedButton(
-                                onPressed: () {},
-                                style: OutlinedButton.styleFrom(
-                                  side: const BorderSide(
-                                    color: Color(0xFF2258A8),
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 18,
-                                    vertical: 8,
-                                  ),
-                                ),
-                                child: Text(
-                                  'Make A List',
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF2258A8),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
+                return ref.watch(favoriteRentalCarsProvider).when(
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (_, __) => _buildContent(ads, []),
+                      data: (favorites) => _buildContent(ads, favorites),
+                    );
               },
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildContent(
+      List<ListingModel> ads, List<RentalCarModel> favoriteRentalCars) {
+    if (ads.isEmpty && favoriteRentalCars.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.inventory_2_outlined,
+              size: 58,
+              color: Colors.black26,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'No ads yet',
+              style: GoogleFonts.montserrat(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Tap SELL to post your first listing.',
+              style: GoogleFonts.montserrat(
+                fontSize: 12,
+                color: Colors.black45,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final displayAds = _showAllAds ? ads : ads.take(2).toList();
+
+    return RefreshIndicator(
+      onRefresh: () async => ref.invalidate(myAdsProvider),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (ads.isNotEmpty) ...[
+              Row(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'All My Ads',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      Text(
+                        '${ads.length} ad${ads.length == 1 ? '' : 's'}',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  if (ads.length > 2)
+                    GestureDetector(
+                      onTap: () {
+                        setState(() => _showAllAds = !_showAllAds);
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _showAllAds ? 'Show Less' : 'View All',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          if (!_showAllAds) ...[
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.arrow_forward,
+                              size: 14,
+                              color: Colors.black87,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              GridView.builder(
+                itemCount: displayAds.length,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 10,
+                  crossAxisSpacing: 14,
+                  mainAxisExtent: 164,
+                ),
+                itemBuilder: (context, index) {
+                  return _AdCard(ad: displayAds[index]);
+                },
+              ),
+              const SizedBox(height: 26),
+            ],
+            if (favoriteRentalCars.isNotEmpty) ...[
+              Text(
+                'Favorited Rental Cars',
+                style: GoogleFonts.montserrat(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 12),
+              GridView.builder(
+                itemCount: favoriteRentalCars.length,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 10,
+                  crossAxisSpacing: 14,
+                  mainAxisExtent: 164,
+                ),
+                itemBuilder: (context, index) {
+                  final car = favoriteRentalCars[index];
+                  return _FavoriteCarCard(car: car);
+                },
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -506,4 +480,76 @@ class _AdCardState extends State<_AdCard> {
           size: 26,
         ),
       );
+}
+
+class _FavoriteCarCard extends StatelessWidget {
+  final RentalCarModel car;
+  const _FavoriteCarCard({required this.car});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFE8E8E8)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(8),
+                  topRight: Radius.circular(8),
+                ),
+                color: const Color(0xFFEFF2F8),
+              ),
+              child: car.images.isNotEmpty
+                  ? Image.network(
+                      car.images[0],
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.directions_car,
+                        color: Color(0xFF98A2B3),
+                      ),
+                    )
+                  : const Icon(
+                      Icons.directions_car,
+                      color: Color(0xFF98A2B3),
+                    ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${car.name} ${car.carModel}'.trim(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'AED ${car.priceDaily}/day',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF2258A8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

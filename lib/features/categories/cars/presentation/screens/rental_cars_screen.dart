@@ -6,20 +6,6 @@ import 'car_results_screen.dart';
 class RentalCarsScreen extends StatelessWidget {
   const RentalCarsScreen({super.key});
 
-  // key = what to pass as rentalDuration to the provider
-  static const _sections = [
-    _FilterSection(
-      title: 'Rental Duration',
-      items: ['All', 'Daily Rentals', 'Weekly Rentals', 'Monthly Rentals'],
-      filterKeys: ['all', 'Daily Rentals', 'Weekly Rentals', 'Monthly Rentals'],
-    ),
-    _FilterSection(
-      title: 'Body Type',
-      items: ['All', 'SUV', 'Sedan', 'Coupe', 'Sports Car'],
-      filterKeys: ['all', 'all', 'all', 'all', 'all'], // body type filter — pass all for now
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,85 +37,74 @@ class RentalCarsScreen extends StatelessWidget {
           child: Divider(height: 1, thickness: 1, color: Color(0xFFE8E8E8)),
         ),
       ),
-      body: ListView.builder(
-        itemCount: _sections.length,
-        itemBuilder: (context, sectionIndex) {
-          final section = _sections[sectionIndex];
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Section header
-              Container(
-                width: double.infinity,
-                color: const Color(0xFFF5F5F5),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                child: Text(
-                  section.title,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black87,
-                  ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: double.infinity,
+              color: const Color(0xFFF5F5F5),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Text(
+                'Rental Duration',
+                style: GoogleFonts.montserrat(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
                 ),
               ),
-              // Section items
-              ...section.items.asMap().entries.map((entry) {
-                final i = entry.key;
-                final item = entry.value;
-                final filterKey = section.filterKeys[i];
-                return Column(
-                  children: [
-                    InkWell(
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => CarResultsScreen(
-                            subcategory: 'rental-cars',
-                            rentalDuration: filterKey,
-                          ),
-                        ),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 16),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                item,
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    if (i < section.items.length - 1)
-                      const Divider(
-                          height: 1,
-                          thickness: 1,
-                          color: Color(0xFFF0F0F0),
-                          indent: 16,
-                          endIndent: 16),
-                  ],
-                );
-              }),
-            ],
-          );
-        },
+            ),
+            _buildOption(context, 'All', 'all'),
+            _buildDivider(),
+            _buildOption(context, 'Daily Rentals', 'Daily Rentals'),
+            _buildDivider(),
+            _buildOption(context, 'Weekly Rentals', 'Weekly Rentals'),
+            _buildDivider(),
+            _buildOption(context, 'Monthly Rentals', 'Monthly Rentals'),
+          ],
+        ),
       ),
     );
   }
-}
 
-class _FilterSection {
-  final String title;
-  final List<String> items;
-  final List<String> filterKeys;
-  const _FilterSection({required this.title, required this.items, required this.filterKeys});
+  Widget _buildOption(BuildContext context, String label, String rentalDuration) {
+    return InkWell(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CarResultsScreen(
+            subcategory: 'rental-cars',
+            rentalDuration: rentalDuration,
+          ),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.montserrat(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return const Divider(
+      height: 1,
+      thickness: 1,
+      color: Color(0xFFF0F0F0),
+      indent: 16,
+      endIndent: 16,
+    );
+  }
 }

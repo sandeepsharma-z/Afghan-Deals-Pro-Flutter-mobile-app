@@ -355,6 +355,9 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                     );
                     if (confirm == true) {
                       await ref.read(authNotifierProvider.notifier).signOut();
+                      if (mounted && context.mounted) {
+                        context.go(RouteNames.onboarding);
+                      }
                     }
                   }),
                   _line(),

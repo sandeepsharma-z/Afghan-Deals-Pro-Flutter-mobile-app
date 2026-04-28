@@ -36,6 +36,23 @@ class JobsScreen extends ConsumerStatefulWidget {
 
 class _JobsScreenState extends ConsumerState<JobsScreen> {
   String _selectedChip = '';
+  late final TextEditingController _searchCtrl;
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchCtrl = TextEditingController();
+    _searchCtrl.addListener(() {
+      setState(() => _searchQuery = _searchCtrl.text.toLowerCase().trim());
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
 
   static const _headerBoxDecoration = BoxDecoration(
     color: Color(0xFFF6F6F6),
@@ -58,7 +75,7 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
           children: [
             _buildHeader(context),
             const SizedBox(height: 12),
-            _buildSearchBar(context),
+            _buildSearchBar(),
             const SizedBox(height: 14),
             Expanded(
               child: listingsAsync.when(
@@ -77,9 +94,18 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
     List<JobsListingModel> listings,
     AsyncValue<List<JobsSubcategory>> subcategoriesAsync,
   ) {
-    final filtered = _selectedChip.isEmpty
+    var filtered = _selectedChip.isEmpty
         ? listings
         : listings.where((l) => l.subcategory.toLowerCase() == _selectedChip.toLowerCase()).toList();
+
+    if (_searchQuery.isNotEmpty) {
+      filtered = filtered
+          .where((l) =>
+              l.title.toLowerCase().contains(_searchQuery) ||
+              l.description.toLowerCase().contains(_searchQuery) ||
+              l.company.toLowerCase().contains(_searchQuery))
+          .toList();
+    }
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -119,7 +145,7 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
                     crossAxisCount: 2,
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
-                    mainAxisExtent: 200,
+                    mainAxisExtent: 176,
                   ),
                   itemCount: filtered.length,
                   itemBuilder: (_, i) => GestureDetector(
@@ -330,30 +356,52 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
     );
   }
 
-  Widget _buildSearchBar(BuildContext context) {
+  Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: GestureDetector(
-        onTap: () => Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => const JobsListingsScreen(
-            subcategory: '',
-            subcategoryLabel: 'All Jobs',
-          ),
-        )),
-        child: Container(
-          height: 40,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFC2C2C2)),
-          ),
-          child: Row(children: [
+      child: Container(
+        height: 40,
+        decoration: BoxDecoration(
+          border: Border.all(color: const Color(0xFFC2C2C2)),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            const SizedBox(width: 12),
             const Icon(Icons.search, size: 16, color: Colors.black87),
             const SizedBox(width: 8),
-            Expanded(child: Text('Search jobs...',
-                style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400))),
-            const Icon(Icons.tune, size: 16, color: Colors.black54),
-          ]),
+            Expanded(
+              child: TextField(
+                controller: _searchCtrl,
+                decoration: InputDecoration(
+                  hintText: 'Search jobs...',
+                  hintStyle: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.black45),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400),
+              ),
+            ),
+            if (_searchCtrl.text.isNotEmpty)
+              GestureDetector(
+                onTap: () {
+                  _searchCtrl.clear();
+                  setState(() => _searchQuery = '');
+                },
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8),
+                  child: Icon(Icons.close, size: 16, color: Colors.black54),
+                ),
+              )
+            else
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                child: Icon(Icons.tune, size: 16, color: Colors.black54),
+              ),
+          ],
         ),
       ),
     );
@@ -432,8 +480,8 @@ class _JobCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(7),
-        boxShadow: const [BoxShadow(color: Color(0x40000000), blurRadius: 4, offset: Offset(0, 1))],
+        borderRadius: BorderRadius.circular(7.38),
+        boxShadow: const [BoxShadow(color: Color(0x40000000), blurRadius: 4.22, offset: Offset(0, 1.05))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -441,11 +489,11 @@ class _JobCard extends StatelessWidget {
           Stack(children: [
             ClipRRect(
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(7), topRight: Radius.circular(7),
+                topLeft: Radius.circular(7.38), topRight: Radius.circular(7.38),
               ),
               child: item.images.isEmpty
                   ? _placeholder()
-                  : Image.network(item.imageUrl, height: 108, width: double.infinity, fit: BoxFit.cover,
+                  : Image.network(item.imageUrl, height: 101.27, width: double.infinity, fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => _placeholder()),
             ),
             if (item.isFeatured)
@@ -462,29 +510,19 @@ class _JobCard extends StatelessWidget {
             )),
           ]),
           Padding(
-            padding: const EdgeInsets.fromLTRB(8, 5, 8, 5),
+            padding: const EdgeInsets.fromLTRB(8, 6, 8, 5),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(item.formattedPrice,
-                  style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w700, color: _kBlue)),
-              const SizedBox(height: 3),
-              Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w400, color: Colors.black87)),
-              if (item.experience.isNotEmpty) ...[
-                const SizedBox(height: 3),
-                Row(children: [
-                  const Icon(Icons.work_outline, size: 12, color: Color(0xFF505050)),
-                  const SizedBox(width: 3),
-                  Expanded(child: Text('${item.experience} exp.',
-                      maxLines: 1, overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(fontSize: 10.5, color: const Color(0xFF505050)))),
-                ]),
-              ],
+                  style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, height: 1.3, color: _kBlue)),
               const SizedBox(height: 4),
+              Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w400, height: 1.3, color: Colors.black87)),
+              const SizedBox(height: 5),
               Row(children: [
                 const Icon(Icons.location_on_outlined, size: 12, color: Color(0xFF505050)),
                 const SizedBox(width: 3),
                 Expanded(child: Text(item.location, maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF505050)))),
+                    style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400, height: 1.3, color: const Color(0xFF505050)))),
               ]),
             ]),
           ),
@@ -494,7 +532,7 @@ class _JobCard extends StatelessWidget {
   }
 
   Widget _placeholder() => Container(
-        height: 108, color: const Color(0xFFEDEDED),
+        height: 101.27, color: const Color(0xFFEDEDED),
         child: const Center(child: Icon(Icons.work_outline, color: Colors.grey, size: 34)));
 }
 

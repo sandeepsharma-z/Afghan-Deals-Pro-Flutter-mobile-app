@@ -45,6 +45,23 @@ class MobilesScreen extends ConsumerStatefulWidget {
 }
 
 class _MobilesScreenState extends ConsumerState<MobilesScreen> {
+  late final TextEditingController _searchCtrl;
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchCtrl = TextEditingController();
+    _searchCtrl.addListener(() {
+      setState(() => _searchQuery = _searchCtrl.text.toLowerCase().trim());
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
 
   static const _headerBoxDecoration = BoxDecoration(
     color: Color(0xFFF6F6F6),
@@ -69,7 +86,7 @@ class _MobilesScreenState extends ConsumerState<MobilesScreen> {
           children: [
             _buildHeader(context),
             const SizedBox(height: 12),
-            _buildSearchBar(context),
+            _buildSearchBar(),
             const SizedBox(height: 14),
             Expanded(
               child: listingsAsync.when(
@@ -89,6 +106,16 @@ class _MobilesScreenState extends ConsumerState<MobilesScreen> {
   }
 
   Widget _buildBody(List<MobileListingModel> listings, List<MobileBrand>? dbBrands) {
+    var filtered = listings;
+    if (_searchQuery.isNotEmpty) {
+      filtered = listings
+          .where((l) =>
+              l.title.toLowerCase().contains(_searchQuery) ||
+              l.description.toLowerCase().contains(_searchQuery) ||
+              l.brand.toLowerCase().contains(_searchQuery))
+          .toList();
+    }
+
     return RefreshIndicator(
       onRefresh: () async {
         ref.invalidate(mobileListingsProvider);
@@ -101,9 +128,9 @@ class _MobilesScreenState extends ConsumerState<MobilesScreen> {
           children: [
             _buildBrandGrid(dbBrands),
             const SizedBox(height: 18),
-            _buildTopDealsHeader(listings),
+            _buildTopDealsHeader(filtered),
             const SizedBox(height: 12),
-            if (listings.isEmpty)
+            if (filtered.isEmpty)
               const SizedBox(
                 height: 280,
                 child: Center(
@@ -121,16 +148,16 @@ class _MobilesScreenState extends ConsumerState<MobilesScreen> {
                     crossAxisCount: 2,
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
-                    mainAxisExtent: 204,
+                    mainAxisExtent: 176,
                   ),
-                  itemCount: listings.length,
+                  itemCount: filtered.length,
                   itemBuilder: (_, i) => GestureDetector(
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => MobileDetailScreen(mobile: listings[i]),
+                        builder: (_) => MobileDetailScreen(mobile: filtered[i]),
                       ),
                     ),
-                    child: _MobileCard(item: listings[i]),
+                    child: _MobileCard(item: filtered[i]),
                   ),
                 ),
               ),
@@ -320,34 +347,52 @@ class _MobilesScreenState extends ConsumerState<MobilesScreen> {
     );
   }
 
-  Widget _buildSearchBar(BuildContext context) {
+  Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: GestureDetector(
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const MobileListingsScreen(brand: ''),
-          ),
+      child: Container(
+        height: 40,
+        decoration: BoxDecoration(
+          border: Border.all(color: const Color(0xFFC2C2C2)),
+          borderRadius: BorderRadius.circular(8),
         ),
-        child: Container(
-          height: 40,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFC2C2C2)),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.search, size: 16, color: Colors.black87),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text('Search mobiles...',
-                    style: GoogleFonts.poppins(
-                        fontSize: 11, fontWeight: FontWeight.w400)),
+        child: Row(
+          children: [
+            const SizedBox(width: 12),
+            const Icon(Icons.search, size: 16, color: Colors.black87),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextField(
+                controller: _searchCtrl,
+                decoration: InputDecoration(
+                  hintText: 'Search mobiles...',
+                  hintStyle: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.black45),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400),
               ),
-              const Icon(Icons.tune, size: 16, color: Colors.black54),
-            ],
-          ),
+            ),
+            if (_searchCtrl.text.isNotEmpty)
+              GestureDetector(
+                onTap: () {
+                  _searchCtrl.clear();
+                  setState(() => _searchQuery = '');
+                },
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8),
+                  child: Icon(Icons.close, size: 16, color: Colors.black54),
+                ),
+              )
+            else
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                child: Icon(Icons.tune, size: 16, color: Colors.black54),
+              ),
+          ],
         ),
       ),
     );
@@ -504,7 +549,7 @@ class _MobileCard extends StatelessWidget {
                     ? _placeholder()
                     : Image.network(
                         item.imageUrl,
-                        height: 110,
+                        height: 101.27,
                         width: double.infinity,
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => _placeholder(),
@@ -542,7 +587,7 @@ class _MobileCard extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(8, 5, 8, 5),
+            padding: const EdgeInsets.fromLTRB(8, 6, 8, 5),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -554,7 +599,7 @@ class _MobileCard extends StatelessWidget {
                       height: 1.3,
                       color: _kBlue),
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 4),
                 Text(
                   item.title,
                   maxLines: 1,
@@ -565,22 +610,6 @@ class _MobileCard extends StatelessWidget {
                       height: 1.3,
                       color: Colors.black87),
                 ),
-                if (item.brand.isNotEmpty || item.storage.isNotEmpty) ...[
-                  const SizedBox(height: 3),
-                  Text(
-                    [
-                      if (item.brand.isNotEmpty) item.brand,
-                      if (item.storage.isNotEmpty) item.storage,
-                    ].join(' · '),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w400,
-                        height: 1.3,
-                        color: Colors.black54),
-                  ),
-                ],
                 const SizedBox(height: 5),
                 Row(
                   children: [
@@ -610,7 +639,7 @@ class _MobileCard extends StatelessWidget {
   }
 
   Widget _placeholder() => Container(
-      height: 110,
+      height: 101.27,
       color: const Color(0xFFEDEDED),
       child: const Center(
           child: Icon(Icons.smartphone, color: Colors.grey, size: 34)));

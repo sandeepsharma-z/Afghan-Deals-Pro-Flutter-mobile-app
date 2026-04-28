@@ -483,7 +483,7 @@ class _BrandModelsScreenState extends ConsumerState<BrandModelsScreen> {
           width: double.infinity,
           height: 50,
           child: ElevatedButton(
-            onPressed: meta == null
+            onPressed: (meta == null || _selectedModel == null)
                 ? null
                 : () {
                     final from = _fromYear ?? meta.minYear;
@@ -512,7 +512,7 @@ class _BrandModelsScreenState extends ConsumerState<BrandModelsScreen> {
             child: Text(
               _selectedModel != null
                   ? 'Show $_selectedModel Results'
-                  : 'Show All Results',
+                  : 'Select a Model to Continue',
               style: GoogleFonts.poppins(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,

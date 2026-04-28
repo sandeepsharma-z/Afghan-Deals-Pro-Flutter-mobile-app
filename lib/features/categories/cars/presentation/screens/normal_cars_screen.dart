@@ -32,6 +32,23 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
   String _selectedCondition = 'All';
   int? _fromYear;
   int? _toYear;
+  late final TextEditingController _searchCtrl;
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchCtrl = TextEditingController();
+    _searchCtrl.addListener(() {
+      setState(() => _searchQuery = _searchCtrl.text.toLowerCase().trim());
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
 
   static const _sortOptions = [
     'Newest to Oldest',
@@ -271,13 +288,32 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
             const Icon(Icons.search, size: 16, color: Colors.black87),
             const SizedBox(width: 8),
             Expanded(
-              child: Text('Search',
-                  style: GoogleFonts.poppins(
+              child: TextField(
+                controller: _searchCtrl,
+                decoration: InputDecoration(
+                  hintText: 'Search cars...',
+                  hintStyle: GoogleFonts.poppins(
                       fontSize: 11,
                       fontWeight: FontWeight.w400,
-                      height: 18 / 11,
-                      color: Colors.black87)),
+                      color: Colors.black45),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.black87),
+              ),
             ),
+            if (_searchCtrl.text.isNotEmpty)
+              GestureDetector(
+                onTap: () {
+                  _searchCtrl.clear();
+                  setState(() => _searchQuery = '');
+                },
+                child: const Icon(Icons.close, size: 14, color: Colors.black45),
+              ),
+            const SizedBox(width: 8),
             GestureDetector(
               onTap: () => _openFilterSheet(cars),
               child: const Icon(Icons.tune, size: 16, color: Colors.black54),
@@ -396,9 +432,20 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
   List<CarSaleModel> _applyFilters(List<CarSaleModel> cars) {
     return cars.where((c) {
       final make = c.make.trim().toLowerCase();
+      final model = c.model.trim().toLowerCase();
       final bodyType = c.bodyType.trim().toLowerCase();
       final condition = c.condition.trim().toLowerCase();
       final year = int.tryParse(c.year.trim());
+
+      // Search filter
+      if (_searchQuery.isNotEmpty) {
+        final query = _searchQuery;
+        if (!make.contains(query) &&
+            !model.contains(query) &&
+            !c.year.contains(query)) {
+          return false;
+        }
+      }
 
       if (_activeFilter != 'All' &&
           !make.contains(_activeFilter.trim().toLowerCase())) {
