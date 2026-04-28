@@ -25,6 +25,7 @@ class MobileListingModel {
   final String damageDetails;
   final String screenSize;
   final String sellerType;
+  final String phone;
 
   const MobileListingModel({
     required this.id,
@@ -51,6 +52,7 @@ class MobileListingModel {
     required this.damageDetails,
     required this.screenSize,
     required this.sellerType,
+    required this.phone,
   });
 
   String get imageUrl => images.isNotEmpty ? images.first : '';
@@ -121,6 +123,7 @@ class MobileListingModel {
       damageDetails: cd['damage_details']?.toString() ?? '',
       screenSize: cd['screen_size']?.toString() ?? '',
       sellerType: cd['seller_type']?.toString() ?? '',
+      phone: cd['phone']?.toString() ?? map['phone']?.toString() ?? '',
     );
   }
 }

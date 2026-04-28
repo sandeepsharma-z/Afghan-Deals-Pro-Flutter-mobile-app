@@ -18,6 +18,7 @@ class PropertyListingModel {
   final String area;
   final String purpose;
   final String furnishing;
+  final String phone;
 
   const PropertyListingModel({
     required this.id,
@@ -38,6 +39,7 @@ class PropertyListingModel {
     required this.area,
     required this.purpose,
     required this.furnishing,
+    required this.phone,
   });
 
   String get imageUrl => images.isNotEmpty ? images.first : '';
@@ -82,6 +84,7 @@ class PropertyListingModel {
       area: cd['area']?.toString() ?? '',
       purpose: cd['purpose']?.toString() ?? '',
       furnishing: cd['furnishing']?.toString() ?? '',
+      phone: cd['phone']?.toString() ?? map['phone']?.toString() ?? '',
     );
   }
 }

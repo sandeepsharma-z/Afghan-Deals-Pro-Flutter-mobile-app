@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../chat/presentation/providers/chat_provider.dart';
+import '../../../../chat/presentation/screens/chat_detail_screen.dart';
 import '../../../../../core/router/route_names.dart';
-import '../../../../profile/presentation/providers/favorites_provider.dart';
 import '../../data/models/property_listing_model.dart';
 
 class PropertyDetailScreen extends ConsumerStatefulWidget {
@@ -24,22 +24,23 @@ class PropertyDetailScreen extends ConsumerStatefulWidget {
 class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
   late final PageController _pageController;
   Timer? _timer;
-  int _currentPage = 0;
+  int _currentImage = 0;
+  bool _isFavorited = false;
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController();
+    _pageController = PageController(viewportFraction: 1.0);
     if (widget.property.images.length > 1) {
       _timer = Timer.periodic(const Duration(seconds: 4), (_) {
         if (!mounted) return;
-        final next = (_currentPage + 1) % widget.property.images.length;
+        final next = (_currentImage + 1) % widget.property.images.length;
         _pageController.animateToPage(
           next,
           duration: const Duration(milliseconds: 700),
           curve: Curves.easeInOutCubic,
         );
-        setState(() => _currentPage = next);
+        setState(() => _currentImage = next);
       });
     }
   }
@@ -51,29 +52,272 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
     super.dispose();
   }
 
-  String get _formattedDate {
-    final dt = DateTime.tryParse(widget.property.createdAt);
-    if (dt == null) return widget.property.createdAt;
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December'
-    ];
-    return '${dt.day}th ${months[dt.month - 1]}, ${dt.year}';
+  @override
+  Widget build(BuildContext context) {
+    final property = widget.property;
+    return Scaffold(
+      backgroundColor: const Color(0xFFFFFFFF),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Fixed top image section with back button, image counter, and dots
+            Stack(
+              children: [
+                SizedBox(
+                  height: 312,
+                  width: double.infinity,
+                  child: property.images.isEmpty
+                      ? Container(
+                          color: const Color(0xFFE8E8E8),
+                          child: const Icon(Icons.home_work_outlined, size: 50, color: Colors.grey),
+                        )
+                      : PageView.builder(
+                          controller: _pageController,
+                          itemCount: property.images.length,
+                          onPageChanged: (i) => setState(() => _currentImage = i),
+                          itemBuilder: (_, i) => Image.network(
+                            property.images[i],
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              color: const Color(0xFFE8E8E8),
+                              child: const Icon(Icons.home_work_outlined, size: 50, color: Colors.grey),
+                            ),
+                          ),
+                        ),
+                ),
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Container(
+                      width: 21,
+                      height: 21,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.arrow_back_ios_new, size: 12, color: Colors.black87),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 14,
+                  bottom: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0x63000000),
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.image_outlined, color: Colors.white, size: 15),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${_currentImage + 1}/${property.images.isEmpty ? 1 : property.images.length}',
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 11.62,
+                            fontWeight: FontWeight.w400,
+                            height: 17.06 / 11.62,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                if (property.images.length > 1)
+                  Positioned(
+                    bottom: 14,
+                    left: 0,
+                    right: 0,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(
+                        property.images.length,
+                        (index) => AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          width: index == _currentImage ? 10 : 7,
+                          height: index == _currentImage ? 10 : 7,
+                          decoration: BoxDecoration(
+                            color: index == _currentImage
+                                ? Colors.white
+                                : Colors.white.withValues(alpha: 0.45),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            // Fixed header section (title, category, location) with share/favorite buttons
+            Container(
+              width: double.infinity,
+              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Transform.translate(
+                    offset: const Offset(0, -14),
+                    child: Align(
+                      alignment: Alignment.topRight,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _circleButton(icon: Icons.reply_outlined, onTap: _shareItem),
+                          const SizedBox(width: 10),
+                          _circleButton(
+                            icon: _isFavorited ? Icons.favorite : Icons.favorite_border,
+                            onTap: () => setState(() => _isFavorited = !_isFavorited),
+                            color: _isFavorited ? Colors.red : Colors.black87,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Text(
+                    property.title,
+                    style: GoogleFonts.poppins(
+                      fontSize: 17.24,
+                      fontWeight: FontWeight.w400,
+                      color: const Color(0xFF141414),
+                      height: 31.04 / 17.24,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Properties${property.subcategory.isNotEmpty ? ' / ${property.subcategory}' : ''}',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.black45,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on_outlined, size: 15, color: Color(0xFF505050)),
+                      const SizedBox(width: 5),
+                      Text(
+                        property.location,
+                        style: GoogleFonts.poppins(
+                          fontSize: 11.62,
+                          fontWeight: FontWeight.w400,
+                          color: const Color(0xFF505050),
+                          height: 17.06 / 11.62,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // Scrollable details content
+            Expanded(
+              child: SingleChildScrollView(
+                child: Container(
+                  width: double.infinity,
+                  color: Colors.white,
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+                      const SizedBox(height: 14),
+                      if (property.description.isNotEmpty)
+                        Text(
+                          property.description,
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            color: const Color(0xFF141414),
+                            height: 1.6,
+                          ),
+                        ),
+                      if (property.description.isNotEmpty) const SizedBox(height: 14),
+                      if (property.description.isNotEmpty) const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+                      if (property.description.isNotEmpty) const SizedBox(height: 14),
+                      if (property.propertyType.isNotEmpty) _overviewRow('Property Type', property.propertyType),
+                      if (property.purpose.isNotEmpty) _overviewRow('Purpose', property.purpose),
+                      if (property.bedrooms > 0) _overviewRow('Bedrooms', property.bedrooms.toString()),
+                      if (property.bathrooms > 0) _overviewRow('Bathrooms', property.bathrooms.toString()),
+                      if (property.area.isNotEmpty) _overviewRow('Area', property.area),
+                      if (property.furnishing.isNotEmpty) _overviewRow('Furnishing', property.furnishing),
+                      _overviewRow('Posted', property.createdAt),
+                      const SizedBox(height: 14),
+                      const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // Fixed bottom action buttons
+            Container(
+              width: double.infinity,
+              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
+              child: Row(
+                children: [
+                  Expanded(child: _detailAction(Icons.phone_outlined, 'Call', onTap: () => _launch('tel:${property.phone}'))),
+                  const SizedBox(width: 8),
+                  Expanded(child: _whatsAppAction(onTap: () => _openChat())),
+                  const SizedBox(width: 8),
+                  Expanded(child: _detailAction(Icons.sms_outlined, 'SMS', onTap: () => _launch('sms:${property.phone}'))),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _overviewRow(String k, String v) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Text(
+              k,
+              style: GoogleFonts.poppins(
+                fontSize: 17.24,
+                fontWeight: FontWeight.w400,
+                color: Colors.black,
+                height: 25.12 / 17.24,
+                letterSpacing: 0,
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 132,
+            child: Text(
+              v,
+              textAlign: TextAlign.left,
+              style: GoogleFonts.poppins(
+                fontSize: 17.24,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+                height: 25.12 / 17.24,
+                letterSpacing: 0,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _shareItem() {
-    final shareText =
-        'Check out this property: ${widget.property.title} on Afghan Deals Pro';
+    final itemName = widget.property.title;
+    final shareText = 'Check out this property: $itemName - ${widget.property.formattedPrice} on Afghan Deals Pro';
 
     showModalBottomSheet(
       context: context,
@@ -119,7 +363,38 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Copied: ${widget.property.title}'),
+                      content: Text('Copied: $itemName'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.message, color: Color(0xFF2258A8)),
+                title: Text('Share via Message',
+                    style: GoogleFonts.poppins(fontSize: 14)),
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Shared: $itemName'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.link, color: Color(0xFF2258A8)),
+                title: Text('Copy Link',
+                    style: GoogleFonts.poppins(fontSize: 14)),
+                onTap: () {
+                  Clipboard.setData(
+                    ClipboardData(text: 'afghan-deals-pro://property/${widget.property.id}'),
+                  );
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Link copied for $itemName'),
                       duration: const Duration(seconds: 2),
                     ),
                   );
@@ -132,353 +407,23 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
     );
   }
 
-  void _toggleFavorite() {
-    final favorites = ref.read(favoritesProvider.notifier);
-    final wasFavorite =
-        ref.read(favoritesProvider).contains(widget.property.id);
-
-    favorites.toggleFavorite(widget.property.id);
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            wasFavorite ? 'Removed from Favorites' : 'Added to Favorites',
-          ),
-          duration: const Duration(seconds: 2),
-          backgroundColor: wasFavorite ? Colors.red : Colors.green,
+  Widget _circleButton({required IconData icon, Color color = Colors.black87, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [BoxShadow(color: Color(0x30000000), blurRadius: 4)],
         ),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final p = widget.property;
-    final favorites = ref.watch(favoritesProvider);
-    final isFavorite = favorites.contains(p.id);
-
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Image slider ────────────────────────────────────────────
-              Stack(
-                children: [
-                  SizedBox(
-                    height: 312,
-                    width: double.infinity,
-                    child: p.images.isEmpty
-                        ? Container(
-                            color: const Color(0xFFE8E8E8),
-                            child: const Icon(Icons.home_work_outlined,
-                                size: 50, color: Colors.grey),
-                          )
-                        : PageView.builder(
-                            controller: _pageController,
-                            itemCount: p.images.length,
-                            onPageChanged: (i) =>
-                                setState(() => _currentPage = i),
-                            itemBuilder: (_, i) => Image.network(
-                              p.images[i],
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
-                                color: const Color(0xFFE8E8E8),
-                                child: const Icon(Icons.home_work_outlined,
-                                    size: 50, color: Colors.grey),
-                              ),
-                            ),
-                          ),
-                  ),
-                  // Back button
-                  Positioned(
-                    top: 12,
-                    left: 12,
-                    child: GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      child: Container(
-                        width: 21,
-                        height: 21,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.arrow_back_ios_new,
-                            size: 12, color: Colors.black87),
-                      ),
-                    ),
-                  ),
-                  // Image counter
-                  Positioned(
-                    left: 14,
-                    bottom: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: const Color(0x63000000),
-                        borderRadius: BorderRadius.circular(7),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.image_outlined,
-                              color: Colors.white, size: 15),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${_currentPage + 1}/${p.images.isEmpty ? 1 : p.images.length}',
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: 11.62,
-                              fontWeight: FontWeight.w400,
-                              height: 17.06 / 11.62,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  // Dot indicators
-                  if (p.images.length > 1)
-                    Positioned(
-                      bottom: 14,
-                      left: 0,
-                      right: 0,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          p.images.length,
-                          (i) => AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            margin: const EdgeInsets.symmetric(horizontal: 3),
-                            width: i == _currentPage ? 10 : 7,
-                            height: i == _currentPage ? 10 : 7,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFD9D9D9),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-
-              // ── Content ─────────────────────────────────────────────────
-              Container(
-                width: double.infinity,
-                color: Colors.white,
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Share + Favourite floating above
-                    Transform.translate(
-                      offset: const Offset(0, -14),
-                      child: Align(
-                        alignment: Alignment.topRight,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _TopCircleButton(
-                              icon: Icons.reply_outlined,
-                              onTap: _shareItem,
-                            ),
-                            const SizedBox(width: 10),
-                            _TopCircleButton(
-                              icon: isFavorite
-                                  ? Icons.favorite
-                                  : Icons.favorite_border,
-                              onTap: _toggleFavorite,
-                              iconColor: isFavorite
-                                  ? const Color(0xFFE53935)
-                                  : const Color(0xFF222222),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // Price
-                    Text(
-                      p.formattedPrice,
-                      style: GoogleFonts.poppins(
-                        fontSize: 17.88,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                        height: 24.24 / 17.88,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Beds / Baths / Area
-                    Row(
-                      children: [
-                        if (p.bedrooms > 0) ...[
-                          _DetailSpec(
-                              icon: Icons.bed_outlined,
-                              value: '${p.bedrooms} beds'),
-                          const SizedBox(width: 14),
-                        ],
-                        if (p.bathrooms > 0) ...[
-                          _DetailSpec(
-                              icon: Icons.bathtub_outlined,
-                              value: '${p.bathrooms} baths'),
-                          const SizedBox(width: 14),
-                        ],
-                        if (p.area.isNotEmpty)
-                          _DetailSpec(
-                              icon: Icons.square_foot, value: '${p.area} sqft'),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Location
-                    Row(
-                      children: [
-                        const Icon(Icons.location_on_outlined,
-                            size: 15, color: Color(0xFF505050)),
-                        const SizedBox(width: 5),
-                        Text(
-                          p.location,
-                          style: GoogleFonts.poppins(
-                            fontSize: 11.62,
-                            fontWeight: FontWeight.w400,
-                            color: const Color(0xFF505050),
-                            height: 17.06 / 11.62,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    const Divider(
-                        height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
-                    const SizedBox(height: 14),
-
-                    // Description
-                    Builder(
-                      builder: (_) {
-                        final raw = p.description.trim();
-                        final clean = raw.isEmpty
-                            ? 'No description available.'
-                            : raw.replaceAll(RegExp(r'\s+'), ' ');
-                        return SizedBox(
-                          width: double.infinity,
-                          child: Text(
-                            clean,
-                            softWrap: true,
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400,
-                              color: const Color(0xFF141414),
-                              height: 1.6,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Overview table
-                    if (p.propertyType.isNotEmpty)
-                      _overviewRow('Type', p.propertyType),
-                    if (p.purpose.isNotEmpty)
-                      _overviewRow('Purpose', p.purpose),
-                    if (p.furnishing.isNotEmpty)
-                      _overviewRow('Furnishing', p.furnishing),
-                    _overviewRow('Updated', _formattedDate),
-                    const SizedBox(height: 14),
-                    const SizedBox(height: 2),
-
-                    // Title
-                    Text(
-                      p.title,
-                      style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    const Divider(
-                        height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
-                    const SizedBox(height: 14),
-
-                    // Actions
-                    Row(
-                      children: [
-                        Expanded(
-                            child: _detailAction(Icons.phone_outlined, 'Call')),
-                        const SizedBox(width: 8),
-                        Expanded(child: _whatsAppAction(onTap: _openChat)),
-                        const SizedBox(width: 8),
-                        Expanded(
-                            child: _detailAction(
-                                Icons.chat_bubble_outline, 'SMS',
-                                onTap: _openChat)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+        child: Icon(icon, size: 18, color: color),
       ),
     );
   }
 
-  Widget _overviewRow(String k, String v) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Text(k,
-                style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.black)),
-          ),
-          SizedBox(
-            width: 132,
-            child: Text(v,
-                style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _openChat() async {
-    try {
-      final chatId =
-          await ref.read(chatActionsProvider).openOrCreateChatForListing(
-                listingId: widget.property.id,
-                sellerId: widget.property.sellerId,
-              );
-      if (!mounted) return;
-      context.push('/chat/$chatId');
-    } catch (e) {
-      if (!mounted) return;
-      final message = e.toString().replaceAll('Exception: ', '');
-      if (message.toLowerCase().contains('please sign in first')) {
-        context.push(RouteNames.onboarding);
-        return;
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
-    }
-  }
-
-  Widget _detailAction(IconData icon, String label, {VoidCallback? onTap}) {
+  Widget _detailAction(IconData icon, String? label, {VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -488,19 +433,27 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
           border: Border.all(color: const Color(0xFFD9D9D9)),
           color: Colors.white,
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 16, color: const Color(0xFF2258A8)),
-            const SizedBox(width: 8),
-            Text(label,
-                style: GoogleFonts.poppins(
-                    fontSize: 14.24,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.black,
-                    height: 25.12 / 14.24)),
-          ],
-        ),
+        child: label == null
+            ? Center(
+                child: Icon(icon, size: 18, color: const Color(0xFF2258A8)),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 16, color: const Color(0xFF2258A8)),
+                  const SizedBox(width: 8),
+                  Text(
+                    label,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14.24,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.black,
+                      height: 25.12 / 14.24,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }
@@ -516,60 +469,44 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
           color: Colors.white,
         ),
         child: const Center(
-          child: FaIcon(FontAwesomeIcons.whatsapp,
-              size: 16, color: Color(0xFF2258A8)),
+          child: FaIcon(
+            FontAwesomeIcons.whatsapp,
+            size: 16,
+            color: Color(0xFF2258A8),
+          ),
         ),
       ),
     );
   }
-}
 
-class _TopCircleButton extends StatelessWidget {
-  final IconData icon;
-  final Function()? onTap;
-  final Color? iconColor;
-  const _TopCircleButton({required this.icon, this.onTap, this.iconColor});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Container(
-        width: 24,
-        height: 24,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-                color: Color(0x40000000), blurRadius: 4, offset: Offset(0, 0)),
-          ],
-        ),
-        child: Icon(icon, color: iconColor ?? const Color(0xFF222222), size: 14),
-      ),
-    );
+  Future<void> _openChat() async {
+    try {
+      final chatId =
+          await ref.read(chatActionsProvider).openOrCreateChatForListing(
+                listingId: widget.property.id,
+                sellerId: widget.property.sellerId,
+              );
+      if (!mounted) return;
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => ChatDetailScreen(chatId: chatId),
+      ));
+    } catch (e) {
+      if (!mounted) return;
+      final message = e.toString().replaceAll('Exception: ', '');
+      if (message.toLowerCase().contains('please sign in first')) {
+        Navigator.of(context).pushNamed(RouteNames.onboarding);
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
   }
-}
 
-class _DetailSpec extends StatelessWidget {
-  final IconData icon;
-  final String value;
-  const _DetailSpec({required this.icon, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: const Color(0xFF505050)),
-        const SizedBox(width: 4),
-        Text(value,
-            style: GoogleFonts.poppins(
-                fontSize: 14.24,
-                fontWeight: FontWeight.w400,
-                color: const Color(0xFF505050),
-                height: 25.12 / 14.24)),
-      ],
-    );
+  Future<void> _launch(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri != null) await launchUrl(uri);
   }
 }

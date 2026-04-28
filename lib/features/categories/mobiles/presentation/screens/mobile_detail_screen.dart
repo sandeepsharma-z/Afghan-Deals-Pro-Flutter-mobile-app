@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../core/router/route_names.dart';
 import '../../../../chat/presentation/providers/chat_provider.dart';
@@ -22,23 +24,23 @@ class MobileDetailScreen extends ConsumerStatefulWidget {
 class _MobileDetailScreenState extends ConsumerState<MobileDetailScreen> {
   late final PageController _pageController;
   Timer? _timer;
-  int _currentPage = 0;
-  bool _chatLoading = false;
+  int _currentImage = 0;
+  bool _isFavorited = false;
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController();
+    _pageController = PageController(viewportFraction: 1.0);
     if (widget.mobile.images.length > 1) {
       _timer = Timer.periodic(const Duration(seconds: 4), (_) {
         if (!mounted) return;
-        final next = (_currentPage + 1) % widget.mobile.images.length;
+        final next = (_currentImage + 1) % widget.mobile.images.length;
         _pageController.animateToPage(
           next,
           duration: const Duration(milliseconds: 700),
           curve: Curves.easeInOutCubic,
         );
-        setState(() => _currentPage = next);
+        setState(() => _currentImage = next);
       });
     }
   }
@@ -52,370 +54,228 @@ class _MobileDetailScreenState extends ConsumerState<MobileDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final m = widget.mobile;
+    final mobile = widget.mobile;
     return Scaffold(
-      backgroundColor: Colors.white,
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            border: Border(top: BorderSide(color: Color(0xFFE8E8E8))),
-          ),
-          child: Row(
-            children: [
-              Expanded(child: _detailAction(Icons.phone_outlined, 'Call')),
-              const SizedBox(width: 8),
-              Expanded(child: _whatsAppAction(onTap: _openChat)),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _chatButton(),
-              ),
-            ],
-          ),
-        ),
-      ),
+      backgroundColor: const Color(0xFFFFFFFF),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Image slider ──────────────────────────────────────────────
-              Stack(
-                children: [
-                  SizedBox(
-                    height: 312,
-                    width: double.infinity,
-                    child: m.images.isEmpty
-                        ? Container(
-                            color: const Color(0xFFE8E8E8),
-                            child: const Icon(Icons.smartphone,
-                                size: 50, color: Colors.grey),
-                          )
-                        : PageView.builder(
-                            controller: _pageController,
-                            itemCount: m.images.length,
-                            onPageChanged: (i) =>
-                                setState(() => _currentPage = i),
-                            itemBuilder: (_, i) => Image.network(
-                              m.images[i],
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
-                                color: const Color(0xFFE8E8E8),
-                                child: const Icon(Icons.smartphone,
-                                    size: 50, color: Colors.grey),
-                              ),
+        child: Column(
+          children: [
+            // Fixed top image section with back button, image counter, and dots
+            Stack(
+              children: [
+                SizedBox(
+                  height: 312,
+                  width: double.infinity,
+                  child: mobile.images.isEmpty
+                      ? Container(
+                          color: const Color(0xFFE8E8E8),
+                          child: const Icon(Icons.smartphone, size: 50, color: Colors.grey),
+                        )
+                      : PageView.builder(
+                          controller: _pageController,
+                          itemCount: mobile.images.length,
+                          onPageChanged: (i) => setState(() => _currentImage = i),
+                          itemBuilder: (_, i) => Image.network(
+                            mobile.images[i],
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              color: const Color(0xFFE8E8E8),
+                              child: const Icon(Icons.smartphone, size: 50, color: Colors.grey),
                             ),
                           ),
-                  ),
-                  // Back button
-                  Positioned(
-                    top: 12,
-                    left: 12,
-                    child: GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      child: Container(
-                        width: 21,
-                        height: 21,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.arrow_back_ios_new,
-                            size: 12, color: Colors.black87),
-                      ),
-                    ),
-                  ),
-                  // Image counter
-                  Positioned(
-                    left: 14,
-                    bottom: 12,
+                ),
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: const Color(0x63000000),
-                        borderRadius: BorderRadius.circular(7),
+                      width: 21,
+                      height: 21,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
                       ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.image_outlined,
-                              color: Colors.white, size: 15),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${_currentPage + 1}/${m.images.isEmpty ? 1 : m.images.length}',
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: 11.62,
-                              fontWeight: FontWeight.w400,
-                              height: 17.06 / 11.62,
-                            ),
-                          ),
-                        ],
-                      ),
+                      child: const Icon(Icons.arrow_back_ios_new, size: 12, color: Colors.black87),
                     ),
                   ),
-                  // Dot indicators
-                  if (m.images.length > 1)
-                    Positioned(
-                      bottom: 14,
-                      left: 0,
-                      right: 0,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          m.images.length,
-                          (i) => AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            margin: const EdgeInsets.symmetric(horizontal: 3),
-                            width: i == _currentPage ? 10 : 7,
-                            height: i == _currentPage ? 10 : 7,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFD9D9D9),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ),
+                ),
+                Positioned(
+                  left: 14,
+                  bottom: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0x63000000),
+                      borderRadius: BorderRadius.circular(7),
                     ),
-                ],
-              ),
-
-              // ── Content ───────────────────────────────────────────────────
-              Container(
-                width: double.infinity,
-                color: Colors.white,
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Share + Favourite
-                    Transform.translate(
-                      offset: const Offset(0, -14),
-                      child: const Align(
-                        alignment: Alignment.topRight,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _TopCircleButton(icon: Icons.reply_outlined),
-                            SizedBox(width: 10),
-                            _TopCircleButton(icon: Icons.favorite_border),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // Price
-                    Text(
-                      m.formattedPrice,
-                      style: GoogleFonts.poppins(
-                        fontSize: 17.88,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                        height: 24.24 / 17.88,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-
-                    // Title
-                    Text(
-                      m.title,
-                      style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Location
-                    Row(
+                    child: Row(
                       children: [
-                        const Icon(Icons.location_on_outlined,
-                            size: 15, color: Color(0xFF505050)),
-                        const SizedBox(width: 5),
+                        const Icon(Icons.image_outlined, color: Colors.white, size: 15),
+                        const SizedBox(width: 4),
                         Text(
-                          m.location,
+                          '${_currentImage + 1}/${mobile.images.isEmpty ? 1 : mobile.images.length}',
                           style: GoogleFonts.poppins(
+                            color: Colors.white,
                             fontSize: 11.62,
                             fontWeight: FontWeight.w400,
-                            color: const Color(0xFF505050),
                             height: 17.06 / 11.62,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 14),
-                    const Divider(
-                        height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
-                    const SizedBox(height: 14),
-
-                    // Details section header
-                    Text(
-                      'Details',
-                      style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // Always-visible detail rows (no dividers on main screen)
-                    if (m.color.isNotEmpty) _detailRow('Color', m.color),
-                    if (m.age.isNotEmpty) _detailRow('Age', m.age),
-                    if (m.storage.isNotEmpty)
-                      _detailRow('Storage Capacity', m.storage),
-                    if (m.warranty.isNotEmpty)
-                      _detailRow('Warranty', m.warranty),
-                    _detailRow('Posted On', m.formattedDate),
-
-                    const SizedBox(height: 10),
-
-                    // Show more Details → opens bottom sheet
-                    GestureDetector(
-                      onTap: () => _showAllDetailsSheet(context, m),
-                      child: Center(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Show more Details',
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: const Color(0xFF2258A8),
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(
-                              Icons.keyboard_arrow_down,
-                              size: 18,
-                              color: Color(0xFF2258A8),
-                            ),
-                          ],
+                  ),
+                ),
+                if (mobile.images.length > 1)
+                  Positioned(
+                    bottom: 14,
+                    left: 0,
+                    right: 0,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(
+                        mobile.images.length,
+                        (index) => AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          width: index == _currentImage ? 10 : 7,
+                          height: index == _currentImage ? 10 : 7,
+                          decoration: BoxDecoration(
+                            color: index == _currentImage
+                                ? Colors.white
+                                : Colors.white.withValues(alpha: 0.45),
+                            shape: BoxShape.circle,
+                          ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 14),
-                    const Divider(
-                        height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
-                    const SizedBox(height: 14),
-
-                    // Description
-                    if (m.description.trim().isNotEmpty) ...[
-                      Text(
-                        'Description',
-                        style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
+              ],
+            ),
+            // Fixed header section (title, category, location) with share/favorite buttons
+            Container(
+              width: double.infinity,
+              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Transform.translate(
+                    offset: const Offset(0, -14),
+                    child: Align(
+                      alignment: Alignment.topRight,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Expanded(
-                            child: Text(
-                              m.description
-                                  .trim()
-                                  .replaceAll(RegExp(r'\s+'), ' '),
-                              softWrap: true,
-                              textAlign: TextAlign.justify,
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w400,
-                                color: const Color(0xFF141414),
-                                height: 1.6,
-                              ),
-                            ),
+                          _circleButton(icon: Icons.reply_outlined, onTap: _shareItem),
+                          const SizedBox(width: 10),
+                          _circleButton(
+                            icon: _isFavorited ? Icons.favorite : Icons.favorite_border,
+                            onTap: () => setState(() => _isFavorited = !_isFavorited),
+                            color: _isFavorited ? Colors.red : Colors.black87,
                           ),
                         ],
                       ),
-                      const SizedBox(height: 14),
-                      const Divider(
-                          height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
-                      const SizedBox(height: 14),
+                    ),
+                  ),
+                  Text(
+                    mobile.title,
+                    style: GoogleFonts.poppins(
+                      fontSize: 17.24,
+                      fontWeight: FontWeight.w400,
+                      color: const Color(0xFF141414),
+                      height: 31.04 / 17.24,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Mobiles${mobile.subcategory.isNotEmpty ? ' / ${mobile.subcategory}' : ''}',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.black45,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on_outlined, size: 15, color: Color(0xFF505050)),
+                      const SizedBox(width: 5),
+                      Text(
+                        mobile.location,
+                        style: GoogleFonts.poppins(
+                          fontSize: 11.62,
+                          fontWeight: FontWeight.w400,
+                          color: const Color(0xFF505050),
+                          height: 17.06 / 11.62,
+                        ),
+                      ),
                     ],
-
-                    const SizedBox(height: 8),
-                  ],
+                  ),
+                ],
+              ),
+            ),
+            // Scrollable details content
+            Expanded(
+              child: SingleChildScrollView(
+                child: Container(
+                  width: double.infinity,
+                  color: Colors.white,
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+                      const SizedBox(height: 14),
+                      if (mobile.description.isNotEmpty)
+                        Text(
+                          mobile.description,
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            color: const Color(0xFF141414),
+                            height: 1.6,
+                          ),
+                        ),
+                      if (mobile.description.isNotEmpty) const SizedBox(height: 14),
+                      if (mobile.description.isNotEmpty) const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+                      if (mobile.description.isNotEmpty) const SizedBox(height: 14),
+                      if (mobile.brand.isNotEmpty) _overviewRow('Brand', mobile.brand),
+                      if (mobile.model.isNotEmpty) _overviewRow('Model', mobile.model),
+                      if (mobile.storage.isNotEmpty) _overviewRow('Storage', mobile.storage),
+                      if (mobile.color.isNotEmpty) _overviewRow('Color', mobile.color),
+                      if (mobile.condition.isNotEmpty) _overviewRow('Condition', mobile.condition),
+                      if (mobile.age.isNotEmpty) _overviewRow('Age', mobile.age),
+                      if (mobile.warranty.isNotEmpty) _overviewRow('Warranty', mobile.warranty),
+                      if (mobile.batteryHealth.isNotEmpty) _overviewRow('Battery Health', mobile.batteryHealth),
+                      if (mobile.version.isNotEmpty) _overviewRow('Version', mobile.version),
+                      if (mobile.damageDetails.isNotEmpty) _overviewRow('Damages', mobile.damageDetails),
+                      if (mobile.screenSize.isNotEmpty) _overviewRow('Screen Size', mobile.screenSize),
+                      _overviewRow('Posted', mobile.formattedDate),
+                      const SizedBox(height: 14),
+                      const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+                    ],
+                  ),
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showAllDetailsSheet(BuildContext context, MobileListingModel m) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle
+            ),
+            // Fixed bottom action buttons
             Container(
-              margin: const EdgeInsets.only(top: 12, bottom: 8),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: const Color(0xFFD9D9D9),
-                borderRadius: BorderRadius.circular(2),
+              width: double.infinity,
+              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
+              child: Row(
+                children: [
+                  Expanded(child: _detailAction(Icons.phone_outlined, 'Call', onTap: () => _launch('tel:${mobile.phone}'))),
+                  const SizedBox(width: 8),
+                  Expanded(child: _whatsAppAction(onTap: () => _openChat())),
+                  const SizedBox(width: 8),
+                  Expanded(child: _detailAction(Icons.sms_outlined, 'SMS', onTap: () => _launch('sms:${mobile.phone}'))),
+                ],
               ),
-            ),
-            // Header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 10),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Details',
-                  style: GoogleFonts.poppins(
-                    fontSize: 19,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-            ),
-            // All rows — fits content, dividers only between rows
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-              child: _detailsList([
-                if (m.color.isNotEmpty) (label: 'Color', value: m.color),
-                if (m.age.isNotEmpty) (label: 'Age', value: m.age),
-                if (m.storage.isNotEmpty)
-                  (label: 'Storage Capacity', value: m.storage),
-                if (m.warranty.isNotEmpty)
-                  (label: 'Warranty', value: m.warranty),
-                if (m.batteryHealth.isNotEmpty)
-                  (
-                    label: 'Percentage of Battery Health',
-                    value: m.batteryHealth
-                  ),
-                if (m.condition.isNotEmpty)
-                  (label: 'Condition', value: m.condition),
-                if (m.version.isNotEmpty) (label: 'Version', value: m.version),
-                if (m.damageDetails.isNotEmpty)
-                  (label: 'Damages On Device', value: m.damageDetails),
-                if (m.screenSize.isNotEmpty)
-                  (label: 'Screen Size', value: m.screenSize),
-                if (m.model.isNotEmpty) (label: 'Model', value: m.model),
-                (label: 'Posted On', value: m.formattedDate),
-              ]),
             ),
           ],
         ),
@@ -423,30 +283,35 @@ class _MobileDetailScreenState extends ConsumerState<MobileDetailScreen> {
     );
   }
 
-  Widget _detailRow(String label, String value) {
+  Widget _overviewRow(String k, String v) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
             child: Text(
-              label,
+              k,
               style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+                fontSize: 17.24,
+                fontWeight: FontWeight.w400,
                 color: Colors.black,
+                height: 25.12 / 17.24,
+                letterSpacing: 0,
               ),
             ),
           ),
           SizedBox(
-            width: 160,
+            width: 132,
             child: Text(
-              value,
+              v,
+              textAlign: TextAlign.left,
               style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: const Color(0xFF555555),
+                fontSize: 17.24,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+                height: 25.12 / 17.24,
+                letterSpacing: 0,
               ),
             ),
           ),
@@ -455,20 +320,171 @@ class _MobileDetailScreenState extends ConsumerState<MobileDetailScreen> {
     );
   }
 
-  Widget _detailsList(List<({String label, String value})> rows) {
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: rows.length,
-      separatorBuilder: (_, __) =>
-          const Divider(height: 1, thickness: 1, color: Color(0xFFF0F0F0)),
-      itemBuilder: (_, i) => _detailRow(rows[i].label, rows[i].value),
+  void _shareItem() {
+    final itemName = widget.mobile.title;
+    final shareText = 'Check out this mobile: $itemName - ${widget.mobile.formattedPrice} on Afghan Deals Pro';
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      builder: (_) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Share Listing',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: const Icon(Icons.copy, color: Color(0xFF2258A8)),
+                title: Text('Copy to Clipboard',
+                    style: GoogleFonts.poppins(fontSize: 14)),
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: shareText));
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Copied: $itemName'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.message, color: Color(0xFF2258A8)),
+                title: Text('Share via Message',
+                    style: GoogleFonts.poppins(fontSize: 14)),
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Shared: $itemName'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.link, color: Color(0xFF2258A8)),
+                title: Text('Copy Link',
+                    style: GoogleFonts.poppins(fontSize: 14)),
+                onTap: () {
+                  Clipboard.setData(
+                    ClipboardData(text: 'afghan-deals-pro://mobile/${widget.mobile.id}'),
+                  );
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Link copied for $itemName'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _circleButton({required IconData icon, Color color = Colors.black87, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [BoxShadow(color: Color(0x30000000), blurRadius: 4)],
+        ),
+        child: Icon(icon, size: 18, color: color),
+      ),
+    );
+  }
+
+  Widget _detailAction(IconData icon, String? label, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 38,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: const Color(0xFFD9D9D9)),
+          color: Colors.white,
+        ),
+        child: label == null
+            ? Center(
+                child: Icon(icon, size: 18, color: const Color(0xFF2258A8)),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 16, color: const Color(0xFF2258A8)),
+                  const SizedBox(width: 8),
+                  Text(
+                    label,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14.24,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.black,
+                      height: 25.12 / 14.24,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+
+  Widget _whatsAppAction({VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 38,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: const Color(0xFFD9D9D9)),
+          color: Colors.white,
+        ),
+        child: const Center(
+          child: FaIcon(
+            FontAwesomeIcons.whatsapp,
+            size: 16,
+            color: Color(0xFF2258A8),
+          ),
+        ),
+      ),
     );
   }
 
   Future<void> _openChat() async {
-    if (_chatLoading) return;
-    setState(() => _chatLoading = true);
     try {
       final chatId =
           await ref.read(chatActionsProvider).openOrCreateChatForListing(
@@ -491,119 +507,11 @@ class _MobileDetailScreenState extends ConsumerState<MobileDetailScreen> {
         backgroundColor: Colors.red,
         behavior: SnackBarBehavior.floating,
       ));
-    } finally {
-      if (mounted) setState(() => _chatLoading = false);
     }
   }
 
-  Widget _chatButton() {
-    return GestureDetector(
-      onTap: _chatLoading ? null : _openChat,
-      child: Container(
-        height: 38,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: const Color(0xFFD9D9D9)),
-          color: Colors.white,
-        ),
-        child: Center(
-          child: _chatLoading
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Color(0xFF2258A8),
-                  ),
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.chat_bubble_outline,
-                        size: 16, color: Color(0xFF2258A8)),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Chat',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14.24,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ],
-                ),
-        ),
-      ),
-    );
-  }
-
-  Widget _detailAction(IconData icon, String label, {VoidCallback? onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 38,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: const Color(0xFFD9D9D9)),
-          color: Colors.white,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 16, color: const Color(0xFF2258A8)),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: GoogleFonts.poppins(
-                fontSize: 14.24,
-                fontWeight: FontWeight.w400,
-                color: Colors.black,
-                height: 25.12 / 14.24,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _whatsAppAction({VoidCallback? onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 38,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: const Color(0xFFD9D9D9)),
-          color: Colors.white,
-        ),
-        child: const Center(
-          child: FaIcon(FontAwesomeIcons.whatsapp,
-              size: 16, color: Color(0xFF2258A8)),
-        ),
-      ),
-    );
-  }
-}
-
-class _TopCircleButton extends StatelessWidget {
-  final IconData icon;
-  const _TopCircleButton({required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 24,
-      height: 24,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-              color: Color(0x40000000), blurRadius: 4, offset: Offset(0, 0)),
-        ],
-      ),
-      child: Icon(icon, color: const Color(0xFF222222), size: 14),
-    );
+  Future<void> _launch(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri != null) await launchUrl(uri);
   }
 }
