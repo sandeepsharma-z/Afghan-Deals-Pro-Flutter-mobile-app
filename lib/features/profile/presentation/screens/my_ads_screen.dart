@@ -499,12 +499,12 @@ class _FavoriteCarCard extends StatelessWidget {
           Expanded(
             child: Container(
               width: double.infinity,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.only(
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(8),
                   topRight: Radius.circular(8),
                 ),
-                color: const Color(0xFFEFF2F8),
+                color: Color(0xFFEFF2F8),
               ),
               child: car.images.isNotEmpty
                   ? Image.network(

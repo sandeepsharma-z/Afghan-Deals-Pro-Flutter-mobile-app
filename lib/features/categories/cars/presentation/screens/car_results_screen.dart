@@ -315,12 +315,12 @@ class _CarResultsScreenState extends ConsumerState<CarResultsScreen> {
                                   border: Border.all(color: const Color(0xFFC2C2C2)),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: Row(
+                                child: const Row(
                                   children: [
-                                    const SizedBox(width: 12),
-                                    const Icon(Icons.search, size: 16, color: Colors.black87),
-                                    const SizedBox(width: 8),
-                                    const Expanded(
+                                    SizedBox(width: 12),
+                                    Icon(Icons.search, size: 16, color: Colors.black87),
+                                    SizedBox(width: 8),
+                                    Expanded(
                                       child: Text('Search',
                                           style: TextStyle(
                                               fontSize: 11,
@@ -328,7 +328,7 @@ class _CarResultsScreenState extends ConsumerState<CarResultsScreen> {
                                               height: 18 / 11,
                                               color: Colors.black87)),
                                     ),
-                                    const SizedBox(width: 12),
+                                    SizedBox(width: 12),
                                   ],
                                 ),
                               ),

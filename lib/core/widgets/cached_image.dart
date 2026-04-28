@@ -12,7 +12,7 @@ class CachedImage extends StatelessWidget {
   final BorderRadius? borderRadius;
 
   const CachedImage({
-    Key? key,
+    super.key,
     required this.imageUrl,
     this.width,
     this.height,
@@ -20,7 +20,7 @@ class CachedImage extends StatelessWidget {
     this.placeholder,
     this.errorWidget,
     this.borderRadius,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
