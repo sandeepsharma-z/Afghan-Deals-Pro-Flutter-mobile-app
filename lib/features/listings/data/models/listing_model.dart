@@ -23,6 +23,20 @@ class ListingModel extends ListingEntity {
   });
 
   factory ListingModel.fromMap(Map<String, dynamic> map) {
+    DateTime parsedDate;
+    try {
+      final createdAt = map['created_at'];
+      if (createdAt == null) {
+        parsedDate = DateTime.now();
+      } else if (createdAt is DateTime) {
+        parsedDate = createdAt;
+      } else {
+        parsedDate = DateTime.parse(createdAt.toString());
+      }
+    } catch (e) {
+      parsedDate = DateTime.now();
+    }
+
     return ListingModel(
       id: map['id'] as String,
       category: map['category'] as String,
@@ -41,7 +55,7 @@ class ListingModel extends ListingEntity {
       isFeatured: map['is_featured'] as bool? ?? false,
       viewCount: map['view_count'] as int? ?? 0,
       categoryData: (map['category_data'] as Map<String, dynamic>?) ?? {},
-      createdAt: DateTime.parse(map['created_at'] as String),
+      createdAt: parsedDate,
     );
   }
 
