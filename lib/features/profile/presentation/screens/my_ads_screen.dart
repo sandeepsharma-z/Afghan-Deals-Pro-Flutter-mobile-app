@@ -21,10 +21,27 @@ final favoriteListingsProvider =
           try {
             final map = Map<String, dynamic>.from(row);
             if (favorites.contains(map['id'])) {
+              // Normalize data like myAdsProvider does
+              map['seller_id'] = map['seller_id']?.toString() ?? '';
+              map['seller_name'] = map['seller_name']?.toString() ?? '';
+              map['category'] = map['category']?.toString() ?? '';
+              map['title'] = map['title']?.toString() ?? 'Untitled';
+              map['currency'] = map['currency']?.toString() ?? 'AFN';
+              map['images'] = (map['images'] as List<dynamic>?) ?? <dynamic>[];
+              map['country'] = map['country']?.toString() ?? 'Afghanistan';
+              map['category_data'] =
+                  (map['category_data'] as Map<String, dynamic>?) ??
+                      <String, dynamic>{};
+              map['created_at'] =
+                  map['created_at']?.toString() ?? DateTime.now().toIso8601String();
+
               final listing = ListingModel.fromMap(map);
               items.add(listing);
             }
-          } catch (_) {}
+          } catch (e) {
+            // Log error but continue processing other items
+            debugPrint('Error converting favorite listing: $e');
+          }
         }
         return items;
       });
