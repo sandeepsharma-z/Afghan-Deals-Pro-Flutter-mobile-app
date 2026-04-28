@@ -93,15 +93,26 @@ class _MyAdsScreenState extends ConsumerState<MyAdsScreen> {
               ),
             ),
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-            child: Center(
-              child: Text(
-                'My Ads',
-                style: GoogleFonts.montserrat(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black87,
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black87),
                 ),
-              ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      'My Ads',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           Expanded(
@@ -252,7 +263,7 @@ class _MyAdsScreenState extends ConsumerState<MyAdsScreen> {
             ],
             if (favoriteRentalCars.isNotEmpty) ...[
               Text(
-                'Favorited Rental Cars',
+                'Favorites',
                 style: GoogleFonts.montserrat(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
