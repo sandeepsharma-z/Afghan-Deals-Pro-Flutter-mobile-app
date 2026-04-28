@@ -146,33 +146,34 @@ class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
                       ),
                     ),
                   ),
-                // Fixed share/favorite buttons
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _circleButton(icon: Icons.reply_outlined, onTap: _shareItem),
-                      const SizedBox(width: 10),
-                      _circleButton(
-                        icon: _isFavorited ? Icons.favorite : Icons.favorite_border,
-                        onTap: () => setState(() => _isFavorited = !_isFavorited),
-                        color: _isFavorited ? Colors.red : Colors.black87,
-                      ),
-                    ],
-                  ),
-                ),
               ],
             ),
-            // Fixed header section (title, category, location)
+            // Fixed header section (title, category, location) with share/favorite buttons
             Container(
               width: double.infinity,
               color: Colors.white,
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Transform.translate(
+                    offset: const Offset(0, -14),
+                    child: Align(
+                      alignment: Alignment.topRight,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _circleButton(icon: Icons.reply_outlined, onTap: _shareItem),
+                          const SizedBox(width: 10),
+                          _circleButton(
+                            icon: _isFavorited ? Icons.favorite : Icons.favorite_border,
+                            onTap: () => setState(() => _isFavorited = !_isFavorited),
+                            color: _isFavorited ? Colors.red : Colors.black87,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   Text(
                     item.title,
                     style: GoogleFonts.poppins(
