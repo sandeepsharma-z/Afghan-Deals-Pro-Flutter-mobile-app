@@ -87,7 +87,24 @@ class _MyAdsScreenState extends ConsumerState<MyAdsScreen> {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      Navigator.of(context).pop();
+                      try {
+                        if (mounted && Navigator.of(context).canPop()) {
+                          Navigator.of(context).pop();
+                        } else if (mounted) {
+                          // If can't pop from navigator, exit the app
+                          Navigator.of(context).pop();
+                        }
+                      } catch (e) {
+                        debugPrint('Back navigation error: $e');
+                        // Try to navigate away using the router
+                        if (mounted) {
+                          try {
+                            Navigator.of(context).maybePop();
+                          } catch (e2) {
+                            debugPrint('Fallback navigation failed: $e2');
+                          }
+                        }
+                      }
                     },
                     child: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black87),
                   ),
@@ -347,12 +364,21 @@ class _AdCardState extends State<_AdCard> {
     _autoplayTimer?.cancel();
     if (widget.ad.images.length <= 1) return;
     _autoplayTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-      if (!mounted || _pageController.positions.isEmpty) return;
+      if (!mounted) {
+        _autoplayTimer?.cancel();
+        return;
+      }
+
       try {
+        if (_pageController.positions.isEmpty || !_pageController.hasClients) {
+          return;
+        }
+
         final total = widget.ad.images.length;
-        if (total <= 1 || !_pageController.hasClients) return;
+        if (total <= 1) return;
+
         final next = (_currentPage + 1) % total;
-        if (_pageController.page != null) {
+        if (_pageController.page != null && _pageController.hasClients) {
           _pageController.animateToPage(
             next,
             duration: const Duration(milliseconds: 320),
@@ -361,6 +387,7 @@ class _AdCardState extends State<_AdCard> {
         }
       } catch (e) {
         debugPrint('Autoplay error: $e');
+        _autoplayTimer?.cancel();
       }
     });
   }

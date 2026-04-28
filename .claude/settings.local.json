@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter logs *)",
+      "Bash(tee /tmp/crash_logs.txt)"
+    ]
+  }
+}
