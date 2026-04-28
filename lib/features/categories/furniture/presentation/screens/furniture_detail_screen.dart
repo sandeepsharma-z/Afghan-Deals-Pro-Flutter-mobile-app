@@ -149,8 +149,9 @@ class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
                 // Fixed share/favorite buttons
                 Positioned(
                   top: 12,
-                  right: 16,
+                  right: 12,
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       _circleButton(icon: Icons.reply_outlined, onTap: _shareItem),
                       const SizedBox(width: 10),
