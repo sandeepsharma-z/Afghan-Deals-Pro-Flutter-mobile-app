@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -17,28 +19,106 @@ class FurnitureDetailScreen extends StatefulWidget {
 class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
   int _currentImage = 0;
   bool _isFavorited = false;
-  bool _showMore = false;
 
   @override
   Widget build(BuildContext context) {
     final item = widget.item;
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildImageSection(item),
-                  _buildInfoSection(item),
-                ],
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildImageSection(item),
+              Container(
+                width: double.infinity,
+                color: Colors.white,
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Share + Favorite floating above
+                    Transform.translate(
+                      offset: const Offset(0, -14),
+                      child: Align(
+                        alignment: Alignment.topRight,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _circleBtn(Icons.share_outlined, _shareItem),
+                            const SizedBox(width: 10),
+                            _circleBtn(
+                              _isFavorited ? Icons.favorite : Icons.favorite_border,
+                              () => setState(() => _isFavorited = !_isFavorited),
+                              color: _isFavorited ? Colors.red : Colors.black87,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // Price
+                    Text(item.formattedPrice,
+                        style: GoogleFonts.poppins(fontSize: 17.88, fontWeight: FontWeight.w600, color: Colors.black, height: 24.24 / 17.88)),
+                    const SizedBox(height: 8),
+                    // Title
+                    Text(item.title,
+                        style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.black)),
+                    const SizedBox(height: 2),
+                    Text('Furniture${item.subcategoryLabel.isNotEmpty ? ' / ${item.subcategoryLabel}' : ''}',
+                        style: GoogleFonts.poppins(fontSize: 12, color: Colors.black45)),
+                    const SizedBox(height: 14),
+                    // Location
+                    Row(children: [
+                      const Icon(Icons.location_on_outlined, size: 15, color: Color(0xFF505050)),
+                      const SizedBox(width: 5),
+                      Text(item.location,
+                          style: GoogleFonts.poppins(fontSize: 11.62, fontWeight: FontWeight.w400, color: const Color(0xFF505050), height: 17.06 / 11.62)),
+                    ]),
+                    const SizedBox(height: 14),
+                    const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+                    const SizedBox(height: 14),
+                    // Description
+                    if (item.description.isNotEmpty)
+                      Text(item.description,
+                          style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w400, color: const Color(0xFF141414), height: 1.6)),
+                    if (item.description.isNotEmpty) const SizedBox(height: 14),
+                    if (item.description.isNotEmpty) const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+                    if (item.description.isNotEmpty) const SizedBox(height: 14),
+                    // Details
+                    if (item.age.isNotEmpty) _detailOverviewRow('Age', item.age),
+                    if (item.condition.isNotEmpty) _detailOverviewRow('Condition', item.condition),
+                    if (item.color.isNotEmpty) _detailOverviewRow('Color', item.color),
+                    if (item.usage.isNotEmpty) _detailOverviewRow('Usage', item.usage),
+                    if (item.brand.isNotEmpty) _detailOverviewRow('Brand', item.brand),
+                    if (item.material.isNotEmpty) _detailOverviewRow('Material', item.material),
+                    _detailOverviewRow('Posted', item.formattedDate),
+                    const SizedBox(height: 14),
+                    const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+                    const SizedBox(height: 14),
+                    // Actions
+                    Row(children: [
+                      Expanded(child: _detailAction(Icons.phone_outlined, 'Call', onTap: () => _launch('tel:${item.phone}'))),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => _launch('https://wa.me/${item.phone.replaceAll(RegExp(r'[^0-9]'), '')}'),
+                          child: Container(
+                            height: 38,
+                            decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), border: Border.all(color: const Color(0xFFD9D9D9)), color: Colors.white),
+                            child: const Center(child: FaIcon(FontAwesomeIcons.whatsapp, size: 16, color: Color(0xFF2258A8))),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(child: _detailAction(Icons.sms_outlined, 'SMS', onTap: () => _launch('sms:${item.phone}'))),
+                    ]),
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
-          _buildActionBar(item),
-        ],
+        ),
       ),
     );
   }
@@ -124,7 +204,7 @@ class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
         Positioned(
           bottom: 12, right: 12,
           child: Row(children: [
-            _circleBtn(Icons.share_outlined, () {}),
+            _circleBtn(Icons.share_outlined, _shareItem),
             const SizedBox(width: 8),
             _circleBtn(
               _isFavorited ? Icons.favorite : Icons.favorite_border,
@@ -137,8 +217,101 @@ class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
     );
   }
 
+  void _shareItem() {
+    final itemName = widget.item.title;
+    final shareText = 'Check out this furniture: $itemName - ${widget.item.formattedPrice} on Afghan Deals Pro';
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      builder: (_) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Share Listing',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: const Icon(Icons.copy, color: Color(0xFF2258A8)),
+                title: Text('Copy to Clipboard',
+                    style: GoogleFonts.poppins(fontSize: 14)),
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: shareText));
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Copied: $itemName'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.message, color: Color(0xFF2258A8)),
+                title: Text('Share via Message',
+                    style: GoogleFonts.poppins(fontSize: 14)),
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Shared: $itemName'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.link, color: Color(0xFF2258A8)),
+                title: Text('Copy Link',
+                    style: GoogleFonts.poppins(fontSize: 14)),
+                onTap: () {
+                  Clipboard.setData(
+                    ClipboardData(text: 'afghan-deals-pro://furniture/${widget.item.id}'),
+                  );
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Link copied for $itemName'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _circleBtn(IconData icon, VoidCallback onTap, {Color color = Colors.black87}) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
         width: 36, height: 36,
@@ -152,127 +325,39 @@ class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
     );
   }
 
-  Widget _buildInfoSection(FurnitureListingModel item) {
-    final allDetails = <_DetailRow>[
-      if (item.itemShape.isNotEmpty) _DetailRow('Item Shape', item.itemShape),
-      if (item.age.isNotEmpty) _DetailRow('Age', item.age),
-      if (item.condition.isNotEmpty) _DetailRow('Condition', item.condition),
-      if (item.color.isNotEmpty) _DetailRow('Color', item.color),
-      if (item.usage.isNotEmpty) _DetailRow('Usage', item.usage),
-      if (item.brand.isNotEmpty) _DetailRow('Brand', item.brand),
-      if (item.shape.isNotEmpty) _DetailRow('Shape', item.shape),
-      if (item.type.isNotEmpty) _DetailRow('Type', item.type),
-      if (item.material.isNotEmpty) _DetailRow('Material', item.material),
-      if (item.fillMaterial.isNotEmpty) _DetailRow('Fill Material', item.fillMaterial),
-      if (item.roomType.isNotEmpty) _DetailRow('Room Type', item.roomType),
-      _DetailRow('Posted On', item.formattedDate),
-    ];
-
-    final visibleDetails = _showMore ? allDetails : allDetails.take(5).toList();
-
+  Widget _detailOverviewRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(item.formattedPrice,
-              style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700, color: _kBlue)),
-          const SizedBox(height: 4),
-          Text(item.title,
-              style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.black87)),
-          const SizedBox(height: 2),
-          Text('Furniture${item.subcategoryLabel.isNotEmpty ? ' / ${item.subcategoryLabel}' : ''}',
-              style: GoogleFonts.poppins(fontSize: 12, color: Colors.black45)),
-          const Divider(height: 24, color: Color(0xFFE8E8E8)),
-          Text('Details',
-              style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 12),
-          ...visibleDetails.map((r) => _buildDetailRow(r.label, r.value)),
-          if (allDetails.length > 5)
-            GestureDetector(
-              onTap: () => setState(() => _showMore = !_showMore),
-              child: Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: Center(
-                  child: Text(
-                    _showMore ? 'Show less Details' : 'Show more Details',
-                    style: GoogleFonts.poppins(fontSize: 13, color: _kBlue, fontWeight: FontWeight.w500),
-                  ),
-                ),
-              ),
-            ),
-          if (item.description.isNotEmpty) ...[
-            const Divider(height: 24, color: Color(0xFFE8E8E8)),
-            Text('Description',
-                style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            Text(item.description,
-                style: GoogleFonts.poppins(fontSize: 13, color: Colors.black54, height: 1.5)),
-          ],
-          const SizedBox(height: 16),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(label,
-                style: GoogleFonts.poppins(fontSize: 13, color: Colors.black54)),
-          ),
-          Expanded(
-            child: Text(value,
-                style: GoogleFonts.poppins(fontSize: 13, color: Colors.black87)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionBar(FurnitureListingModel item) {
-    return Container(
-      padding: EdgeInsets.only(
-        left: 16, right: 16, top: 12,
-        bottom: MediaQuery.of(context).padding.bottom + 12,
-      ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        boxShadow: [BoxShadow(color: Color(0x20000000), blurRadius: 12, offset: Offset(0, -4))],
-      ),
-      child: Row(children: [
-        Expanded(child: _actionBtn(Icons.phone_outlined, 'Call', Colors.white, _kBlue,
-            () => _launch('tel:${item.phone}'))),
-        const SizedBox(width: 10),
-        Expanded(child: _actionBtn(Icons.chat_bubble_outline, 'WhatsApp', _kBlue, Colors.white,
-            () => _launch('https://wa.me/${item.phone.replaceAll(RegExp(r'[^0-9]'), '')}'))),
-        const SizedBox(width: 10),
-        Expanded(child: _actionBtn(Icons.sms_outlined, 'SMS', Colors.white, _kBlue,
-            () => _launch('sms:${item.phone}'))),
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+        Expanded(child: Text(label, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w400, color: Colors.black))),
+        SizedBox(width: 132, child: Text(value, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.black))),
       ]),
     );
   }
 
-  Widget _actionBtn(IconData icon, String label, Color bg, Color fg, VoidCallback onTap) {
+
+  Widget _detailAction(IconData icon, String label, {VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 44,
+        height: 38,
         decoration: BoxDecoration(
-          color: bg,
-          border: Border.all(color: _kBlue, width: 1.5),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: const Color(0xFFD9D9D9)),
+          color: Colors.white,
         ),
-        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Icon(icon, size: 16, color: fg),
-          const SizedBox(width: 6),
-          Text(label, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: fg)),
-        ]),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: const Color(0xFF2258A8)),
+            const SizedBox(width: 8),
+            Text(label,
+                style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.black)),
+          ],
+        ),
       ),
     );
   }
@@ -281,10 +366,4 @@ class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
     final uri = Uri.tryParse(url);
     if (uri != null) await launchUrl(uri);
   }
-}
-
-class _DetailRow {
-  final String label;
-  final String value;
-  const _DetailRow(this.label, this.value);
 }
