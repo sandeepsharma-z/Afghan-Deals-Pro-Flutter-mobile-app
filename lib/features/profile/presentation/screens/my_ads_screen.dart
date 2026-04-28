@@ -146,11 +146,21 @@ class _MyAdsScreenState extends ConsumerState<MyAdsScreen> {
                 ),
               ),
               data: (ads) {
-                return ref.watch(favoriteListingsProvider).when(
-                      loading: () => const Center(child: CircularProgressIndicator()),
-                      error: (_, __) => _buildContent(ads, []),
-                      data: (favorites) => _buildContent(ads, favorites),
-                    );
+                try {
+                  return ref.watch(favoriteListingsProvider).when(
+                        loading: () => const Center(child: CircularProgressIndicator()),
+                        error: (e, st) {
+                          debugPrint('Favorites error: $e');
+                          debugPrintStack(stackTrace: st);
+                          return _buildContent(ads, []);
+                        },
+                        data: (favorites) => _buildContent(ads, favorites),
+                      );
+                } catch (e, st) {
+                  debugPrint('Favorites watch error: $e');
+                  debugPrintStack(stackTrace: st);
+                  return _buildContent(ads, []);
+                }
               },
             ),
           ),
@@ -297,7 +307,12 @@ class _MyAdsScreenState extends ConsumerState<MyAdsScreen> {
                   mainAxisExtent: 164,
                 ),
                 itemBuilder: (context, index) {
-                  return _AdCard(ad: favorites[index]);
+                  try {
+                    return _AdCard(ad: favorites[index]);
+                  } catch (e) {
+                    debugPrint('Error building favorite card: $e');
+                    return const SizedBox.shrink();
+                  }
                 },
               ),
             ],
