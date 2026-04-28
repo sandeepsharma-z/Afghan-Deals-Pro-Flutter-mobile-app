@@ -6,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../features/listings/data/models/listing_model.dart';
-import '../providers/favorites_provider.dart';
 
 final myAdsProvider = FutureProvider<List<ListingModel>>((ref) async {
   final me = Supabase.instance.client.auth.currentUser;
@@ -49,42 +48,6 @@ final myAdsProvider = FutureProvider<List<ListingModel>>((ref) async {
   }
 });
 
-final favoritedListingsProvider = FutureProvider<List<ListingModel>>((ref) async {
-  try {
-    final favorites = ref.watch(favoritesProvider);
-    if (favorites.isEmpty) return const <ListingModel>[];
-
-    final response = await Supabase.instance.client
-        .from('listings')
-        .select()
-        .inFilter('id', favorites.toList());
-
-    final items = <ListingModel>[];
-    for (final row in response) {
-      try {
-        final map = Map<String, dynamic>.from(row as Map);
-        map['category'] = map['category']?.toString() ?? '';
-        map['title'] = map['title']?.toString() ?? 'Untitled';
-        map['currency'] = map['currency']?.toString() ?? 'AFN';
-        map['images'] = (map['images'] as List<dynamic>?)?.cast<String>() ?? <String>[];
-        map['country'] = map['country']?.toString() ?? 'Afghanistan';
-        map['category_data'] =
-            (map['category_data'] as Map<String, dynamic>?) ?? <String, dynamic>{};
-        map['created_at'] =
-            map['created_at']?.toString() ?? DateTime.now().toIso8601String();
-
-        items.add(ListingModel.fromMap(map));
-      } catch (e) {
-        debugPrint('Error mapping favorite: $e');
-      }
-    }
-    return items;
-  } catch (e) {
-    debugPrint('Favorited listings provider error: $e');
-    return const <ListingModel>[];
-  }
-});
-
 class MyAdsScreen extends ConsumerStatefulWidget {
   const MyAdsScreen({super.key});
 
@@ -106,112 +69,100 @@ class _MyAdsScreenState extends ConsumerState<MyAdsScreen> {
 
     try {
       final adsAsync = ref.watch(myAdsProvider);
-      final favoritesAsync = ref.watch(favoritedListingsProvider);
 
-      return PopScope(
-        canPop: true,
-        onPopInvokedWithResult: (didPop, result) {
-          // PopScope handles back automatically when canPop: true
-        },
-        child: Scaffold(
-          backgroundColor: Colors.white,
-          body: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  border: Border(
-                    bottom: BorderSide(color: Color(0xFFE8E8E8), width: 1),
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                border: Border(
+                  bottom: BorderSide(color: Color(0xFFE8E8E8), width: 1),
+                ),
+              ),
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black87),
                   ),
-                ),
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      child: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black87),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        'My Ads',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
+                        ),
+                      ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                          'My Ads',
-                          style: GoogleFonts.montserrat(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black87,
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: adsAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, st) {
+                  debugPrint('Ads error: $e');
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 22),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Error loading ads',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.montserrat(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 16),
+                          GestureDetector(
+                            onTap: () {
+                              if (mounted) {
+                                ref.invalidate(myAdsProvider);
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.blue),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                'Retry',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 14,
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  );
+                },
+                data: (ads) {
+                  return _buildContent(ads, const []);
+                },
               ),
-              Expanded(
-                child: adsAsync.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (e, st) {
-                    debugPrint('Ads error: $e');
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 22),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Error loading ads',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.montserrat(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            GestureDetector(
-                              onTap: () {
-                                if (mounted) {
-                                  ref.invalidate(myAdsProvider);
-                                }
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.blue),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  'Retry',
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: 14,
-                                    color: Colors.blue,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                  data: (ads) {
-                    return favoritesAsync.when(
-                      loading: () => _buildContent(ads, const [], isLoadingFavorites: true),
-                      error: (e, st) {
-                        debugPrint('Favorites error: $e');
-                        return _buildContent(ads, const []);
-                      },
-                      data: (favorites) => _buildContent(ads, favorites),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       );
     } catch (e) {
@@ -225,8 +176,7 @@ class _MyAdsScreenState extends ConsumerState<MyAdsScreen> {
     }
   }
 
-  Widget _buildContent(
-      List<ListingModel> ads, List<ListingModel> favorites, {bool isLoadingFavorites = false}) {
+  Widget _buildContent(List<ListingModel> ads, List<ListingModel> favorites) {
     if (ads.isEmpty && favorites.isEmpty) {
       return Center(
         child: Column(
@@ -345,38 +295,6 @@ class _MyAdsScreenState extends ConsumerState<MyAdsScreen> {
                 },
               ),
               const SizedBox(height: 26),
-            ],
-            // Favorites section
-            if (isLoadingFavorites)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                child: Center(child: CircularProgressIndicator()),
-              )
-            else if (favorites.isNotEmpty) ...[
-              Text(
-                'Favorites',
-                style: GoogleFonts.montserrat(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 12),
-              GridView.builder(
-                itemCount: favorites.length,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 14,
-                  mainAxisExtent: 164,
-                ),
-                itemBuilder: (context, index) {
-                  return _SimpleFavoriteCard(listing: favorites[index]);
-                },
-              ),
             ],
           ],
         ),
@@ -590,75 +508,4 @@ class _AdCardState extends State<_AdCard> {
     );
   }
 }
-
-class _SimpleFavoriteCard extends StatelessWidget {
-  final ListingModel listing;
-  const _SimpleFavoriteCard({required this.listing});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: const [BoxShadow(color: Color(0x20000000), blurRadius: 4)],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(8),
-              topRight: Radius.circular(8),
-            ),
-            child: Container(
-              height: 102,
-              width: double.infinity,
-              color: const Color(0xFFF0F0F0),
-              child: listing.images.isNotEmpty
-                  ? Image.network(
-                      listing.images[0],
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Center(
-                        child: Icon(Icons.image, color: Colors.grey),
-                      ),
-                    )
-                  : const Center(
-                      child: Icon(Icons.image, color: Colors.grey),
-                    ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  listing.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  listing.price != null ? '${listing.currency} ${listing.price}' : 'Price on request',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFF2258A8),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 
