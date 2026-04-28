@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -143,12 +145,47 @@ class _FurnitureListingsScreenState extends ConsumerState<FurnitureListingsScree
   }
 }
 
-class _FurnitureResultCard extends StatelessWidget {
+class _FurnitureResultCard extends StatefulWidget {
   final FurnitureListingModel item;
   const _FurnitureResultCard({required this.item});
 
   @override
+  State<_FurnitureResultCard> createState() => _FurnitureResultCardState();
+}
+
+class _FurnitureResultCardState extends State<_FurnitureResultCard> {
+  late final PageController _pageController;
+  Timer? _timer;
+  int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(viewportFraction: 1.0);
+    if (widget.item.images.length > 1) {
+      _timer = Timer.periodic(const Duration(seconds: 3), (_) {
+        if (!mounted) return;
+        final next = (_currentPage + 1) % widget.item.images.length;
+        _pageController.animateToPage(
+          next,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+        );
+        setState(() => _currentPage = next);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final item = widget.item;
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -165,8 +202,20 @@ class _FurnitureResultCard extends StatelessWidget {
               ),
               child: item.images.isEmpty
                   ? _placeholder()
-                  : Image.network(item.imageUrl, height: 101.27, width: double.infinity, fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _placeholder()),
+                  : SizedBox(
+                      height: 101.27,
+                      width: double.infinity,
+                      child: PageView.builder(
+                        controller: _pageController,
+                        itemCount: item.images.length,
+                        onPageChanged: (i) => setState(() => _currentPage = i),
+                        itemBuilder: (_, i) => Image.network(
+                          item.images[i],
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _placeholder(),
+                        ),
+                      ),
+                    ),
             ),
             if (item.images.isNotEmpty)
               Positioned(
@@ -178,7 +227,7 @@ class _FurnitureResultCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    '1/${item.images.length}',
+                    '${_currentPage + 1}/${item.images.length}',
                     style: GoogleFonts.poppins(fontSize: 8, fontWeight: FontWeight.w500, color: Colors.white),
                   ),
                 ),

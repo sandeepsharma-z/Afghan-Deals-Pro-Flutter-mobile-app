@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -14,8 +16,35 @@ class FurnitureDetailScreen extends StatefulWidget {
 }
 
 class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
+  late final PageController _pageController;
+  Timer? _timer;
   int _currentImage = 0;
   bool _isFavorited = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(viewportFraction: 1.0);
+    if (widget.item.images.length > 1) {
+      _timer = Timer.periodic(const Duration(seconds: 4), (_) {
+        if (!mounted) return;
+        final next = (_currentImage + 1) % widget.item.images.length;
+        _pageController.animateToPage(
+          next,
+          duration: const Duration(milliseconds: 700),
+          curve: Curves.easeInOutCubic,
+        );
+        setState(() => _currentImage = next);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -123,6 +152,7 @@ class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
                   child: const Center(child: Icon(Icons.chair_outlined, color: Colors.grey, size: 60)),
                 )
               : PageView.builder(
+                  controller: _pageController,
                   itemCount: images.length,
                   onPageChanged: (i) => setState(() => _currentImage = i),
                   itemBuilder: (_, i) => Image.network(
