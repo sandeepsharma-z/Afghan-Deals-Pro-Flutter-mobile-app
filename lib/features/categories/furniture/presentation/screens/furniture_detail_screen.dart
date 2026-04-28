@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../features/listings/data/models/furniture_listing_model.dart';
-
-const _kBlue = Color(0xFF2258A8);
 
 class FurnitureDetailScreen extends StatefulWidget {
   final FurnitureListingModel item;
@@ -34,11 +31,10 @@ class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
               Container(
                 width: double.infinity,
                 color: Colors.white,
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Share + Favorite floating above
                     Transform.translate(
                       offset: const Offset(0, -14),
                       child: Align(
@@ -46,11 +42,11 @@ class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            _circleBtn(Icons.share_outlined, _shareItem),
+                            _circleButton(icon: Icons.reply_outlined, onTap: _shareItem),
                             const SizedBox(width: 10),
-                            _circleBtn(
-                              _isFavorited ? Icons.favorite : Icons.favorite_border,
-                              () => setState(() => _isFavorited = !_isFavorited),
+                            _circleButton(
+                              icon: _isFavorited ? Icons.favorite : Icons.favorite_border,
+                              onTap: () => setState(() => _isFavorited = !_isFavorited),
                               color: _isFavorited ? Colors.red : Colors.black87,
                             ),
                           ],
@@ -60,14 +56,15 @@ class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
                     // Price
                     Text(item.formattedPrice,
                         style: GoogleFonts.poppins(fontSize: 17.88, fontWeight: FontWeight.w600, color: Colors.black, height: 24.24 / 17.88)),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
                     // Title
                     Text(item.title,
-                        style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.black)),
-                    const SizedBox(height: 2),
+                        style: GoogleFonts.poppins(fontSize: 17.24, fontWeight: FontWeight.w400, color: const Color(0xFF141414), height: 31.04 / 17.24)),
+                    const SizedBox(height: 6),
+                    // Subtitle
                     Text('Furniture${item.subcategoryLabel.isNotEmpty ? ' / ${item.subcategoryLabel}' : ''}',
                         style: GoogleFonts.poppins(fontSize: 12, color: Colors.black45)),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 8),
                     // Location
                     Row(children: [
                       const Icon(Icons.location_on_outlined, size: 15, color: Color(0xFF505050)),
@@ -100,16 +97,7 @@ class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
                     Row(children: [
                       Expanded(child: _detailAction(Icons.phone_outlined, 'Call', onTap: () => _launch('tel:${item.phone}'))),
                       const SizedBox(width: 8),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => _launch('https://wa.me/${item.phone.replaceAll(RegExp(r'[^0-9]'), '')}'),
-                          child: Container(
-                            height: 38,
-                            decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), border: Border.all(color: const Color(0xFFD9D9D9)), color: Colors.white),
-                            child: const Center(child: FaIcon(FontAwesomeIcons.whatsapp, size: 16, color: Color(0xFF2258A8))),
-                          ),
-                        ),
-                      ),
+                      Expanded(child: _whatsAppAction(onTap: () => _launch('https://wa.me/${item.phone.replaceAll(RegExp(r'[^0-9]'), '')}'))),
                       const SizedBox(width: 8),
                       Expanded(child: _detailAction(Icons.sms_outlined, 'SMS', onTap: () => _launch('sms:${item.phone}'))),
                     ]),
@@ -128,7 +116,7 @@ class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
     return Stack(
       children: [
         SizedBox(
-          height: 300,
+          height: 312,
           child: images.isEmpty
               ? Container(
                   color: const Color(0xFFEDEDED),
@@ -155,64 +143,52 @@ class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
           child: GestureDetector(
             onTap: () => Navigator.of(context).pop(),
             child: Container(
-              width: 34, height: 34,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.9),
+              width: 21, height: 21,
+              decoration: const BoxDecoration(
+                color: Colors.white,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black87),
+              child: const Icon(Icons.arrow_back_ios_new, size: 12, color: Colors.black87),
             ),
           ),
         ),
         // Image counter
         if (images.isNotEmpty)
           Positioned(
-            bottom: 12, left: 12,
+            bottom: 12, left: 14,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(12),
+                color: const Color(0x63000000),
+                borderRadius: BorderRadius.circular(7),
               ),
               child: Row(children: [
-                const Icon(Icons.camera_alt_outlined, size: 13, color: Colors.white),
+                const Icon(Icons.image_outlined, size: 15, color: Colors.white),
                 const SizedBox(width: 4),
                 Text('${_currentImage + 1}/${images.length}',
-                    style: GoogleFonts.poppins(fontSize: 11, color: Colors.white)),
+                    style: GoogleFonts.poppins(fontSize: 11.62, fontWeight: FontWeight.w400, color: Colors.white, height: 17.06 / 11.62)),
               ]),
             ),
           ),
         // Dots indicator
         if (images.length > 1)
           Positioned(
-            bottom: 12,
+            bottom: 14,
             left: 0, right: 0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(images.length, (i) => Container(
-                width: i == _currentImage ? 18 : 7,
-                height: 7,
-                margin: const EdgeInsets.symmetric(horizontal: 2),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4),
-                  color: i == _currentImage ? _kBlue : Colors.white.withValues(alpha: 0.7),
+              children: List.generate(images.length, (i) => AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                width: i == _currentImage ? 10 : 7,
+                height: i == _currentImage ? 10 : 7,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFD9D9D9),
+                  shape: BoxShape.circle,
                 ),
               )),
             ),
           ),
-        // Share + Favorite
-        Positioned(
-          bottom: 12, right: 12,
-          child: Row(children: [
-            _circleBtn(Icons.share_outlined, _shareItem),
-            const SizedBox(width: 8),
-            _circleBtn(
-              _isFavorited ? Icons.favorite : Icons.favorite_border,
-              () => setState(() => _isFavorited = !_isFavorited),
-              color: _isFavorited ? Colors.red : Colors.black87,
-            ),
-          ]),
-        ),
       ],
     );
   }
@@ -309,9 +285,18 @@ class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
     );
   }
 
-  Widget _circleBtn(IconData icon, VoidCallback onTap, {Color color = Colors.black87}) {
+  Widget _detailOverviewRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+        Expanded(child: Text(label, style: GoogleFonts.poppins(fontSize: 17.24, fontWeight: FontWeight.w400, color: Colors.black, height: 25.12 / 17.24))),
+        SizedBox(width: 132, child: Text(value, style: GoogleFonts.poppins(fontSize: 17.24, fontWeight: FontWeight.w600, color: Colors.black, height: 25.12 / 17.24))),
+      ]),
+    );
+  }
+
+  Widget _circleButton({required IconData icon, Color color = Colors.black87, required VoidCallback onTap}) {
     return GestureDetector(
-      behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
         width: 36, height: 36,
@@ -324,17 +309,6 @@ class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
       ),
     );
   }
-
-  Widget _detailOverviewRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-        Expanded(child: Text(label, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w400, color: Colors.black))),
-        SizedBox(width: 132, child: Text(value, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.black))),
-      ]),
-    );
-  }
-
 
   Widget _detailAction(IconData icon, String label, {VoidCallback? onTap}) {
     return GestureDetector(
@@ -353,7 +327,33 @@ class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
             const SizedBox(width: 8),
             Text(label,
                 style: GoogleFonts.poppins(
-                    fontSize: 14,
+                    fontSize: 14.24,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.black)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _whatsAppAction({required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 38,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: const Color(0xFFD9D9D9)),
+          color: Colors.white,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.chat_bubble_outline, size: 16, color: Color(0xFF2258A8)),
+            const SizedBox(width: 8),
+            Text('WhatsApp',
+                style: GoogleFonts.poppins(
+                    fontSize: 14.24,
                     fontWeight: FontWeight.w400,
                     color: Colors.black)),
           ],
