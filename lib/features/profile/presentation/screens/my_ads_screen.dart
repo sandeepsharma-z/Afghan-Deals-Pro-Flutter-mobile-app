@@ -6,26 +6,23 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../features/listings/data/models/listing_model.dart';
-import '../../../../features/listings/data/models/rental_car_model.dart';
 import '../providers/favorites_provider.dart';
 
-final favoriteRentalCarsProvider =
-    StreamProvider.autoDispose<List<RentalCarModel>>((ref) {
+final favoriteListingsProvider =
+    StreamProvider.autoDispose<List<ListingModel>>((ref) {
   final favorites = ref.watch(favoritesProvider);
 
   return Supabase.instance.client
       .from('listings')
       .stream(primaryKey: const ['id'])
       .map((rows) {
-        final items = <RentalCarModel>[];
+        final items = <ListingModel>[];
         for (final row in rows) {
           try {
             final map = Map<String, dynamic>.from(row);
-            if (map['category'] == 'cars' &&
-                map['subcategory'] == 'rental' &&
-                favorites.contains(map['id'])) {
-              final car = RentalCarModel.fromMap(map);
-              items.add(car);
+            if (favorites.contains(map['id'])) {
+              final listing = ListingModel.fromMap(map);
+              items.add(listing);
             }
           } catch (_) {}
         }
@@ -132,7 +129,7 @@ class _MyAdsScreenState extends ConsumerState<MyAdsScreen> {
                 ),
               ),
               data: (ads) {
-                return ref.watch(favoriteRentalCarsProvider).when(
+                return ref.watch(favoriteListingsProvider).when(
                       loading: () => const Center(child: CircularProgressIndicator()),
                       error: (_, __) => _buildContent(ads, []),
                       data: (favorites) => _buildContent(ads, favorites),
@@ -146,8 +143,8 @@ class _MyAdsScreenState extends ConsumerState<MyAdsScreen> {
   }
 
   Widget _buildContent(
-      List<ListingModel> ads, List<RentalCarModel> favoriteRentalCars) {
-    if (ads.isEmpty && favoriteRentalCars.isEmpty) {
+      List<ListingModel> ads, List<ListingModel> favorites) {
+    if (ads.isEmpty && favorites.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -261,7 +258,7 @@ class _MyAdsScreenState extends ConsumerState<MyAdsScreen> {
               ),
               const SizedBox(height: 26),
             ],
-            if (favoriteRentalCars.isNotEmpty) ...[
+            if (favorites.isNotEmpty) ...[
               Text(
                 'Favorites',
                 style: GoogleFonts.montserrat(
@@ -272,7 +269,7 @@ class _MyAdsScreenState extends ConsumerState<MyAdsScreen> {
               ),
               const SizedBox(height: 12),
               GridView.builder(
-                itemCount: favoriteRentalCars.length,
+                itemCount: favorites.length,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate:
@@ -283,8 +280,7 @@ class _MyAdsScreenState extends ConsumerState<MyAdsScreen> {
                   mainAxisExtent: 164,
                 ),
                 itemBuilder: (context, index) {
-                  final car = favoriteRentalCars[index];
-                  return _FavoriteCarCard(car: car);
+                  return _AdCard(ad: favorites[index]);
                 },
               ),
             ],
@@ -493,74 +489,3 @@ class _AdCardState extends State<_AdCard> {
       );
 }
 
-class _FavoriteCarCard extends StatelessWidget {
-  final RentalCarModel car;
-  const _FavoriteCarCard({required this.car});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE8E8E8)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Container(
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(8),
-                  topRight: Radius.circular(8),
-                ),
-                color: Color(0xFFEFF2F8),
-              ),
-              child: car.images.isNotEmpty
-                  ? Image.network(
-                      car.images[0],
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Icon(
-                        Icons.directions_car,
-                        color: Color(0xFF98A2B3),
-                      ),
-                    )
-                  : const Icon(
-                      Icons.directions_car,
-                      color: Color(0xFF98A2B3),
-                    ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${car.name} ${car.carModel}'.trim(),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'AED ${car.priceDaily}/day',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFF2258A8),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
