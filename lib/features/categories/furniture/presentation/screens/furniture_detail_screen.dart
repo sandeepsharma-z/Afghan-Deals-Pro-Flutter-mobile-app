@@ -55,7 +55,7 @@ class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Fixed top image section
+            // Fixed top image section with share/favorite buttons
             Stack(
               children: [
                 SizedBox(
@@ -146,9 +146,72 @@ class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
                       ),
                     ),
                   ),
+                // Fixed share/favorite buttons
+                Positioned(
+                  top: 12,
+                  right: 16,
+                  child: Row(
+                    children: [
+                      _circleButton(icon: Icons.reply_outlined, onTap: _shareItem),
+                      const SizedBox(width: 10),
+                      _circleButton(
+                        icon: _isFavorited ? Icons.favorite : Icons.favorite_border,
+                        onTap: () => setState(() => _isFavorited = !_isFavorited),
+                        color: _isFavorited ? Colors.red : Colors.black87,
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
-            // Scrollable middle content
+            // Fixed header section (title, category, location)
+            Container(
+              width: double.infinity,
+              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.title,
+                    style: GoogleFonts.poppins(
+                      fontSize: 17.24,
+                      fontWeight: FontWeight.w400,
+                      color: const Color(0xFF141414),
+                      height: 31.04 / 17.24,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Furniture${item.subcategoryLabel.isNotEmpty ? ' / ${item.subcategoryLabel}' : ''}',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.black45,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on_outlined, size: 15, color: Color(0xFF505050)),
+                      const SizedBox(width: 5),
+                      Text(
+                        item.location,
+                        style: GoogleFonts.poppins(
+                          fontSize: 11.62,
+                          fontWeight: FontWeight.w400,
+                          color: const Color(0xFF505050),
+                          height: 17.06 / 11.62,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // Scrollable details content
             Expanded(
               child: SingleChildScrollView(
                 child: Container(
@@ -158,61 +221,6 @@ class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Transform.translate(
-                        offset: const Offset(0, -14),
-                        child: Align(
-                          alignment: Alignment.topRight,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _circleButton(icon: Icons.reply_outlined, onTap: _shareItem),
-                              const SizedBox(width: 10),
-                              _circleButton(
-                                icon: _isFavorited ? Icons.favorite : Icons.favorite_border,
-                                onTap: () => setState(() => _isFavorited = !_isFavorited),
-                                color: _isFavorited ? Colors.red : Colors.black87,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Text(
-                        item.title,
-                        style: GoogleFonts.poppins(
-                          fontSize: 17.24,
-                          fontWeight: FontWeight.w400,
-                          color: const Color(0xFF141414),
-                          height: 31.04 / 17.24,
-                          letterSpacing: 0,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Furniture${item.subcategoryLabel.isNotEmpty ? ' / ${item.subcategoryLabel}' : ''}',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.black45,
-                          letterSpacing: 0,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          const Icon(Icons.location_on_outlined, size: 15, color: Color(0xFF505050)),
-                          const SizedBox(width: 5),
-                          Text(
-                            item.location,
-                            style: GoogleFonts.poppins(
-                              fontSize: 11.62,
-                              fontWeight: FontWeight.w400,
-                              color: const Color(0xFF505050),
-                              height: 17.06 / 11.62,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
                       const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
                       const SizedBox(height: 14),
                       if (item.description.isNotEmpty)
