@@ -53,203 +53,211 @@ class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFFFFFF),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Stack(
-                children: [
-                  SizedBox(
-                    height: 312,
-                    width: double.infinity,
-                    child: item.images.isEmpty
-                        ? Container(
-                            color: const Color(0xFFE8E8E8),
-                            child: const Icon(Icons.chair_outlined, size: 50, color: Colors.grey),
-                          )
-                        : PageView.builder(
-                            controller: _pageController,
-                            itemCount: item.images.length,
-                            onPageChanged: (i) => setState(() => _currentImage = i),
-                            itemBuilder: (_, i) => Image.network(
-                              item.images[i],
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
-                                color: const Color(0xFFE8E8E8),
-                                child: const Icon(Icons.chair_outlined, size: 50, color: Colors.grey),
-                              ),
+        child: Column(
+          children: [
+            // Fixed top image section
+            Stack(
+              children: [
+                SizedBox(
+                  height: 312,
+                  width: double.infinity,
+                  child: item.images.isEmpty
+                      ? Container(
+                          color: const Color(0xFFE8E8E8),
+                          child: const Icon(Icons.chair_outlined, size: 50, color: Colors.grey),
+                        )
+                      : PageView.builder(
+                          controller: _pageController,
+                          itemCount: item.images.length,
+                          onPageChanged: (i) => setState(() => _currentImage = i),
+                          itemBuilder: (_, i) => Image.network(
+                            item.images[i],
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              color: const Color(0xFFE8E8E8),
+                              child: const Icon(Icons.chair_outlined, size: 50, color: Colors.grey),
                             ),
                           ),
-                  ),
-                  Positioned(
-                    top: 12,
-                    left: 12,
-                    child: GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      child: Container(
-                        width: 21,
-                        height: 21,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.arrow_back_ios_new, size: 12, color: Colors.black87),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: 14,
-                    bottom: 12,
+                ),
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: const Color(0x63000000),
-                        borderRadius: BorderRadius.circular(7),
+                      width: 21,
+                      height: 21,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
                       ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.image_outlined, color: Colors.white, size: 15),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${_currentImage + 1}/${item.images.isEmpty ? 1 : item.images.length}',
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: 11.62,
-                              fontWeight: FontWeight.w400,
-                              height: 17.06 / 11.62,
-                            ),
-                          ),
-                        ],
-                      ),
+                      child: const Icon(Icons.arrow_back_ios_new, size: 12, color: Colors.black87),
                     ),
                   ),
-                  if (item.images.length > 1)
-                    Positioned(
-                      bottom: 14,
-                      left: 0,
-                      right: 0,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          item.images.length,
-                          (index) => AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            margin: const EdgeInsets.symmetric(horizontal: 3),
-                            width: index == _currentImage ? 10 : 7,
-                            height: index == _currentImage ? 10 : 7,
-                            decoration: BoxDecoration(
-                              color: index == _currentImage
-                                  ? Colors.white
-                                  : Colors.white.withValues(alpha: 0.45),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ),
+                ),
+                Positioned(
+                  left: 14,
+                  bottom: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0x63000000),
+                      borderRadius: BorderRadius.circular(7),
                     ),
-                ],
-              ),
-              Container(
-                width: double.infinity,
-                color: Colors.white,
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Transform.translate(
-                      offset: const Offset(0, -14),
-                      child: Align(
-                        alignment: Alignment.topRight,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _DetailTopCircleButton(icon: Icons.reply_outlined, onTap: _shareItem),
-                            const SizedBox(width: 10),
-                            _DetailTopCircleButton(
-                              icon: _isFavorited ? Icons.favorite : Icons.favorite_border,
-                              onTap: () => setState(() => _isFavorited = !_isFavorited),
-                              iconColor: _isFavorited ? const Color(0xFFE53935) : const Color(0xFF222222),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Text(
-                      item.title,
-                      style: GoogleFonts.poppins(
-                        fontSize: 17.24,
-                        fontWeight: FontWeight.w400,
-                        color: const Color(0xFF141414),
-                        height: 31.04 / 17.24,
-                        letterSpacing: 0,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Furniture${item.subcategoryLabel.isNotEmpty ? ' / ${item.subcategoryLabel}' : ''}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.black45,
-                        letterSpacing: 0,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
+                    child: Row(
                       children: [
-                        const Icon(Icons.location_on_outlined, size: 15, color: Color(0xFF505050)),
-                        const SizedBox(width: 5),
+                        const Icon(Icons.image_outlined, color: Colors.white, size: 15),
+                        const SizedBox(width: 4),
                         Text(
-                          item.location,
+                          '${_currentImage + 1}/${item.images.isEmpty ? 1 : item.images.length}',
                           style: GoogleFonts.poppins(
+                            color: Colors.white,
                             fontSize: 11.62,
                             fontWeight: FontWeight.w400,
-                            color: const Color(0xFF505050),
                             height: 17.06 / 11.62,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 14),
-                    const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
-                    const SizedBox(height: 14),
-                    if (item.description.isNotEmpty)
-                      Text(
-                        item.description,
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                          color: const Color(0xFF141414),
-                          height: 1.6,
+                  ),
+                ),
+                if (item.images.length > 1)
+                  Positioned(
+                    bottom: 14,
+                    left: 0,
+                    right: 0,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(
+                        item.images.length,
+                        (index) => AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          width: index == _currentImage ? 10 : 7,
+                          height: index == _currentImage ? 10 : 7,
+                          decoration: BoxDecoration(
+                            color: index == _currentImage
+                                ? Colors.white
+                                : Colors.white.withValues(alpha: 0.45),
+                            shape: BoxShape.circle,
+                          ),
                         ),
                       ),
-                    if (item.description.isNotEmpty) const SizedBox(height: 14),
-                    if (item.description.isNotEmpty) const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
-                    if (item.description.isNotEmpty) const SizedBox(height: 14),
-                    if (item.age.isNotEmpty) _overviewRow('Age', item.age),
-                    if (item.condition.isNotEmpty) _overviewRow('Condition', item.condition),
-                    if (item.color.isNotEmpty) _overviewRow('Color', item.color),
-                    if (item.usage.isNotEmpty) _overviewRow('Usage', item.usage),
-                    if (item.brand.isNotEmpty) _overviewRow('Brand', item.brand),
-                    if (item.material.isNotEmpty) _overviewRow('Material', item.material),
-                    _overviewRow('Posted', item.formattedDate),
-                    const SizedBox(height: 14),
-                    const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
-                    const SizedBox(height: 18),
-                    Row(
-                      children: [
-                        Expanded(child: _detailAction(Icons.phone_outlined, 'Call', onTap: () => _launch('tel:${item.phone}'))),
-                        const SizedBox(width: 8),
-                        Expanded(child: _whatsAppAction(onTap: () => _launch('https://wa.me/${item.phone.replaceAll(RegExp(r'[^0-9]'), '')}'))),
-                        const SizedBox(width: 8),
-                        Expanded(child: _detailAction(Icons.sms_outlined, 'SMS', onTap: () => _launch('sms:${item.phone}'))),
-                      ],
-                    )
-                  ],
+                    ),
+                  ),
+              ],
+            ),
+            // Scrollable middle content
+            Expanded(
+              child: SingleChildScrollView(
+                child: Container(
+                  width: double.infinity,
+                  color: Colors.white,
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Transform.translate(
+                        offset: const Offset(0, -14),
+                        child: Align(
+                          alignment: Alignment.topRight,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _circleButton(icon: Icons.reply_outlined, onTap: _shareItem),
+                              const SizedBox(width: 10),
+                              _circleButton(
+                                icon: _isFavorited ? Icons.favorite : Icons.favorite_border,
+                                onTap: () => setState(() => _isFavorited = !_isFavorited),
+                                color: _isFavorited ? Colors.red : Colors.black87,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Text(
+                        item.title,
+                        style: GoogleFonts.poppins(
+                          fontSize: 17.24,
+                          fontWeight: FontWeight.w400,
+                          color: const Color(0xFF141414),
+                          height: 31.04 / 17.24,
+                          letterSpacing: 0,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Furniture${item.subcategoryLabel.isNotEmpty ? ' / ${item.subcategoryLabel}' : ''}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.black45,
+                          letterSpacing: 0,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Icon(Icons.location_on_outlined, size: 15, color: Color(0xFF505050)),
+                          const SizedBox(width: 5),
+                          Text(
+                            item.location,
+                            style: GoogleFonts.poppins(
+                              fontSize: 11.62,
+                              fontWeight: FontWeight.w400,
+                              color: const Color(0xFF505050),
+                              height: 17.06 / 11.62,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+                      const SizedBox(height: 14),
+                      if (item.description.isNotEmpty)
+                        Text(
+                          item.description,
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            color: const Color(0xFF141414),
+                            height: 1.6,
+                          ),
+                        ),
+                      if (item.description.isNotEmpty) const SizedBox(height: 14),
+                      if (item.description.isNotEmpty) const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+                      if (item.description.isNotEmpty) const SizedBox(height: 14),
+                      if (item.age.isNotEmpty) _overviewRow('Age', item.age),
+                      if (item.condition.isNotEmpty) _overviewRow('Condition', item.condition),
+                      if (item.color.isNotEmpty) _overviewRow('Color', item.color),
+                      if (item.usage.isNotEmpty) _overviewRow('Usage', item.usage),
+                      if (item.brand.isNotEmpty) _overviewRow('Brand', item.brand),
+                      if (item.material.isNotEmpty) _overviewRow('Material', item.material),
+                      _overviewRow('Posted', item.formattedDate),
+                      const SizedBox(height: 14),
+                      const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+                    ],
+                  ),
                 ),
               ),
-            ],
-          ),
+            ),
+            // Fixed bottom action buttons
+            Container(
+              width: double.infinity,
+              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
+              child: Row(
+                children: [
+                  Expanded(child: _detailAction(Icons.phone_outlined, 'Call', onTap: () => _launch('tel:${item.phone}'))),
+                  const SizedBox(width: 8),
+                  Expanded(child: _whatsAppAction(onTap: () => _launch('https://wa.me/${item.phone.replaceAll(RegExp(r'[^0-9]'), '')}'))),
+                  const SizedBox(width: 8),
+                  Expanded(child: _detailAction(Icons.sms_outlined, 'SMS', onTap: () => _launch('sms:${item.phone}'))),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -384,6 +392,22 @@ class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
     );
   }
 
+  Widget _circleButton({required IconData icon, Color color = Colors.black87, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [BoxShadow(color: Color(0x30000000), blurRadius: 4)],
+        ),
+        child: Icon(icon, size: 18, color: color),
+      ),
+    );
+  }
+
   Widget _detailAction(IconData icon, String? label, {VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
@@ -443,36 +467,5 @@ class _FurnitureDetailScreenState extends State<FurnitureDetailScreen> {
   Future<void> _launch(String url) async {
     final uri = Uri.tryParse(url);
     if (uri != null) await launchUrl(uri);
-  }
-}
-
-class _DetailTopCircleButton extends StatelessWidget {
-  final IconData icon;
-  final Function()? onTap;
-  final Color? iconColor;
-  const _DetailTopCircleButton({required this.icon, this.onTap, this.iconColor});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Container(
-        width: 24,
-        height: 24,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Color(0x40000000),
-              blurRadius: 4,
-              offset: Offset(0, 0),
-            ),
-          ],
-        ),
-        child: Icon(icon, color: iconColor ?? const Color(0xFF222222), size: 14),
-      ),
-    );
   }
 }
