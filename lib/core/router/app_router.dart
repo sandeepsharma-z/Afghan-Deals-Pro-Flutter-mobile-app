@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/onboarding_screen.dart';
@@ -38,16 +37,39 @@ import '../../features/admin/presentation/screens/admin_filter_options_screen.da
 import '../../features/admin/presentation/screens/admin_regions_screen.dart';
 import '../../features/admin/presentation/screens/admin_price_settings_screen.dart';
 import '../../features/profile/presentation/screens/my_ads_screen.dart';
+import '../../features/auth/presentation/providers/auth_provider.dart';
 import 'route_names.dart';
 
 final appNavigatorKey = GlobalKey<NavigatorState>();
 
+// Create a notifier to track auth state changes and refresh the router
+final _routerRefreshProvider = StateNotifierProvider<_RouterRefreshNotifier, void>((ref) {
+  ref.listen(authStateProvider, (prev, next) {
+    // Any auth state change triggers a refresh
+  });
+  return _RouterRefreshNotifier();
+});
+
+class _RouterRefreshNotifier extends StateNotifier<void> {
+  _RouterRefreshNotifier() : super(null);
+}
+
 final appRouterProvider = Provider<GoRouter>((ref) {
+  // Listen to router refresh events
+  ref.watch(_routerRefreshProvider);
+
   return GoRouter(
     navigatorKey: appNavigatorKey,
     initialLocation: RouteNames.splash,
     redirect: (context, state) {
-      final isAuthenticated = Supabase.instance.client.auth.currentUser != null;
+      // Get current auth state
+      final authState = ref.read(authStateProvider);
+      final isAuthenticated = authState.when(
+        data: (user) => user != null,
+        loading: () => false,
+        error: (err, stack) => false,
+      );
+
       final location = state.matchedLocation;
 
       // Splash always shows first

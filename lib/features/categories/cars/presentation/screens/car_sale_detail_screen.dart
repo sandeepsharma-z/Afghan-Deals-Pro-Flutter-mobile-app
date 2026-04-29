@@ -1,9 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../../core/router/route_names.dart';
@@ -24,7 +25,7 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
   late final PageController _pageController;
   Timer? _timer;
   int _currentPage = 0;
-  bool _chatLoading = false;
+  bool _isFavorited = false;
 
   @override
   void initState() {
@@ -92,7 +93,7 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
                     top: 12,
                     left: 12,
                     child: GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
+                      onTap: () => context.pop(),
                       child: Container(
                         width: 21,
                         height: 21,
@@ -166,14 +167,18 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
                   children: [
                     Transform.translate(
                       offset: const Offset(0, -14),
-                      child: const Align(
+                      child: Align(
                         alignment: Alignment.topRight,
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            _TopCircleButton(icon: Icons.reply_outlined),
-                            SizedBox(width: 10),
-                            _TopCircleButton(icon: Icons.favorite_border),
+                            _circleButton(icon: Icons.reply_outlined, onTap: _shareItem),
+                            const SizedBox(width: 10),
+                            _circleButton(
+                              icon: _isFavorited ? Icons.favorite : Icons.favorite_border,
+                              onTap: () => setState(() => _isFavorited = !_isFavorited),
+                              color: _isFavorited ? Colors.red : Colors.black87,
+                            ),
                           ],
                         ),
                       ),
@@ -263,12 +268,9 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
                     const SizedBox(height: 14),
                     Row(
                       children: [
-                        Expanded(
-                            child: _detailAction(Icons.phone_outlined, 'Call')),
+                        Expanded(child: _detailAction(Icons.message_outlined, 'Chat', onTap: _openChat)),
                         const SizedBox(width: 8),
                         Expanded(child: _whatsAppAction(onTap: _openChat)),
-                        const SizedBox(width: 8),
-                        Expanded(child: _chatButton()),
                       ],
                     )
                   ],
@@ -277,6 +279,114 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _shareItem() {
+    final itemName = widget.car.title;
+    final shareText = 'Check out this car: $itemName - ${widget.car.formattedPrice} on Afghan Deals Pro';
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      builder: (_) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Share Listing',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: const Icon(Icons.copy, color: Color(0xFF2258A8)),
+                title: Text('Copy to Clipboard',
+                    style: GoogleFonts.poppins(fontSize: 14)),
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: shareText));
+                  context.pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Copied: $itemName'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.message, color: Color(0xFF2258A8)),
+                title: Text('Share via Message',
+                    style: GoogleFonts.poppins(fontSize: 14)),
+                onTap: () {
+                  context.pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Shared: $itemName'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.link, color: Color(0xFF2258A8)),
+                title: Text('Copy Link',
+                    style: GoogleFonts.poppins(fontSize: 14)),
+                onTap: () {
+                  Clipboard.setData(
+                    ClipboardData(text: 'afghan-deals-pro://car-detail/${widget.car.id}'),
+                  );
+                  context.pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Link copied for $itemName'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _circleButton({required IconData icon, Color color = Colors.black87, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [BoxShadow(color: Color(0x30000000), blurRadius: 4)],
+        ),
+        child: Icon(icon, size: 18, color: color),
       ),
     );
   }
@@ -317,8 +427,6 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
   }
 
   Future<void> _openChat() async {
-    if (_chatLoading) return;
-    setState(() => _chatLoading = true);
     try {
       final chatId =
           await ref.read(chatActionsProvider).openOrCreateChatForListing(
@@ -341,50 +449,7 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
         backgroundColor: Colors.red,
         behavior: SnackBarBehavior.floating,
       ));
-    } finally {
-      if (mounted) setState(() => _chatLoading = false);
     }
-  }
-
-  Widget _chatButton() {
-    return GestureDetector(
-      onTap: _chatLoading ? null : _openChat,
-      child: Container(
-        height: 38,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: const Color(0xFFD9D9D9)),
-          color: Colors.white,
-        ),
-        child: Center(
-          child: _chatLoading
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Color(0xFF2258A8),
-                  ),
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.chat_bubble_outline,
-                        size: 16, color: Color(0xFF2258A8)),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Chat',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14.24,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ],
-                ),
-        ),
-      ),
-    );
   }
 
   Widget _detailAction(IconData icon, String label, {VoidCallback? onTap}) {
@@ -435,31 +500,6 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _TopCircleButton extends StatelessWidget {
-  final IconData icon;
-  const _TopCircleButton({required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 24,
-      height: 24,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x40000000),
-            blurRadius: 4,
-            offset: Offset(0, 0),
-          ),
-        ],
-      ),
-      child: Icon(icon, color: const Color(0xFF222222), size: 14),
     );
   }
 }

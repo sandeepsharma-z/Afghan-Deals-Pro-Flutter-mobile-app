@@ -67,11 +67,11 @@ class CarsScreen extends ConsumerWidget {
     SubcategoryModel(id: '2', categorySlug: 'cars', name: 'New Cars',                 slug: 'new-cars',         isActive: true, isNew: false, sortOrder: 2),
     SubcategoryModel(id: '3', categorySlug: 'cars', name: 'Export Cars',              slug: 'export-cars',      isActive: true, isNew: false, sortOrder: 3),
     SubcategoryModel(id: '4', categorySlug: 'cars', name: 'Rental Cars',              slug: 'rental-cars',      isActive: true, isNew: true,  sortOrder: 4),
-    SubcategoryModel(id: '5', categorySlug: 'cars', name: 'Motorcycles',              slug: 'motorcycles',      isActive: true, isNew: false, sortOrder: 5),
-    SubcategoryModel(id: '6', categorySlug: 'cars', name: 'Auto Accessories & Parts', slug: 'auto-accessories', isActive: true, isNew: false, sortOrder: 6),
-    SubcategoryModel(id: '7', categorySlug: 'cars', name: 'Heavy Vehicles',           slug: 'heavy-vehicles',   isActive: true, isNew: false, sortOrder: 7),
-    SubcategoryModel(id: '8', categorySlug: 'cars', name: 'Boats',                    slug: 'boats',            isActive: true, isNew: false, sortOrder: 8),
-    SubcategoryModel(id: '9', categorySlug: 'cars', name: 'Number Plates',            slug: 'number-plates',    isActive: true, isNew: false, sortOrder: 9),
+    SubcategoryModel(id: '5', categorySlug: 'cars', name: 'Motorcycles',              slug: 'motorcycles',      isActive: false, isNew: false, sortOrder: 5),
+    SubcategoryModel(id: '6', categorySlug: 'cars', name: 'Auto Accessories & Parts', slug: 'auto-accessories', isActive: false, isNew: false, sortOrder: 6),
+    SubcategoryModel(id: '7', categorySlug: 'cars', name: 'Heavy Vehicles',           slug: 'heavy-vehicles',   isActive: false, isNew: false, sortOrder: 7),
+    SubcategoryModel(id: '8', categorySlug: 'cars', name: 'Boats',                    slug: 'boats',            isActive: false, isNew: false, sortOrder: 8),
+    SubcategoryModel(id: '9', categorySlug: 'cars', name: 'Number Plates',            slug: 'number-plates',    isActive: false, isNew: false, sortOrder: 9),
   ];
 }
 

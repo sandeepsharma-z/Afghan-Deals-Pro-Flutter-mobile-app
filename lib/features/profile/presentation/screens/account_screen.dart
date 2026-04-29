@@ -180,7 +180,19 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(authStateProvider).valueOrNull;
+    final authState = ref.watch(authStateProvider);
+    final user = authState.valueOrNull;
+
+    // Direct check - if user is definitely null, redirect to onboarding
+    if (authState.hasValue && user == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          context.go(RouteNames.onboarding);
+        }
+      });
+      return const Scaffold(body: SizedBox());
+    }
+
     final profile = ref.watch(profileProvider).valueOrNull;
     final displayName = profile?.name?.isNotEmpty == true
         ? profile!.name!
@@ -356,7 +368,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                     if (confirm == true) {
                       await ref.read(authNotifierProvider.notifier).signOut();
                       if (mounted && context.mounted) {
-                        context.go(RouteNames.onboarding);
+                        context.go(RouteNames.splash);
                       }
                     }
                   }),

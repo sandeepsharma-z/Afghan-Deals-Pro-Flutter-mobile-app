@@ -103,7 +103,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
         selected: _selectedCountry,
         onSelect: (c) {
           setState(() => _selectedCountry = c);
-          Navigator.pop(context);
+          context.pop();
         },
       ),
     );
@@ -220,7 +220,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
       child: Row(
         children: [
           GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
+            onTap: () => context.pop(),
             child: const Icon(Icons.arrow_back_ios_new,
                 size: 20, color: Colors.black87),
           ),
@@ -297,7 +297,10 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
                       fontWeight: FontWeight.w400,
                       color: Colors.black45),
                   border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
                   contentPadding: EdgeInsets.zero,
+                  isDense: true,
                 ),
                 style: GoogleFonts.poppins(
                     fontSize: 11,
@@ -316,12 +319,12 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
             const SizedBox(width: 8),
             GestureDetector(
               onTap: () => _openFilterSheet(cars),
-              child: const Icon(Icons.tune, size: 16, color: Colors.black54),
+              child: SvgPicture.asset('assets/icons/filter.svg', width: 16, height: 16),
             ),
             const SizedBox(width: 10),
             GestureDetector(
               onTap: _openSortSheet,
-              child: const Icon(Icons.swap_vert, size: 16, color: Colors.black54),
+              child: SvgPicture.asset('assets/icons/bars_sort.svg', width: 16, height: 16),
             ),
             const SizedBox(width: 12),
           ],
@@ -342,12 +345,22 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
                   height: 28 / 15,
                   color: Colors.black)),
           const Spacer(),
-          Text('See all',
-              style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  height: 28 / 11,
-                  color: Colors.black87)),
+          GestureDetector(
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => _AllCarsScreen(
+                  subcategory: widget.subcategory,
+                  cars: ref.watch(carListingsProvider(widget.subcategory)).valueOrNull ?? [],
+                ),
+              ),
+            ),
+            child: Text('See all',
+                style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    height: 28 / 11,
+                    color: _kBlue)),
+          ),
         ],
       ),
     );
@@ -529,7 +542,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
               return InkWell(
                 onTap: () {
                   setState(() => _selectedSort = item);
-                  Navigator.of(context).pop();
+                  context.pop();
                 },
                 child: Container(
                   decoration: const BoxDecoration(
@@ -671,7 +684,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
                                   _fromYear = null;
                                   _toYear = null;
                                 });
-                                Navigator.pop(context);
+                                context.pop();
                               },
                               child: const Text('Reset'),
                             ),
@@ -691,7 +704,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
                                   _fromYear = tempFrom;
                                   _toYear = tempTo;
                                 });
-                                Navigator.pop(context);
+                                context.pop();
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: _kBlue,
@@ -1253,7 +1266,7 @@ class _CountrySheet extends StatelessWidget {
                         color: Colors.black87)),
                 const Spacer(),
                 GestureDetector(
-                  onTap: () => Navigator.pop(context),
+                  onTap: () => context.pop(),
                   child: const Icon(Icons.close, size: 22, color: Colors.black54),
                 ),
               ],
@@ -1379,7 +1392,7 @@ class _YearPickerDialogState extends State<_YearPickerDialog> {
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close, size: 20),
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () => context.pop(),
                   ),
                 ],
               ),
@@ -1414,7 +1427,7 @@ class _YearPickerDialogState extends State<_YearPickerDialog> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () => context.pop(),
                       child: const Text('Cancel'),
                     ),
                   ),
@@ -1437,4 +1450,525 @@ class _YearPickerDialogState extends State<_YearPickerDialog> {
       ),
     );
   }
+}
+
+// ── All Cars Screen ────────────────────────────────────────────────────────
+class _AllCarsScreen extends ConsumerStatefulWidget {
+  final String subcategory;
+  final List<CarSaleModel> cars;
+  const _AllCarsScreen({required this.subcategory, required this.cars});
+
+  @override
+  ConsumerState<_AllCarsScreen> createState() => _AllCarsScreenState();
+}
+
+class _AllCarsScreenState extends ConsumerState<_AllCarsScreen> {
+  String _selectedSort = 'Newest to Oldest';
+  late final TextEditingController _searchCtrl;
+  String _searchQuery = '';
+
+  String _selectedBodyType = 'All';
+  String _selectedCondition = 'All';
+  int? _fromYear;
+  int? _toYear;
+
+  static const _sortOptions = [
+    'Newest to Oldest',
+    'Oldest to Newest',
+    'Price Highest to Lowest',
+    'Price Lowest to Highest',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _searchCtrl = TextEditingController();
+    _searchCtrl.addListener(() {
+      setState(() => _searchQuery = _searchCtrl.text.toLowerCase().trim());
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  List<CarSaleModel> _applyFilters(List<CarSaleModel> cars) {
+    return cars.where((c) {
+      final bodyType = c.bodyType.trim().toLowerCase();
+      final condition = c.condition.trim().toLowerCase();
+      final year = int.tryParse(c.year.trim());
+
+      if (_selectedBodyType != 'All' && bodyType != _selectedBodyType.toLowerCase()) {
+        return false;
+      }
+      if (_selectedCondition != 'All' && condition != _selectedCondition.toLowerCase()) {
+        return false;
+      }
+      if (_fromYear != null && year != null && year < _fromYear!) {
+        return false;
+      }
+      if (_toYear != null && year != null && year > _toYear!) {
+        return false;
+      }
+      return true;
+    }).toList();
+  }
+
+  List<CarSaleModel> _applySearch(List<CarSaleModel> cars) {
+    if (_searchQuery.isEmpty) return cars;
+    return cars.where((c) {
+      final make = c.make.trim().toLowerCase();
+      final model = c.model.trim().toLowerCase();
+      return make.contains(_searchQuery) || model.contains(_searchQuery) || c.year.contains(_searchQuery);
+    }).toList();
+  }
+
+  List<CarSaleModel> _sortCars(List<CarSaleModel> list) {
+    final copy = List<CarSaleModel>.from(list);
+    switch (_selectedSort) {
+      case 'Oldest to Newest':
+        copy.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+        break;
+      case 'Price Highest to Lowest':
+        copy.sort((a, b) => (double.tryParse(b.price) ?? 0).compareTo(double.tryParse(a.price) ?? 0));
+        break;
+      case 'Price Lowest to Highest':
+        copy.sort((a, b) => (double.tryParse(a.price) ?? 0).compareTo(double.tryParse(b.price) ?? 0));
+        break;
+      default:
+        copy.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    }
+    return copy;
+  }
+
+  void _openFilterSheet(List<CarSaleModel> cars) {
+    final bodyTypes = {
+      for (final c in cars)
+        if (c.bodyType.trim().isNotEmpty) c.bodyType.trim()
+    }.toList()
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+
+    final conditions = {
+      for (final c in cars)
+        if (c.condition.trim().isNotEmpty) c.condition.trim()
+    }.toList()
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+
+    final years = [
+      for (final c in cars)
+        if (int.tryParse(c.year.trim()) != null) int.parse(c.year.trim())
+    ]..sort();
+    final minYear = years.isNotEmpty ? years.first : DateTime.now().year - 20;
+    final maxYear = years.isNotEmpty ? years.last : DateTime.now().year;
+
+    int tempFrom = _fromYear ?? minYear;
+    int tempTo = _toYear ?? maxYear;
+    String tempBody = _selectedBodyType;
+    String tempCondition = _selectedCondition;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(22),
+          topRight: Radius.circular(22),
+        ),
+      ),
+      builder: (_) => StatefulBuilder(
+        builder: (context, setModalState) {
+          return SafeArea(
+            top: false,
+            child: Padding(
+              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFCFCFCF),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text('Filter',
+                          style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 14),
+                      Text('Body Type', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500)),
+                      const SizedBox(height: 6),
+                      _dropdown(
+                        value: tempBody,
+                        items: ['All', ...bodyTypes],
+                        onChanged: (v) => setModalState(() => tempBody = v),
+                      ),
+                      const SizedBox(height: 12),
+                      Text('Condition', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500)),
+                      const SizedBox(height: 6),
+                      _dropdown(
+                        value: tempCondition,
+                        items: ['All', ...conditions],
+                        onChanged: (v) => setModalState(() => tempCondition = v),
+                      ),
+                      const SizedBox(height: 12),
+                      Text('Year Range', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500)),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _yearField(
+                              label: 'From',
+                              value: tempFrom,
+                              min: minYear,
+                              max: maxYear,
+                              onChanged: (v) => setModalState(() => tempFrom = v),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _yearField(
+                              label: 'To',
+                              value: tempTo,
+                              min: minYear,
+                              max: maxYear,
+                              onChanged: (v) => setModalState(() => tempTo = v),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () {
+                                setModalState(() {
+                                  tempBody = 'All';
+                                  tempCondition = 'All';
+                                  tempFrom = minYear;
+                                  tempTo = maxYear;
+                                });
+                              },
+                              child: const Text('Reset'),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                if (tempFrom > tempTo) {
+                                  final swap = tempFrom;
+                                  tempFrom = tempTo;
+                                  tempTo = swap;
+                                }
+                                setState(() {
+                                  _selectedBodyType = tempBody;
+                                  _selectedCondition = tempCondition;
+                                  _fromYear = tempFrom;
+                                  _toYear = tempTo;
+                                });
+                                context.pop();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _kBlue,
+                                foregroundColor: Colors.white,
+                              ),
+                              child: const Text('Apply'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _dropdown({
+    required String value,
+    required List<String> items,
+    required ValueChanged<String> onChanged,
+  }) {
+    final selected = items.contains(value) ? value : items.first;
+    return Container(
+      height: 42,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0xFFC4C4C4)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: selected,
+          isExpanded: true,
+          items: items
+              .map((e) => DropdownMenuItem<String>(value: e, child: Text(e)))
+              .toList(),
+          onChanged: (v) {
+            if (v != null) onChanged(v);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _yearField({
+    required String label,
+    required int value,
+    required int min,
+    required int max,
+    required ValueChanged<int> onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: GoogleFonts.poppins(fontSize: 11, color: Colors.black54)),
+        const SizedBox(height: 4),
+        Container(
+          height: 42,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            border: Border.all(color: const Color(0xFFC4C4C4)),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<int>(
+              value: value,
+              isExpanded: true,
+              items: List.generate(max - min + 1, (i) => min + i)
+                  .map((e) => DropdownMenuItem<int>(value: e, child: Text(e.toString())))
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) onChanged(v);
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final filtered = _sortCars(_applySearch(_applyFilters(widget.cars)));
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87, size: 18),
+          onPressed: () => context.pop(),
+        ),
+        title: Column(
+          children: [
+            Text('All Cars',
+                style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87)),
+          ],
+        ),
+        actions: [
+          GestureDetector(
+            onTap: () => _openFilterSheet(widget.cars),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: SvgPicture.asset('assets/icons/filter.svg', width: 20, height: 20),
+            ),
+          ),
+          GestureDetector(
+            onTap: _openSortSheet,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: SvgPicture.asset('assets/icons/bars_sort.svg', width: 20, height: 20),
+            ),
+          ),
+        ],
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(height: 1, thickness: 1, color: Color(0xFFE8E8E8)),
+        ),
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+              child: Container(
+                height: 40,
+                decoration: BoxDecoration(
+                  border: Border.all(color: const Color(0xFFC2C2C2)),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const SizedBox(width: 12),
+                    const Icon(Icons.search, size: 16, color: Colors.black87),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: _searchCtrl,
+                        decoration: InputDecoration(
+                          hintText: 'Search cars...',
+                          hintStyle: GoogleFonts.poppins(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.black45),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
+                          isDense: true,
+                        ),
+                        style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.black87),
+                      ),
+                    ),
+                    if (_searchCtrl.text.isNotEmpty)
+                      GestureDetector(
+                        onTap: () {
+                          _searchCtrl.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                        child: const Icon(Icons.close, size: 14, color: Colors.black45),
+                      ),
+                    const SizedBox(width: 8),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              child: filtered.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.directions_car_outlined, size: 64, color: Colors.black26),
+                          const SizedBox(height: 12),
+                          Text('No listings found',
+                              style: GoogleFonts.poppins(fontSize: 14, color: Colors.black45)),
+                        ],
+                      ),
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: RefreshIndicator(
+                        onRefresh: () => ref.refresh(carListingsProvider(widget.subcategory).future),
+                        child: ListView(
+                          children: [
+                            ...List.generate((filtered.length / 2).ceil(), (row) {
+                              final l = row * 2;
+                              final r = l + 1;
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(child: _CarCard(car: filtered[l])),
+                                    const SizedBox(width: 10),
+                                    r < filtered.length
+                                        ? Expanded(child: _CarCard(car: filtered[r]))
+                                        : const Expanded(child: SizedBox()),
+                                  ],
+                                ),
+                              );
+                            }),
+                            const SizedBox(height: 20),
+                          ],
+                        ),
+                      ),
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openSortSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(22),
+          topRight: Radius.circular(22),
+        ),
+      ),
+      builder: (_) => SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 5,
+              decoration: BoxDecoration(
+                color: const Color(0xFFCFCFCF),
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Sort',
+                    style: GoogleFonts.poppins(
+                        fontSize: 18, fontWeight: FontWeight.w600, color: Colors.black87)),
+              ),
+            ),
+            ..._sortOptions.map((item) {
+              final selected = item == _selectedSort;
+              return InkWell(
+                onTap: () {
+                  setState(() => _selectedSort = item);
+                  context.pop();
+                },
+                child: Container(
+                  decoration: const BoxDecoration(
+                    border: Border(
+                        top: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(item,
+                            style: GoogleFonts.poppins(
+                                fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black87)),
+                      ),
+                      if (selected) const Icon(Icons.check, color: _kBlue, size: 20),
+                    ],
+                  ),
+                ),
+              );
+            }),
+            const SizedBox(height: 10),
+          ],
+        ),
+      ),
+    );
+  }
+
 }

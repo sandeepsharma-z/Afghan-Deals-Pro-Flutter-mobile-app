@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -74,7 +76,7 @@ class _SparePartsResultsScreenState
                       Row(
                         children: [
                           IconButton(
-                            onPressed: () => Navigator.of(context).pop(),
+                            onPressed: () => context.pop(),
                             icon: const Icon(
                               Icons.arrow_back_ios_new,
                               size: 20,
@@ -176,7 +178,7 @@ class _SparePartsResultsScreenState
                         child: ElevatedButton(
                           onPressed: () {
                             setState(() => _selectedRegion = tempSelected);
-                            Navigator.of(context).pop();
+                            context.pop();
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _kBlue,
@@ -231,7 +233,7 @@ class _SparePartsResultsScreenState
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new,
               size: 20, color: Colors.black87),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
         title: Text(
           'Results',
@@ -242,12 +244,15 @@ class _SparePartsResultsScreenState
           ),
         ),
         actions: [
-          IconButton(
-            onPressed: () {
+          GestureDetector(
+            onTap: () {
               final regions = regionsAsync.valueOrNull ?? <String>[];
               _openRegionSheet(regions);
             },
-            icon: const Icon(Icons.tune, size: 20, color: Colors.black87),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: SvgPicture.asset('assets/icons/filter.svg', width: 20, height: 20),
+            ),
           ),
           const SizedBox(width: 6),
         ],

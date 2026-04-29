@@ -325,7 +325,7 @@ class _PropertySubtypeScreenState extends State<PropertySubtypeScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          const Icon(Icons.tune, size: 16, color: Colors.black54),
+          SvgPicture.asset('assets/icons/filter.svg', width: 16, height: 16),
           const SizedBox(width: 12),
         ],
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../providers/jobs_provider.dart';
@@ -60,7 +61,7 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black87),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
         title: Text('Filter',
             style: GoogleFonts.poppins(
@@ -191,7 +192,7 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
             child: ElevatedButton(
               onPressed: () {
                 ref.read(jobsFilterProvider.notifier).state = _draft;
-                Navigator.of(context).pop();
+                context.pop();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: _kBlue,
@@ -310,7 +311,14 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
               hintText: 'Max salary AFN',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFD9D9D9), width: 1),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: _kBlue, width: 1),
+              ),
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             ),
@@ -328,7 +336,14 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
               hintText: 'Min salary AFN',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFD9D9D9), width: 1),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: _kBlue, width: 1),
+              ),
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             ),
@@ -349,7 +364,14 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
         decoration: InputDecoration(
           hintText: 'Search region / city',
           prefixIcon: const Icon(Icons.location_on_outlined, size: 18),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: Color(0xFFD9D9D9), width: 1),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: _kBlue, width: 1),
+          ),
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         ),

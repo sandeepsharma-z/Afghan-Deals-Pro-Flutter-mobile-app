@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -331,7 +332,7 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
       child: Row(
         children: [
           GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
+            onTap: () => context.pop(),
             child: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black87),
           ),
           const Spacer(),
@@ -366,6 +367,7 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(width: 12),
             const Icon(Icons.search, size: 16, color: Colors.black87),
@@ -380,7 +382,10 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
                       fontWeight: FontWeight.w400,
                       color: Colors.black45),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.zero,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 8),
                 ),
                 style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400),
               ),
@@ -397,9 +402,9 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
                 ),
               )
             else
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8),
-                child: Icon(Icons.tune, size: 16, color: Colors.black54),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: SvgPicture.asset('assets/icons/filter.svg', width: 16, height: 16),
               ),
           ],
         ),

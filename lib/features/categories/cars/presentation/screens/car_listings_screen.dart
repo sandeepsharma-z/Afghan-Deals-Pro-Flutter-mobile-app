@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../features/listings/data/models/car_sale_model.dart';
@@ -28,6 +29,10 @@ class CarListingsScreen extends ConsumerStatefulWidget {
 class _CarListingsScreenState extends ConsumerState<CarListingsScreen> {
   bool _isGrid = false;
   String _sortBy = 'Latest';
+  String _selectedBodyType = 'All';
+  String _selectedCondition = 'All';
+  int? _fromYear;
+  int? _toYear;
 
   static const _sortOptions = [
     'Latest',
@@ -38,6 +43,90 @@ class _CarListingsScreenState extends ConsumerState<CarListingsScreen> {
 
   String get _supabaseSubcategory =>
       _subcategoryMap[widget.subcategory] ?? widget.subcategory.toLowerCase();
+
+  List<CarSaleModel> _applyFilters(List<CarSaleModel> cars) {
+    return cars.where((c) {
+      final bodyType = c.bodyType.trim().toLowerCase();
+      final condition = c.condition.trim().toLowerCase();
+      final year = int.tryParse(c.year.trim());
+
+      if (_selectedBodyType != 'All' && bodyType != _selectedBodyType.toLowerCase()) return false;
+      if (_selectedCondition != 'All' && condition != _selectedCondition.toLowerCase()) return false;
+      if (_fromYear != null && year != null && year < _fromYear!) return false;
+      if (_toYear != null && year != null && year > _toYear!) return false;
+      return true;
+    }).toList();
+  }
+
+  void _openFilterSheet(List<CarSaleModel> cars) {
+    final bodyTypes = {for (final c in cars) if (c.bodyType.trim().isNotEmpty) c.bodyType.trim()}.toList()..sort();
+    final conditions = {for (final c in cars) if (c.condition.trim().isNotEmpty) c.condition.trim()}.toList()..sort();
+    final years = [for (final c in cars) if (int.tryParse(c.year.trim()) != null) int.parse(c.year.trim())]..sort();
+    final minYear = years.isNotEmpty ? years.first : DateTime.now().year - 20;
+    final maxYear = years.isNotEmpty ? years.last : DateTime.now().year;
+
+    int tempFrom = _fromYear ?? minYear;
+    int tempTo = _toYear ?? maxYear;
+    String tempBody = _selectedBodyType;
+    String tempCondition = _selectedCondition;
+
+    showModalBottomSheet(context: context, isScrollControlled: true, backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(22), topRight: Radius.circular(22))),
+      builder: (_) => StatefulBuilder(builder: (context, setModalState) => SafeArea(top: false, child: Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: SingleChildScrollView(child: Padding(padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Center(child: Container(width: 40, height: 5, decoration: BoxDecoration(color: const Color(0xFFCFCFCF), borderRadius: BorderRadius.circular(999)))),
+            const SizedBox(height: 12),
+            Text('Filter', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 14),
+            Text('Body Type', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500)),
+            const SizedBox(height: 6),
+            _dropdown(value: tempBody, items: ['All', ...bodyTypes], onChanged: (v) => setModalState(() => tempBody = v)),
+            const SizedBox(height: 12),
+            Text('Condition', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500)),
+            const SizedBox(height: 6),
+            _dropdown(value: tempCondition, items: ['All', ...conditions], onChanged: (v) => setModalState(() => tempCondition = v)),
+            const SizedBox(height: 12),
+            Text('Year Range', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500)),
+            const SizedBox(height: 8),
+            Row(children: [
+              Expanded(child: _yearField(label: 'From', value: tempFrom, min: minYear, max: maxYear, onChanged: (v) => setModalState(() => tempFrom = v))),
+              const SizedBox(width: 10),
+              Expanded(child: _yearField(label: 'To', value: tempTo, min: minYear, max: maxYear, onChanged: (v) => setModalState(() => tempTo = v))),
+            ]),
+            const SizedBox(height: 20),
+            Row(children: [
+              Expanded(child: OutlinedButton(onPressed: () => setModalState(() {tempBody = 'All'; tempCondition = 'All'; tempFrom = minYear; tempTo = maxYear;}), child: const Text('Reset'))),
+              const SizedBox(width: 10),
+              Expanded(child: ElevatedButton(onPressed: () {
+                if (tempFrom > tempTo) {final swap = tempFrom; tempFrom = tempTo; tempTo = swap;}
+                setState(() {_selectedBodyType = tempBody; _selectedCondition = tempCondition; _fromYear = tempFrom; _toYear = tempTo;});
+                context.pop();
+              }, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2258A8), foregroundColor: Colors.white), child: const Text('Apply'))),
+            ]),
+          ])))))));
+  }
+
+  Widget _dropdown({required String value, required List<String> items, required ValueChanged<String> onChanged}) {
+    final selected = items.contains(value) ? value : items.first;
+    return Container(height: 42, padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(border: Border.all(color: const Color(0xFFC4C4C4)), borderRadius: BorderRadius.circular(8)),
+      child: DropdownButtonHideUnderline(child: DropdownButton<String>(value: selected, isExpanded: true,
+        items: items.map((e) => DropdownMenuItem<String>(value: e, child: Text(e))).toList(),
+        onChanged: (v) { if (v != null) onChanged(v); })));
+  }
+
+  Widget _yearField({required String label, required int value, required int min, required int max, required ValueChanged<int> onChanged}) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(label, style: GoogleFonts.poppins(fontSize: 11, color: Colors.black54)),
+      const SizedBox(height: 4),
+      Container(height: 42, padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(border: Border.all(color: const Color(0xFFC4C4C4)), borderRadius: BorderRadius.circular(8)),
+        child: DropdownButtonHideUnderline(child: DropdownButton<int>(value: value, isExpanded: true,
+          items: List.generate(max - min + 1, (i) => min + i).map((e) => DropdownMenuItem<int>(value: e, child: Text(e.toString()))).toList(),
+          onChanged: (v) { if (v != null) onChanged(v); })))]);
+  }
 
   List<CarSaleModel> _sortListings(List<CarSaleModel> list) {
     final sorted = List<CarSaleModel>.from(list);
@@ -71,7 +160,7 @@ class _CarListingsScreenState extends ConsumerState<CarListingsScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new,
               color: Colors.black87, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
         title: Text(
           widget.subcategory,
@@ -84,8 +173,11 @@ class _CarListingsScreenState extends ConsumerState<CarListingsScreen> {
         ),
         actions: [
           IconButton(
-            icon:
-                const Icon(Icons.search, color: Colors.black87, size: 22),
+            icon: const Icon(Icons.tune, color: Colors.black87, size: 20),
+            onPressed: () => asyncData.whenData((cars) => _openFilterSheet(cars)),
+          ),
+          IconButton(
+            icon: const Icon(Icons.swap_vert, color: Colors.black87, size: 20),
             onPressed: () {},
           ),
         ],
@@ -99,7 +191,8 @@ class _CarListingsScreenState extends ConsumerState<CarListingsScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (listings) {
-          final sorted = _sortListings(listings);
+          final filtered = _applyFilters(listings);
+          final sorted = _sortListings(filtered);
           return Column(
             children: [
               // Filter bar
@@ -248,7 +341,7 @@ class _CarListingsScreenState extends ConsumerState<CarListingsScreen> {
                         fontSize: 18, fontWeight: FontWeight.w700)),
                 IconButton(
                     icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context)),
+                    onPressed: () => context.pop()),
               ],
             ),
           ),
@@ -268,7 +361,7 @@ class _CarListingsScreenState extends ConsumerState<CarListingsScreen> {
                         : null,
                     onTap: () {
                       setState(() => _sortBy = opt);
-                      Navigator.pop(context);
+                      context.pop();
                     },
                   ),
                   Container(

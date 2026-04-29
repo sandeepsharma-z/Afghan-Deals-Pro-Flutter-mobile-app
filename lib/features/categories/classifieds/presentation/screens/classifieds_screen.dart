@@ -380,7 +380,7 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(children: [
         GestureDetector(
-          onTap: () => Navigator.of(context).pop(),
+          onTap: () => context.pop(),
           child: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black87),
         ),
         const Spacer(),
@@ -449,9 +449,9 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
                 ),
               )
             else
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8),
-                child: Icon(Icons.tune, size: 16, color: Colors.black54),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: SvgPicture.asset('assets/icons/filter.svg', width: 16, height: 16),
               ),
           ],
         ),
@@ -685,7 +685,7 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(children: [
         GestureDetector(
-          onTap: () => Navigator.of(context).pop(),
+          onTap: () => context.pop(),
           child: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black87),
         ),
         const SizedBox(width: 10),
@@ -733,7 +733,7 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
             const SizedBox(width: 8),
             Expanded(child: Text('Search books & sports...',
                 style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400))),
-            const Icon(Icons.tune, size: 16, color: Colors.black54),
+            SvgPicture.asset('assets/icons/filter.svg', width: 16, height: 16),
           ]),
         ),
       ),
@@ -1114,7 +1114,7 @@ class _ClassifiedsCategoryScreenState extends ConsumerState<_ClassifiedsCategory
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(children: [
         GestureDetector(
-          onTap: () => Navigator.of(context).pop(),
+          onTap: () => context.pop(),
           child: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black87),
         ),
         const SizedBox(width: 10),
@@ -1156,7 +1156,7 @@ class _ClassifiedsCategoryScreenState extends ConsumerState<_ClassifiedsCategory
           const SizedBox(width: 8),
           Expanded(child: Text('Search ${widget.title.toLowerCase()}...',
               style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400))),
-          const Icon(Icons.tune, size: 16, color: Colors.black54),
+          SvgPicture.asset('assets/icons/filter.svg', width: 16, height: 16),
         ]),
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/brand_listings_provider.dart';
 import 'brand_results_screen.dart';
@@ -84,7 +85,7 @@ class _BrandModelsScreenState extends ConsumerState<BrandModelsScreen> {
                     return InkWell(
                       onTap: () {
                         setState(() => _selectedSort = item);
-                        Navigator.of(context).pop();
+                        context.pop();
                       },
                       child: Container(
                         decoration: const BoxDecoration(
@@ -135,7 +136,7 @@ class _BrandModelsScreenState extends ConsumerState<BrandModelsScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: GestureDetector(
-          onTap: () => Navigator.of(context).pop(),
+          onTap: () => context.pop(),
           child: const Icon(Icons.arrow_back_ios_new,
               size: 16, color: Colors.black87),
         ),
@@ -148,15 +149,20 @@ class _BrandModelsScreenState extends ConsumerState<BrandModelsScreen> {
         ),
         centerTitle: true,
         actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.tune, color: Colors.black87, size: 20),
+          GestureDetector(
+            onTap: () {},
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: SvgPicture.asset('assets/icons/filter.svg', width: 20, height: 20),
+            ),
           ),
-          IconButton(
-            onPressed: _openSortSheet,
-            icon: SvgPicture.asset('assets/icons/bars_sort.svg', width: 20, height: 20),
+          GestureDetector(
+            onTap: _openSortSheet,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: SvgPicture.asset('assets/icons/bars_sort.svg', width: 20, height: 20),
+            ),
           ),
-          const SizedBox(width: 2),
         ],
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(1),
@@ -488,18 +494,7 @@ class _BrandModelsScreenState extends ConsumerState<BrandModelsScreen> {
                 : () {
                     final from = _fromYear ?? meta.minYear;
                     final to = _toYear ?? meta.maxYear;
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => BrandResultsScreen(
-                          subcategory: widget.subcategory,
-                          brand: widget.brand,
-                          model: _selectedModel,
-                          fromYear: from,
-                          toYear: to,
-                        ),
-                      ),
-                    );
+                    context.push('/brand-results/${widget.brand}/${_selectedModel!}/$from/$to');
                   },
             style: ElevatedButton.styleFrom(
               backgroundColor: _kBlue,
@@ -604,12 +599,12 @@ class _YearPickerDialogState extends State<_YearPickerDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
           child: Text('Cancel',
               style: GoogleFonts.poppins(color: Colors.black54)),
         ),
         TextButton(
-          onPressed: () => Navigator.pop(context, _selected),
+          onPressed: () => context.pop(_selected),
           child: Text('OK',
               style: GoogleFonts.poppins(
                   color: _kBlue, fontWeight: FontWeight.w600)),

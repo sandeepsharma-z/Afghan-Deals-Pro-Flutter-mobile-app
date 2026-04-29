@@ -16,9 +16,9 @@ class AppBottomNav extends ConsumerWidget {
   void _onTap(BuildContext context, int index) {
     switch (index) {
       case 0: context.go(RouteNames.home); break;
-      case 1: context.push(RouteNames.chats); break;
-      case 3: context.push(RouteNames.myAds); break;
-      case 4: context.push(RouteNames.account); break;
+      case 1: context.go(RouteNames.chats); break;
+      case 3: context.go(RouteNames.myAds); break;
+      case 4: context.go(RouteNames.account); break;
     }
   }
 

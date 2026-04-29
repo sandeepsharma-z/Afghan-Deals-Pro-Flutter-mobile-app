@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../providers/furniture_provider.dart';
@@ -45,25 +46,31 @@ class _FurnitureListingsScreenState extends ConsumerState<FurnitureListingsScree
           style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black),
         ),
         actions: [
-          IconButton(
-            icon: Stack(children: [
-              const Icon(Icons.tune, color: Colors.black87),
-              if (hasFilter)
-                Positioned(
-                  right: 0, top: 0,
-                  child: Container(
-                    width: 8, height: 8,
-                    decoration: const BoxDecoration(color: _kBlue, shape: BoxShape.circle),
-                  ),
-                ),
-            ]),
-            onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+          GestureDetector(
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
               builder: (_) => FurnitureFilterScreen(subcategory: widget.subcategory),
             )),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Stack(children: [
+                SvgPicture.asset('assets/icons/filter.svg', width: 20, height: 20),
+                if (hasFilter)
+                  Positioned(
+                    right: 0, top: 0,
+                    child: Container(
+                      width: 8, height: 8,
+                      decoration: const BoxDecoration(color: _kBlue, shape: BoxShape.circle),
+                    ),
+                  ),
+              ]),
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.swap_vert, color: Colors.black87),
-            onPressed: () => _showSortSheet(context),
+          GestureDetector(
+            onTap: () => _showSortSheet(context),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: SvgPicture.asset('assets/icons/bars_sort.svg', width: 20, height: 20),
+            ),
           ),
         ],
       ),

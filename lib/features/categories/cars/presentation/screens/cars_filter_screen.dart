@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../../features/admin/presentation/providers/admin_dynamic_provider.dart';
@@ -238,7 +239,7 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new,
               size: 16, color: Colors.black87),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
         title: Text('Filter',
             style: GoogleFonts.poppins(
@@ -1214,7 +1215,7 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
             width: double.infinity,
             height: 50,
             child: ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => context.pop(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _kBlue,
                 shape: RoundedRectangleBorder(
@@ -1422,7 +1423,7 @@ class _YearPickerDialogState extends State<_YearPickerDialog> {
             final active = y == _selected;
             return InkWell(
               onTap: () {
-                Navigator.pop(context, y);
+                context.pop(y);
               },
               child: Container(
                 color: active ? _kBlue.withValues(alpha: 0.08) : Colors.transparent,
@@ -1442,7 +1443,7 @@ class _YearPickerDialogState extends State<_YearPickerDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
           child: Text('Cancel',
               style: GoogleFonts.poppins(color: Colors.black54)),
         ),

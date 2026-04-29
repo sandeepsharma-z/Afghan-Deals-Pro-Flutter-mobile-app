@@ -160,7 +160,7 @@ class _CarResultsScreenState extends ConsumerState<CarResultsScreen> {
                     return InkWell(
                       onTap: () {
                         setState(() => _selectedSort = item);
-                        Navigator.of(context).pop();
+                        context.pop();
                       },
                       child: Container(
                         decoration: const BoxDecoration(
@@ -256,7 +256,7 @@ class _CarResultsScreenState extends ConsumerState<CarResultsScreen> {
         elevation: 0,
         centerTitle: true,
         leading: GestureDetector(
-          onTap: () => Navigator.of(context).pop(),
+          onTap: () => context.pop(),
           child: const Icon(Icons.arrow_back_ios_new,
               size: 16, color: Colors.black87),
         ),
@@ -269,15 +269,20 @@ class _CarResultsScreenState extends ConsumerState<CarResultsScreen> {
           ),
         ),
         actions: [
-          IconButton(
-            onPressed: _openFilterSheet,
-            icon: const Icon(Icons.tune, color: Colors.black87, size: 20),
+          GestureDetector(
+            onTap: _openFilterSheet,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: SvgPicture.asset('assets/icons/filter.svg', width: 20, height: 20),
+            ),
           ),
-          IconButton(
-            onPressed: _openSortSheet,
-            icon: SvgPicture.asset('assets/icons/bars_sort.svg', width: 20, height: 20),
+          GestureDetector(
+            onTap: _openSortSheet,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: SvgPicture.asset('assets/icons/bars_sort.svg', width: 20, height: 20),
+            ),
           ),
-          const SizedBox(width: 2),
         ],
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(1),
@@ -744,7 +749,7 @@ class _RentalCarDetailScreenState
                     top: 12,
                     left: 12,
                     child: GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
+                      onTap: () => context.pop(),
                       child: Container(
                         width: 21,
                         height: 21,
@@ -1069,7 +1074,7 @@ class _RentalCarDetailScreenState
                   Clipboard.setData(
                     ClipboardData(text: shareText),
                   );
-                  Navigator.pop(context);
+                  context.pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Copied: $carName'),
@@ -1085,7 +1090,7 @@ class _RentalCarDetailScreenState
                   style: GoogleFonts.poppins(fontSize: 14),
                 ),
                 onTap: () {
-                  Navigator.pop(context);
+                  context.pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Shared: $carName'),
@@ -1104,7 +1109,7 @@ class _RentalCarDetailScreenState
                   Clipboard.setData(
                     ClipboardData(text: 'afghan-deals-pro://car/${widget.car.id}'),
                   );
-                  Navigator.pop(context);
+                  context.pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Link copied for $carName'),
@@ -1605,7 +1610,7 @@ class _RentalFilterScreenState extends State<_RentalFilterScreen> {
         centerTitle: false,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black87),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
         title: Text('Filter', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600)),
         actions: [
@@ -1627,7 +1632,7 @@ class _RentalFilterScreenState extends State<_RentalFilterScreen> {
           child: ElevatedButton(
             onPressed: () {
               widget.onApply(_seats, _colors, _years, _insurance, _models, _doors, _luggage, _dailyRental, _trim, _horsepower, _location, _rentalDuration);
-              Navigator.pop(context);
+              context.pop();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF2258A8),

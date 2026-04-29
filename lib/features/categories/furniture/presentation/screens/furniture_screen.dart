@@ -327,7 +327,7 @@ class _FurnitureScreenState extends ConsumerState<FurnitureScreen> {
       child: Row(
         children: [
           GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
+            onTap: () => context.pop(),
             child: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black87),
           ),
           const Spacer(),
@@ -374,7 +374,7 @@ class _FurnitureScreenState extends ConsumerState<FurnitureScreen> {
             const SizedBox(width: 8),
             Expanded(child: Text('Search furniture...',
                 style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400, color: Colors.black45))),
-            const Icon(Icons.tune, size: 16, color: Colors.black54),
+            Center(child: SvgPicture.asset('assets/icons/filter.svg', width: 16, height: 16)),
           ]),
         ),
       ),
@@ -592,7 +592,7 @@ class _FurnitureSearchScreenState extends ConsumerState<_FurnitureSearchScreen> 
         backgroundColor: Colors.white,
         elevation: 0,
         leading: GestureDetector(
-          onTap: () => Navigator.of(context).pop(),
+          onTap: () => context.pop(),
           child: const Icon(Icons.arrow_back_ios_new, size: 18, color: Colors.black87),
         ),
         title: TextField(

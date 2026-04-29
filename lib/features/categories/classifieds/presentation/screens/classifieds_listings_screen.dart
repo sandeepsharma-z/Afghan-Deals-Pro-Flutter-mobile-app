@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../providers/classifieds_provider.dart';
@@ -37,7 +39,7 @@ class _ClassifiedsListingsScreenState
         backgroundColor: Colors.white,
         elevation: 0,
         leading: GestureDetector(
-          onTap: () => Navigator.of(context).pop(),
+          onTap: () => context.pop(),
           child: const Icon(Icons.arrow_back_ios_new,
               size: 18, color: Colors.black87),
         ),
@@ -51,26 +53,32 @@ class _ClassifiedsListingsScreenState
               color: Colors.black),
         ),
         actions: [
-          IconButton(
-            icon: Stack(children: [
-              const Icon(Icons.tune, color: Colors.black87),
-              if (hasFilter)
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                        color: _kBlue, shape: BoxShape.circle),
+          GestureDetector(
+            onTap: () => _showFilterSheet(context),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Stack(children: [
+                SvgPicture.asset('assets/icons/filter.svg', width: 20, height: 20),
+                if (hasFilter)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                          color: _kBlue, shape: BoxShape.circle),
+                    ),
                   ),
-                ),
-            ]),
-            onPressed: () => _showFilterSheet(context),
+              ]),
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.sort, color: Colors.black87),
-            onPressed: () => _showSortSheet(context),
+          GestureDetector(
+            onTap: () => _showSortSheet(context),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: SvgPicture.asset('assets/icons/bars_sort.svg', width: 20, height: 20),
+            ),
           ),
         ],
       ),
@@ -150,7 +158,7 @@ class _ClassifiedsListingsScreenState
                 onTap: () {
                   ref.read(classifiedsFilterProvider.notifier).state =
                       filter.copyWith(sortBy: opt.$2);
-                  Navigator.of(context).pop();
+                  context.pop();
                 },
               )),
           const SizedBox(height: 12),
@@ -235,7 +243,7 @@ class _FilterSheetState extends State<_FilterSheet> {
             child: ElevatedButton(
               onPressed: () {
                 widget.onApply(_draft);
-                Navigator.of(context).pop();
+                context.pop();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: _kBlue,

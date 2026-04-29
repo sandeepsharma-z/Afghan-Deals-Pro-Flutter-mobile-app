@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/widgets/app_bottom_nav.dart';
 import 'car_results_screen.dart';
@@ -20,7 +21,7 @@ class RentalCarsScreen extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new,
               color: Colors.black87, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
         title: Text(
           'Rental Cars',
@@ -69,15 +70,7 @@ class RentalCarsScreen extends StatelessWidget {
 
   Widget _buildOption(BuildContext context, String label, String rentalDuration) {
     return InkWell(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => CarResultsScreen(
-            subcategory: 'rental-cars',
-            rentalDuration: rentalDuration,
-          ),
-        ),
-      ),
+      onTap: () => context.push('/car-results?subcategory=rental-cars&duration=$rentalDuration'),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Row(

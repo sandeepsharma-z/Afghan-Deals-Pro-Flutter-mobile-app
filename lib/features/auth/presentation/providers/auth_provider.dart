@@ -201,6 +201,8 @@ class AuthNotifier extends StateNotifier<AuthActionState> {
     try {
       await _repository.signOut();
       state = const AuthActionSuccess();
+      // Clear auth state after successful signout
+      // The authStateProvider will update via the stream automatically
     } on AppAuthException catch (e) {
       state = AuthActionError(e.message);
     } catch (_) {

@@ -312,7 +312,7 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
       child: Row(
         children: [
           GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
+            onTap: () => context.pop(),
             child: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black87),
           ),
           const Spacer(),
@@ -387,9 +387,9 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
                 ),
               )
             else
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8),
-                child: Icon(Icons.tune, size: 16, color: Colors.black54),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: SvgPicture.asset('assets/icons/filter.svg', width: 16, height: 16),
               ),
           ],
         ),

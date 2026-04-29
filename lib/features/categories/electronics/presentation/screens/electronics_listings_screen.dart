@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -42,7 +43,7 @@ class _ElectronicsListingsScreenState
         backgroundColor: Colors.white,
         elevation: 0,
         leading: GestureDetector(
-          onTap: () => Navigator.of(context).pop(),
+          onTap: () => context.pop(),
           child: const Icon(Icons.arrow_back_ios_new, size: 18, color: Colors.black87),
         ),
         title: Text(
@@ -50,29 +51,35 @@ class _ElectronicsListingsScreenState
           style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black),
         ),
         actions: [
-          IconButton(
-            onPressed: () => _showSortSheet(context),
-            icon: SvgPicture.asset('assets/icons/bars_sort.svg', width: 20, height: 20),
-          ),
-          Stack(
-            children: [
-              IconButton(
-                onPressed: () async {
-                  await Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => ElectronicsFilterScreen(subcategory: widget.subcategory),
-                  ));
-                },
-                icon: const Icon(Icons.tune, color: Colors.black87),
+          GestureDetector(
+            onTap: () async {
+              await Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => ElectronicsFilterScreen(subcategory: widget.subcategory),
+              ));
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Stack(
+                children: [
+                  SvgPicture.asset('assets/icons/filter.svg', width: 20, height: 20),
+                  if (!filter.isEmpty)
+                    Positioned(
+                      top: 0, right: 0,
+                      child: Container(
+                        width: 8, height: 8,
+                        decoration: const BoxDecoration(color: _kBlue, shape: BoxShape.circle),
+                      ),
+                    ),
+                ],
               ),
-              if (!filter.isEmpty)
-                Positioned(
-                  top: 8, right: 8,
-                  child: Container(
-                    width: 8, height: 8,
-                    decoration: const BoxDecoration(color: _kBlue, shape: BoxShape.circle),
-                  ),
-                ),
-            ],
+            ),
+          ),
+          GestureDetector(
+            onTap: () => _showSortSheet(context),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: SvgPicture.asset('assets/icons/bars_sort.svg', width: 20, height: 20),
+            ),
           ),
         ],
       ),
@@ -138,7 +145,7 @@ class _ElectronicsListingsScreenState
                 ref.read(electronicsFilterProvider.notifier).update(
                   (f) => f.copyWith(sortBy: opt.$1),
                 );
-                Navigator.of(context).pop();
+                context.pop();
               },
             )),
             const SizedBox(height: 12),

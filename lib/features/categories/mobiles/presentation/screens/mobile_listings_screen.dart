@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -76,7 +77,7 @@ class _MobileListingsScreenState extends ConsumerState<MobileListingsScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new,
               color: Colors.black87, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
         title: Text(
           title,
@@ -88,20 +89,22 @@ class _MobileListingsScreenState extends ConsumerState<MobileListingsScreen> {
           ),
         ),
         actions: [
-          IconButton(
-            icon: SvgPicture.asset(
-              'assets/icons/bars_sort.svg',
-              width: 20,
-              height: 20,
-            ),
-            onPressed: () => _showSortSheet(context),
-          ),
-          IconButton(
-            icon: const Icon(Icons.tune, color: Colors.black87, size: 20),
-            onPressed: () => Navigator.of(context).push(
+          GestureDetector(
+            onTap: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => MobileFilterScreen(cities: cities),
               ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: SvgPicture.asset('assets/icons/filter.svg', width: 20, height: 20),
+            ),
+          ),
+          GestureDetector(
+            onTap: () => _showSortSheet(context),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: SvgPicture.asset('assets/icons/bars_sort.svg', width: 20, height: 20),
             ),
           ),
         ],
@@ -186,7 +189,7 @@ class _MobileListingsScreenState extends ConsumerState<MobileListingsScreen> {
                           fontSize: 16, fontWeight: FontWeight.w600)),
                   IconButton(
                       icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.pop(ctx)),
+                      onPressed: () => ctx.pop()),
                 ],
               ),
             ),
@@ -205,7 +208,7 @@ class _MobileListingsScreenState extends ConsumerState<MobileListingsScreen> {
                           : null,
                       onTap: () {
                         setState(() => _sortBy = opt);
-                        Navigator.pop(ctx);
+                        ctx.pop();
                       },
                     ),
                     Container(

@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -202,17 +203,22 @@ class _PropertyListingsScreenState
               color: Colors.black87),
         ),
         actions: [
-          IconButton(
-            onPressed: () => Navigator.of(context).push(
+          GestureDetector(
+            onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => PropertyFilterScreen(cities: cities)),
             ),
-            icon: const Icon(Icons.tune, color: Colors.black87, size: 20),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: SvgPicture.asset('assets/icons/filter.svg', width: 20, height: 20),
+            ),
           ),
-          IconButton(
-            onPressed: _openSortSheet,
-            icon: const Icon(Icons.swap_vert, color: Colors.black87, size: 20),
+          GestureDetector(
+            onTap: _openSortSheet,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: SvgPicture.asset('assets/icons/bars_sort.svg', width: 20, height: 20),
+            ),
           ),
-          const SizedBox(width: 2),
         ],
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(1),

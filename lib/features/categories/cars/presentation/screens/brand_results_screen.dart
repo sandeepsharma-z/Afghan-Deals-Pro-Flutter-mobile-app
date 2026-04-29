@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -36,6 +37,10 @@ class BrandResultsScreen extends ConsumerStatefulWidget {
 
 class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
   String _selectedSort = 'Popular';
+  String _selectedBodyType = 'All';
+  String _selectedCondition = 'All';
+  int? _fromYear;
+  int? _toYear;
 
   static const _sortOptions = [
     'Popular',
@@ -93,7 +98,7 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
                   return InkWell(
                     onTap: () {
                       setState(() => _selectedSort = item);
-                      Navigator.of(context).pop();
+                      context.pop();
                     },
                     child: Container(
                       decoration: const BoxDecoration(
@@ -178,7 +183,7 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new,
               color: Colors.black87, size: 18),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
         title: Column(
           children: [
@@ -193,17 +198,22 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
           ],
         ),
         actions: [
-          IconButton(
-            onPressed: () => Navigator.of(context).push(
+          GestureDetector(
+            onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const CarsFilterScreen()),
             ),
-            icon: const Icon(Icons.tune, color: Colors.black87, size: 20),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: SvgPicture.asset('assets/icons/filter.svg', width: 20, height: 20),
+            ),
           ),
-          IconButton(
-            onPressed: _openSortSheet,
-            icon: SvgPicture.asset('assets/icons/bars_sort.svg', width: 20, height: 20),
+          GestureDetector(
+            onTap: _openSortSheet,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: SvgPicture.asset('assets/icons/bars_sort.svg', width: 20, height: 20),
+            ),
           ),
-          const SizedBox(width: 2),
         ],
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(1),
