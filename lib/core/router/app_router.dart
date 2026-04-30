@@ -282,8 +282,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final model = state.pathParameters['model'];
           final fromYear = int.tryParse(state.pathParameters['fromYear'] ?? '0') ?? 0;
           final toYear = int.tryParse(state.pathParameters['toYear'] ?? '2027') ?? 2027;
+          final subcategory = state.uri.queryParameters['subcategory'] ?? 'all';
           return BrandResultsScreen(
-            subcategory: 'all',
+            subcategory: subcategory,
             brand: brand,
             model: model,
             fromYear: fromYear,
