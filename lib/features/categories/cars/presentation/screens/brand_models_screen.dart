@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../../core/widgets/app_search_field.dart';
 import '../providers/brand_listings_provider.dart';
 import 'brand_results_screen.dart';
 
@@ -263,32 +264,10 @@ class _BrandModelsScreenState extends ConsumerState<BrandModelsScreen> {
           const Icon(Icons.search, size: 16, color: Colors.black87),
           const SizedBox(width: 8),
           Expanded(
-            child: Stack(
-              alignment: Alignment.centerLeft,
-              children: [
-                TextField(
-                  onChanged: (v) => setState(() => _search = v),
-                  style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.black87),
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    isDense: true,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-                if (_search.isEmpty)
-                  IgnorePointer(
-                    child: Text('Search',
-                        style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w400,
-                            color: Colors.black87)),
-                  ),
-              ],
+            child: AppSearchField(
+              controller: TextEditingController(text: _search),
+              hintText: 'Search',
+              onChanged: (v) => setState(() => _search = v),
             ),
           ),
           const SizedBox(width: 12),
@@ -494,7 +473,7 @@ class _BrandModelsScreenState extends ConsumerState<BrandModelsScreen> {
                 : () {
                     final from = _fromYear ?? meta.minYear;
                     final to = _toYear ?? meta.maxYear;
-                    context.push('/brand-results/${widget.brand}/${_selectedModel!}/$from/$to');
+                    context.push('/brand-results/${widget.brand}/${_selectedModel!}/$from/$to?subcategory=${widget.subcategory}');
                   },
             style: ElevatedButton.styleFrom(
               backgroundColor: _kBlue,

@@ -18,6 +18,7 @@ import '../../features/profile/presentation/screens/account_screen.dart';
 import '../../features/profile/presentation/screens/favorites_screen.dart';
 import '../../features/profile/presentation/screens/notifications_screen.dart';
 import '../../features/categories/cars/presentation/screens/cars_screen.dart';
+import '../../features/categories/cars/presentation/screens/brand_results_screen.dart';
 import '../../features/categories/properties/presentation/screens/properties_screen.dart';
 import '../../features/categories/mobiles/presentation/screens/mobiles_screen.dart';
 import '../../features/categories/spare_parts/presentation/screens/spare_parts_screen.dart';
@@ -38,6 +39,7 @@ import '../../features/admin/presentation/screens/admin_regions_screen.dart';
 import '../../features/admin/presentation/screens/admin_price_settings_screen.dart';
 import '../../features/profile/presentation/screens/my_ads_screen.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
+import '../../features/listings/presentation/screens/search_results_screen.dart';
 import 'route_names.dart';
 
 final appNavigatorKey = GlobalKey<NavigatorState>();
@@ -64,16 +66,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       // Get current auth state
       final authState = ref.read(authStateProvider);
+
+      final location = state.matchedLocation;
+
+      // Keep splash showing while auth is loading
+      if (location == RouteNames.splash) return null;
+
+      // If auth is still loading, stay on splash to wait for it
+      authState.whenData((user) => null); // Just trigger loading state
+      final isAuthLoading = authState.isLoading;
+      if (isAuthLoading) return RouteNames.splash;
+
+      // Get auth result after loading is done
       final isAuthenticated = authState.when(
         data: (user) => user != null,
         loading: () => false,
         error: (err, stack) => false,
       );
-
-      final location = state.matchedLocation;
-
-      // Splash always shows first
-      if (location == RouteNames.splash) return null;
 
       // If logged in and on auth screens, go to home
       final isOnAuthRoute = location == RouteNames.onboarding ||
@@ -265,6 +274,29 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.myAds,
         builder: (context, state) => const MyAdsScreen(),
+      ),
+      GoRoute(
+        path: '/brand-results/:brand/:model/:fromYear/:toYear',
+        builder: (context, state) {
+          final brand = state.pathParameters['brand'] ?? '';
+          final model = state.pathParameters['model'];
+          final fromYear = int.tryParse(state.pathParameters['fromYear'] ?? '0') ?? 0;
+          final toYear = int.tryParse(state.pathParameters['toYear'] ?? '2027') ?? 2027;
+          return BrandResultsScreen(
+            subcategory: 'all',
+            brand: brand,
+            model: model,
+            fromYear: fromYear,
+            toYear: toYear,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/search/:query',
+        builder: (context, state) {
+          final query = Uri.decodeComponent(state.pathParameters['query'] ?? '');
+          return SearchResultsScreen(query: query);
+        },
       ),
     ],
   );
