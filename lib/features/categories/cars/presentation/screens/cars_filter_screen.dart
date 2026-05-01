@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../../features/listings/data/models/car_sale_model.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -126,16 +127,38 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
     final Set<String> cities = {};
 
     for (final item in widget.availableListings!) {
-      final cd = (item is Map && item['category_data'] is Map) ? item['category_data'] : {};
-      final make = cd['make']?.toString().trim() ?? '';
-      final model = cd['model']?.toString().trim() ?? '';
-      final trans = cd['transmission']?.toString().trim() ?? '';
-      final fuel = cd['fuel_type']?.toString().trim() ?? '';
-      final color = cd['color']?.toString().trim() ?? '';
-      final drive = cd['driveline']?.toString().trim() ?? '';
-      final cyl = cd['cylinders']?.toString().trim() ?? '';
-      final intColor = cd['interior_color']?.toString().trim() ?? '';
-      final location = item is Map ? (item['city']?.toString().trim() ?? '') : '';
+      String make = '';
+      String model = '';
+      String trans = '';
+      String fuel = '';
+      String color = '';
+      String drive = '';
+      String cyl = '';
+      String intColor = '';
+      String location = '';
+
+      if (item is CarSaleModel) {
+        make = item.make.trim();
+        model = item.model.trim();
+        trans = item.transmission.trim();
+        fuel = item.fuelType.trim();
+        color = item.color.trim();
+        drive = item.driveline.trim();
+        cyl = item.cylinders.trim();
+        intColor = item.interiorColor.trim();
+        location = item.location.trim();
+      } else if (item is Map<String, dynamic>) {
+        final cd = (item['category_data'] is Map) ? item['category_data'] as Map<String, dynamic> : <String, dynamic>{};
+        make = cd['make']?.toString().trim() ?? '';
+        model = cd['model']?.toString().trim() ?? '';
+        trans = cd['transmission']?.toString().trim() ?? '';
+        fuel = cd['fuel_type']?.toString().trim() ?? '';
+        color = cd['color']?.toString().trim() ?? '';
+        drive = cd['driveline']?.toString().trim() ?? '';
+        cyl = cd['cylinders']?.toString().trim() ?? '';
+        intColor = cd['interior_color']?.toString().trim() ?? '';
+        location = item['city']?.toString().trim() ?? '';
+      }
 
       if (make.isNotEmpty) makes.add(make);
       if (model.isNotEmpty) models.add(model);
