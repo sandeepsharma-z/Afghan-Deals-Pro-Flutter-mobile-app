@@ -136,82 +136,36 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
     final f = _appliedFilters!;
 
     return list.where((car) {
-      final carYear = int.tryParse(car.year) ?? 0;
+      try {
+        final carYear = int.tryParse(car.year) ?? 0;
+        if (carYear < f.fromYear || carYear > f.toYear) return false;
 
-      if (carYear < f.fromYear || carYear > f.toYear) {
-        return false;
+        if (f.makes.isNotEmpty && !_matchesFilter(car.make, f.makes)) return false;
+        if (f.models.isNotEmpty && !_matchesFilter(car.model, f.models)) return false;
+        if (f.subModels.isNotEmpty && !_matchesFilter(car.model, f.subModels)) return false;
+        if (f.transmission.isNotEmpty && !_matchesFilter(car.transmission, f.transmission)) return false;
+        if (f.fuelType.isNotEmpty && !_matchesFilter(car.fuelType, f.fuelType)) return false;
+        if (f.extColors.isNotEmpty && !_matchesFilter(car.color, f.extColors)) return false;
+        if (f.driveLines.isNotEmpty && !_matchesFilter(car.driveline, f.driveLines)) return false;
+        if (f.cylinders.isNotEmpty && !_matchesFilter(car.cylinders, f.cylinders)) return false;
+        if (f.intColors.isNotEmpty && !_matchesFilter(car.interiorColor, f.intColors)) return false;
+        if (f.regions.isNotEmpty && !_matchesFilter(car.location, f.regions)) return false;
+        if (f.cities.isNotEmpty && !_matchesFilter(car.location, f.cities)) return false;
+
+        final price = double.tryParse(car.price) ?? 0;
+        if (price < f.minPrice || price > f.maxPrice) return false;
+
+        return true;
+      } catch (e) {
+        return true;
       }
-      if (f.makes.isNotEmpty) {
-        if (!f.makes.any((m) => car.make.toLowerCase().contains(m.toLowerCase()))) {
-          return false;
-        }
-      }
-      if (f.models.isNotEmpty) {
-        if (!f.models.any((m) => car.model.toLowerCase().contains(m.toLowerCase()))) {
-          return false;
-        }
-      }
-      if (f.subModels.isNotEmpty) {
-        if (!f.subModels.any((sm) => car.model.toLowerCase().contains(sm.toLowerCase()))) {
-          return false;
-        }
-      }
-      if (f.specs.isNotEmpty) {
-        if (!f.specs.any((s) => s.toLowerCase() == 'used' || s.toLowerCase() == 'new' || s.toLowerCase() == 'export' || s.toLowerCase() == 'rental')) {
-          return false;
-        }
-      }
-      if (f.dealTypes.isNotEmpty) {
-        if (!f.dealTypes.any((dt) => dt.toLowerCase() == 'owner' || dt.toLowerCase() == 'dealer' || dt.toLowerCase() == 'agent')) {
-          return false;
-        }
-      }
-      if (f.transmission.isNotEmpty) {
-        if (!f.transmission.any((t) => car.transmission.toLowerCase().contains(t.toLowerCase()))) {
-          return false;
-        }
-      }
-      if (f.fuelType.isNotEmpty) {
-        if (!f.fuelType.any((ft) => car.fuelType.toLowerCase().contains(ft.toLowerCase()))) {
-          return false;
-        }
-      }
-      if (f.extColors.isNotEmpty) {
-        if (!f.extColors.any((c) => car.color.toLowerCase().contains(c.toLowerCase()))) {
-          return false;
-        }
-      }
-      if (f.driveLines.isNotEmpty) {
-        if (!f.driveLines.any((d) => car.driveline.toLowerCase().contains(d.toLowerCase()))) {
-          return false;
-        }
-      }
-      if (f.cylinders.isNotEmpty) {
-        if (!f.cylinders.any((cyl) => car.cylinders.toLowerCase().contains(cyl.toLowerCase()))) {
-          return false;
-        }
-      }
-      if (f.intColors.isNotEmpty) {
-        if (!f.intColors.any((ic) => car.interiorColor.toLowerCase().contains(ic.toLowerCase()))) {
-          return false;
-        }
-      }
-      if (f.regions.isNotEmpty) {
-        if (!f.regions.any((r) => car.location.toLowerCase().contains(r.toLowerCase()))) {
-          return false;
-        }
-      }
-      if (f.cities.isNotEmpty) {
-        if (!f.cities.any((c) => car.location.toLowerCase().contains(c.toLowerCase()))) {
-          return false;
-        }
-      }
-      final price = double.tryParse(car.price) ?? 0;
-      if (price < f.minPrice || price > f.maxPrice) {
-        return false;
-      }
-      return true;
     }).toList();
+  }
+
+  bool _matchesFilter(String carValue, Set<String> filterValues) {
+    if (filterValues.isEmpty) return true;
+    final carLower = carValue.toLowerCase().trim();
+    return filterValues.any((f) => carLower.contains(f.toLowerCase().trim()));
   }
 
   List<CarSaleModel> _sorted(List<CarSaleModel> list) {
