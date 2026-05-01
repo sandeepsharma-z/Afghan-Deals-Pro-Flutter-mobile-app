@@ -38,7 +38,6 @@ class BrandResultsScreen extends ConsumerStatefulWidget {
 class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
   String _selectedSort = 'Popular';
   CarFilters? _appliedFilters;
-  List<CarSaleModel> _currentListings = [];
 
   static const _sortOptions = [
     'Popular',
@@ -302,10 +301,7 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
               );
               final result = await Navigator.of(context).push<CarFilters>(
                 MaterialPageRoute(
-                  builder: (_) => CarsFilterScreen(
-                    initialFilters: defaultFilters,
-                    availableListings: _currentListings,
-                  ),
+                  builder: (_) => CarsFilterScreen(initialFilters: defaultFilters),
                 ),
               );
               if (result != null) {
@@ -339,7 +335,6 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
                 style: GoogleFonts.poppins(
                     fontSize: 13, color: Colors.red))),
         data: (listings) {
-          _currentListings = listings;
           final filtered = _applyFilters(listings);
           final sorted = _sorted(filtered);
           if (sorted.isEmpty) {

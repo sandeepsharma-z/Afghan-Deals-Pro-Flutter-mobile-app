@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../../features/listings/data/models/car_sale_model.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -47,8 +46,7 @@ class CarFilters {
 
 class CarsFilterScreen extends ConsumerStatefulWidget {
   final CarFilters? initialFilters;
-  final List<dynamic>? availableListings;
-  const CarsFilterScreen({super.key, this.initialFilters, this.availableListings});
+  const CarsFilterScreen({super.key, this.initialFilters});
 
   @override
   ConsumerState<CarsFilterScreen> createState() => _CarsFilterScreenState();
@@ -56,16 +54,16 @@ class CarsFilterScreen extends ConsumerStatefulWidget {
 
 class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
   int _selectedSection = 0;
-  late List<String> _availableMakes = [];
-  late List<String> _availableModels = [];
-  late List<String> _availableTransmissions = [];
-  late List<String> _availableFuelTypes = [];
-  late List<String> _availableColors = [];
-  late List<String> _availableDriveLines = [];
-  late List<String> _availableCylinders = [];
-  late List<String> _availableIntColors = [];
-  late List<String> _availableRegions = [];
-  late List<String> _availableCities = [];
+  late List<String> _availableMakes;
+  late List<String> _availableModels;
+  late List<String> _availableTransmissions;
+  late List<String> _availableFuelTypes;
+  late List<String> _availableColors;
+  late List<String> _availableDriveLines;
+  late List<String> _availableCylinders;
+  late List<String> _availableIntColors;
+  late List<String> _availableRegions;
+  late List<String> _availableCities;
 
   static const _kSections = [
     ('Makes', Icons.directions_car_outlined),
@@ -107,85 +105,7 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
   void initState() {
     super.initState();
     _initFromPrevious();
-    _extractAvailableValues();
-  }
-
-  void _extractAvailableValues() {
-    if (widget.availableListings == null || widget.availableListings!.isEmpty) {
-      _setDefaultValues();
-      return;
-    }
-    final Set<String> makes = {};
-    final Set<String> models = {};
-    final Set<String> transmissions = {};
-    final Set<String> fuelTypes = {};
-    final Set<String> colors = {};
-    final Set<String> driveLines = {};
-    final Set<String> cylinders = {};
-    final Set<String> intColors = {};
-    final Set<String> regions = {};
-    final Set<String> cities = {};
-
-    for (final item in widget.availableListings!) {
-      String make = '';
-      String model = '';
-      String trans = '';
-      String fuel = '';
-      String color = '';
-      String drive = '';
-      String cyl = '';
-      String intColor = '';
-      String location = '';
-
-      if (item is CarSaleModel) {
-        make = item.make.trim();
-        model = item.model.trim();
-        trans = item.transmission.trim();
-        fuel = item.fuelType.trim();
-        color = item.color.trim();
-        drive = item.driveline.trim();
-        cyl = item.cylinders.trim();
-        intColor = item.interiorColor.trim();
-        location = item.location.trim();
-      } else if (item is Map<String, dynamic>) {
-        final cd = (item['category_data'] is Map) ? item['category_data'] as Map<String, dynamic> : <String, dynamic>{};
-        make = cd['make']?.toString().trim() ?? '';
-        model = cd['model']?.toString().trim() ?? '';
-        trans = cd['transmission']?.toString().trim() ?? '';
-        fuel = cd['fuel_type']?.toString().trim() ?? '';
-        color = cd['color']?.toString().trim() ?? '';
-        drive = cd['driveline']?.toString().trim() ?? '';
-        cyl = cd['cylinders']?.toString().trim() ?? '';
-        intColor = cd['interior_color']?.toString().trim() ?? '';
-        location = item['city']?.toString().trim() ?? '';
-      }
-
-      if (make.isNotEmpty) makes.add(make);
-      if (model.isNotEmpty) models.add(model);
-      if (trans.isNotEmpty) transmissions.add(trans);
-      if (fuel.isNotEmpty) fuelTypes.add(fuel);
-      if (color.isNotEmpty) colors.add(color);
-      if (drive.isNotEmpty) driveLines.add(drive);
-      if (cyl.isNotEmpty) cylinders.add(cyl);
-      if (intColor.isNotEmpty) intColors.add(intColor);
-      if (location.isNotEmpty) {
-        regions.add(location);
-        cities.add(location);
-      }
-    }
-
-    setState(() {
-      _availableMakes = makes.toList()..sort();
-      _availableModels = models.toList()..sort();
-      _availableTransmissions = transmissions.toList()..sort();
-      _availableFuelTypes = fuelTypes.toList()..sort();
-      _availableColors = colors.toList()..sort();
-      _availableDriveLines = driveLines.toList()..sort();
-      _availableCylinders = cylinders.toList()..sort();
-      _availableIntColors = intColors.toList()..sort();
-      _availableRegions = regions.toList()..sort();
-      _availableCities = cities.toList()..sort();
-    });
+    _setDefaultValues();
   }
 
   void _setDefaultValues() {
