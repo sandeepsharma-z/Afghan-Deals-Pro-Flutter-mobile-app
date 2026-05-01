@@ -135,6 +135,31 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
     if (_appliedFilters == null) return list;
     final f = _appliedFilters!;
 
+    // If ALL filters are empty, return all listings
+    final hasAnyFilter = f.makes.isNotEmpty ||
+        f.models.isNotEmpty ||
+        f.subModels.isNotEmpty ||
+        f.transmission.isNotEmpty ||
+        f.fuelType.isNotEmpty ||
+        f.extColors.isNotEmpty ||
+        f.driveLines.isNotEmpty ||
+        f.cylinders.isNotEmpty ||
+        f.intColors.isNotEmpty ||
+        f.regions.isNotEmpty ||
+        f.cities.isNotEmpty ||
+        f.specs.isNotEmpty ||
+        f.dealTypes.isNotEmpty ||
+        f.minPrice > 0 ||
+        f.maxPrice < 150000;
+
+    if (!hasAnyFilter && f.fromYear == f.toYear) {
+      // Only year filter from navigation, apply it
+      return list.where((car) {
+        final carYear = int.tryParse(car.year) ?? 0;
+        return carYear >= f.fromYear && carYear <= f.toYear;
+      }).toList();
+    }
+
     return list.where((car) {
       try {
         final carYear = int.tryParse(car.year) ?? 0;
@@ -142,15 +167,9 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
 
         if (f.makes.isNotEmpty && !_matchesFilter(car.make, f.makes)) return false;
         if (f.models.isNotEmpty && !_matchesFilter(car.model, f.models)) return false;
-        if (f.subModels.isNotEmpty && !_matchesFilter(car.model, f.subModels)) return false;
         if (f.transmission.isNotEmpty && !_matchesFilter(car.transmission, f.transmission)) return false;
         if (f.fuelType.isNotEmpty && !_matchesFilter(car.fuelType, f.fuelType)) return false;
         if (f.extColors.isNotEmpty && !_matchesFilter(car.color, f.extColors)) return false;
-        if (f.driveLines.isNotEmpty && !_matchesFilter(car.driveline, f.driveLines)) return false;
-        if (f.cylinders.isNotEmpty && !_matchesFilter(car.cylinders, f.cylinders)) return false;
-        if (f.intColors.isNotEmpty && !_matchesFilter(car.interiorColor, f.intColors)) return false;
-        if (f.regions.isNotEmpty && !_matchesFilter(car.location, f.regions)) return false;
-        if (f.cities.isNotEmpty && !_matchesFilter(car.location, f.cities)) return false;
 
         final price = double.tryParse(car.price) ?? 0;
         if (price < f.minPrice || price > f.maxPrice) return false;
