@@ -280,9 +280,28 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
         actions: [
           GestureDetector(
             onTap: () async {
+              final defaultFilters = _appliedFilters ?? CarFilters(
+                makes: {},
+                models: {},
+                subModels: {},
+                specs: {},
+                dealTypes: {},
+                transmission: {},
+                fuelType: {},
+                extColors: {},
+                driveLines: {},
+                cylinders: {},
+                intColors: {},
+                regions: {},
+                cities: {},
+                fromYear: widget.fromYear,
+                toYear: widget.toYear,
+                minPrice: 0,
+                maxPrice: 150000,
+              );
               final result = await Navigator.of(context).push<CarFilters>(
                 MaterialPageRoute(
-                  builder: (_) => CarsFilterScreen(initialFilters: _appliedFilters),
+                  builder: (_) => CarsFilterScreen(initialFilters: defaultFilters),
                 ),
               );
               if (result != null) {
