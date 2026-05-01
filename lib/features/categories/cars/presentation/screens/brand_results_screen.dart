@@ -37,10 +37,7 @@ class BrandResultsScreen extends ConsumerStatefulWidget {
 
 class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
   String _selectedSort = 'Popular';
-  String _selectedBodyType = 'All';
-  String _selectedCondition = 'All';
-  int? _fromYear;
-  int? _toYear;
+  CarFilters? _appliedFilters;
 
   static const _sortOptions = [
     'Popular',
@@ -134,6 +131,89 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
     );
   }
 
+  List<CarSaleModel> _applyFilters(List<CarSaleModel> list) {
+    if (_appliedFilters == null) return list;
+    final f = _appliedFilters!;
+
+    return list.where((car) {
+      final carYear = int.tryParse(car.year) ?? 0;
+
+      if (carYear < f.fromYear || carYear > f.toYear) {
+        return false;
+      }
+      if (f.makes.isNotEmpty) {
+        if (!f.makes.any((m) => car.make.toLowerCase().contains(m.toLowerCase()))) {
+          return false;
+        }
+      }
+      if (f.models.isNotEmpty) {
+        if (!f.models.any((m) => car.model.toLowerCase().contains(m.toLowerCase()))) {
+          return false;
+        }
+      }
+      if (f.subModels.isNotEmpty) {
+        if (!f.subModels.any((sm) => car.model.toLowerCase().contains(sm.toLowerCase()))) {
+          return false;
+        }
+      }
+      if (f.specs.isNotEmpty) {
+        if (!f.specs.any((s) => s.toLowerCase() == 'used' || s.toLowerCase() == 'new' || s.toLowerCase() == 'export' || s.toLowerCase() == 'rental')) {
+          return false;
+        }
+      }
+      if (f.dealTypes.isNotEmpty) {
+        if (!f.dealTypes.any((dt) => dt.toLowerCase() == 'owner' || dt.toLowerCase() == 'dealer' || dt.toLowerCase() == 'agent')) {
+          return false;
+        }
+      }
+      if (f.transmission.isNotEmpty) {
+        if (!f.transmission.any((t) => car.transmission.toLowerCase().contains(t.toLowerCase()))) {
+          return false;
+        }
+      }
+      if (f.fuelType.isNotEmpty) {
+        if (!f.fuelType.any((ft) => car.fuelType.toLowerCase().contains(ft.toLowerCase()))) {
+          return false;
+        }
+      }
+      if (f.extColors.isNotEmpty) {
+        if (!f.extColors.any((c) => car.color.toLowerCase().contains(c.toLowerCase()))) {
+          return false;
+        }
+      }
+      if (f.driveLines.isNotEmpty) {
+        if (!f.driveLines.any((d) => car.driveline.toLowerCase().contains(d.toLowerCase()))) {
+          return false;
+        }
+      }
+      if (f.cylinders.isNotEmpty) {
+        if (!f.cylinders.any((cyl) => car.cylinders.toLowerCase().contains(cyl.toLowerCase()))) {
+          return false;
+        }
+      }
+      if (f.intColors.isNotEmpty) {
+        if (!f.intColors.any((ic) => car.interiorColor.toLowerCase().contains(ic.toLowerCase()))) {
+          return false;
+        }
+      }
+      if (f.regions.isNotEmpty) {
+        if (!f.regions.any((r) => car.location.toLowerCase().contains(r.toLowerCase()))) {
+          return false;
+        }
+      }
+      if (f.cities.isNotEmpty) {
+        if (!f.cities.any((c) => car.location.toLowerCase().contains(c.toLowerCase()))) {
+          return false;
+        }
+      }
+      final price = double.tryParse(car.price) ?? 0;
+      if (price < f.minPrice || price > f.maxPrice) {
+        return false;
+      }
+      return true;
+    }).toList();
+  }
+
   List<CarSaleModel> _sorted(List<CarSaleModel> list) {
     final copy = List<CarSaleModel>.from(list);
     switch (_selectedSort) {
@@ -199,9 +279,16 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
         ),
         actions: [
           GestureDetector(
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const CarsFilterScreen()),
-            ),
+            onTap: () async {
+              final result = await Navigator.of(context).push<CarFilters>(
+                MaterialPageRoute(
+                  builder: (_) => CarsFilterScreen(initialFilters: _appliedFilters),
+                ),
+              );
+              if (result != null) {
+                setState(() => _appliedFilters = result);
+              }
+            },
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: SvgPicture.asset('assets/icons/filter.svg', width: 20, height: 20),
@@ -229,7 +316,8 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
                 style: GoogleFonts.poppins(
                     fontSize: 13, color: Colors.red))),
         data: (listings) {
-          final sorted = _sorted(listings);
+          final filtered = _applyFilters(listings);
+          final sorted = _sorted(filtered);
           if (sorted.isEmpty) {
             return Center(
               child: Column(
