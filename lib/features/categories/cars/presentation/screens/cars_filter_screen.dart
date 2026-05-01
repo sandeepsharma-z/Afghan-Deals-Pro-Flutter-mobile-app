@@ -46,7 +46,8 @@ class CarFilters {
 
 class CarsFilterScreen extends ConsumerStatefulWidget {
   final CarFilters? initialFilters;
-  const CarsFilterScreen({super.key, this.initialFilters});
+  final List<dynamic>? availableListings;
+  const CarsFilterScreen({super.key, this.initialFilters, this.availableListings});
 
   @override
   ConsumerState<CarsFilterScreen> createState() => _CarsFilterScreenState();
@@ -54,6 +55,16 @@ class CarsFilterScreen extends ConsumerStatefulWidget {
 
 class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
   int _selectedSection = 0;
+  late List<String> _availableMakes = [];
+  late List<String> _availableModels = [];
+  late List<String> _availableTransmissions = [];
+  late List<String> _availableFuelTypes = [];
+  late List<String> _availableColors = [];
+  late List<String> _availableDriveLines = [];
+  late List<String> _availableCylinders = [];
+  late List<String> _availableIntColors = [];
+  late List<String> _availableRegions = [];
+  late List<String> _availableCities = [];
 
   static const _kSections = [
     ('Makes', Icons.directions_car_outlined),
@@ -95,6 +106,76 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
   void initState() {
     super.initState();
     _initFromPrevious();
+    _extractAvailableValues();
+  }
+
+  void _extractAvailableValues() {
+    if (widget.availableListings == null || widget.availableListings!.isEmpty) {
+      _setDefaultValues();
+      return;
+    }
+    final Set<String> makes = {};
+    final Set<String> models = {};
+    final Set<String> transmissions = {};
+    final Set<String> fuelTypes = {};
+    final Set<String> colors = {};
+    final Set<String> driveLines = {};
+    final Set<String> cylinders = {};
+    final Set<String> intColors = {};
+    final Set<String> regions = {};
+    final Set<String> cities = {};
+
+    for (final item in widget.availableListings!) {
+      final cd = (item is Map && item['category_data'] is Map) ? item['category_data'] : {};
+      final make = cd['make']?.toString().trim() ?? '';
+      final model = cd['model']?.toString().trim() ?? '';
+      final trans = cd['transmission']?.toString().trim() ?? '';
+      final fuel = cd['fuel_type']?.toString().trim() ?? '';
+      final color = cd['color']?.toString().trim() ?? '';
+      final drive = cd['driveline']?.toString().trim() ?? '';
+      final cyl = cd['cylinders']?.toString().trim() ?? '';
+      final intColor = cd['interior_color']?.toString().trim() ?? '';
+      final location = item is Map ? (item['city']?.toString().trim() ?? '') : '';
+
+      if (make.isNotEmpty) makes.add(make);
+      if (model.isNotEmpty) models.add(model);
+      if (trans.isNotEmpty) transmissions.add(trans);
+      if (fuel.isNotEmpty) fuelTypes.add(fuel);
+      if (color.isNotEmpty) colors.add(color);
+      if (drive.isNotEmpty) driveLines.add(drive);
+      if (cyl.isNotEmpty) cylinders.add(cyl);
+      if (intColor.isNotEmpty) intColors.add(intColor);
+      if (location.isNotEmpty) {
+        regions.add(location);
+        cities.add(location);
+      }
+    }
+
+    setState(() {
+      _availableMakes = makes.toList()..sort();
+      _availableModels = models.toList()..sort();
+      _availableTransmissions = transmissions.toList()..sort();
+      _availableFuelTypes = fuelTypes.toList()..sort();
+      _availableColors = colors.toList()..sort();
+      _availableDriveLines = driveLines.toList()..sort();
+      _availableCylinders = cylinders.toList()..sort();
+      _availableIntColors = intColors.toList()..sort();
+      _availableRegions = regions.toList()..sort();
+      _availableCities = cities.toList()..sort();
+    });
+  }
+
+  void _setDefaultValues() {
+    _availableMakes = ['Toyota', 'Honda', 'BMW', 'Mercedes-Benz', 'Audi', 'Volkswagen', 'Ford', 'Chevrolet', 'Hyundai', 'Kia', 'Nissan', 'Mazda'];
+    _availableModels = ['Civic', 'Accord', 'CR-V', 'Pilot', 'Camry', 'Corolla', 'Land Cruiser', '3 Series', '5 Series', '7 Series', 'X5', 'X3'];
+    _availableTransmissions = ['Manual', 'Automatic', 'CVT'];
+    _availableFuelTypes = ['Petrol', 'Diesel', 'CNG', 'Hybrid', 'Electric'];
+    _availableColors = ['White', 'Silver', 'Grey', 'Black', 'Red', 'Gold', 'Orange', 'Blue', 'Beige', 'Yellow', 'Purple', 'Brown', 'Green'];
+    _availableDriveLines = ['FWD', 'RWD', 'AWD', '4WD'];
+    _availableCylinders = ['3', '4', '6', '8', '10', '12'];
+    _availableIntColors = ['Beige', 'Black', 'Red', 'Silver', 'Burgundy', 'Grey', 'White', 'Brown'];
+    _availableRegions = ['Kabul', 'Kandahar', 'Herat', 'Balkh', 'Nangarhar', 'Kunduz'];
+    _availableCities = ['Kabul', 'Kandahar', 'Herat', 'Mazar-e Sharif', 'Jalalabad'];
   }
 
   void _initFromPrevious() {
@@ -348,20 +429,20 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
 
   Widget _buildSectionContent() {
     switch (_selectedSection) {
-      case 0:  return _checklistSection(items: const ['Toyota', 'Honda', 'BMW', 'Mercedes-Benz', 'Audi', 'Volkswagen', 'Ford', 'Chevrolet', 'Hyundai', 'Kia', 'Nissan', 'Mazda'], selected: _makes, onToggle: (v) => setState(() => _makes = _toggle(_makes, v)));
-      case 1:  return _checklistSection(items: const ['Civic', 'Accord', 'CR-V', 'Pilot', 'Camry', 'Corolla', 'Land Cruiser', '3 Series', '5 Series', '7 Series', 'X5', 'X3'], selected: _models, onToggle: (v) => setState(() => _models = _toggle(_models, v)));
+      case 0:  return _checklistSection(items: _availableMakes, selected: _makes, onToggle: (v) => setState(() => _makes = _toggle(_makes, v)));
+      case 1:  return _checklistSection(items: _availableModels, selected: _models, onToggle: (v) => setState(() => _models = _toggle(_models, v)));
       case 2:  return _checklistSection(items: const ['Standard', 'Sport', 'Luxury', 'SE', 'EX', 'GL', 'GT', 'LX', 'DX', 'GLE', 'GLX', 'S-Line', 'RS'], selected: _subModels, onToggle: (v) => setState(() => _subModels = _toggle(_subModels, v)));
       case 3:  return _yearRangeSection();
       case 4:  return _checklistSection(items: const ['Used', 'New', 'Export', 'Rental'], selected: _specs, onToggle: (v) => setState(() => _specs = _toggle(_specs, v)));
       case 5:  return _checklistSection(items: const ['Owner', 'Dealer', 'Agent'], selected: _dealTypes, onToggle: (v) => setState(() => _dealTypes = _toggle(_dealTypes, v)));
-      case 6:  return _checklistSection(items: const ['Manual', 'Automatic', 'CVT'], selected: _transmission, onToggle: (v) => setState(() => _transmission = _toggle(_transmission, v)));
-      case 7:  return _checklistSection(items: const ['Petrol', 'Diesel', 'CNG', 'Hybrid', 'Electric'], selected: _fuelTypes, onToggle: (v) => setState(() => _fuelTypes = _toggle(_fuelTypes, v)));
-      case 8:  return _checklistSection(items: const ['White', 'Silver', 'Grey', 'Black', 'Red', 'Gold', 'Orange', 'Blue', 'Beige', 'Yellow', 'Purple', 'Brown', 'Green'], selected: _extColors, onToggle: (v) => setState(() => _extColors = _toggle(_extColors, v)));
-      case 9:  return _checklistSection(items: const ['FWD', 'RWD', 'AWD', '4WD'], selected: _driveLines, onToggle: (v) => setState(() => _driveLines = _toggle(_driveLines, v)));
-      case 10: return _checklistSection(items: const ['3', '4', '6', '8', '10', '12'], selected: _cylinders, onToggle: (v) => setState(() => _cylinders = _toggle(_cylinders, v)));
-      case 11: return _checklistSection(items: const ['Beige', 'Black', 'Red', 'Silver', 'Burgundy', 'Grey', 'White', 'Brown'], selected: _intColors, onToggle: (v) => setState(() => _intColors = _toggle(_intColors, v)));
-      case 12: return _checklistSection(items: const ['Kabul', 'Kandahar', 'Herat', 'Balkh', 'Nangarhar', 'Kunduz'], selected: _regions, onToggle: (v) => setState(() => _regions = _toggle(_regions, v)));
-      case 13: return _checklistSection(items: const ['Kabul', 'Kandahar', 'Herat', 'Mazar-e Sharif', 'Jalalabad'], selected: _cities, onToggle: (v) => setState(() => _cities = _toggle(_cities, v)));
+      case 6:  return _checklistSection(items: _availableTransmissions, selected: _transmission, onToggle: (v) => setState(() => _transmission = _toggle(_transmission, v)));
+      case 7:  return _checklistSection(items: _availableFuelTypes, selected: _fuelTypes, onToggle: (v) => setState(() => _fuelTypes = _toggle(_fuelTypes, v)));
+      case 8:  return _checklistSection(items: _availableColors, selected: _extColors, onToggle: (v) => setState(() => _extColors = _toggle(_extColors, v)));
+      case 9:  return _checklistSection(items: _availableDriveLines, selected: _driveLines, onToggle: (v) => setState(() => _driveLines = _toggle(_driveLines, v)));
+      case 10: return _checklistSection(items: _availableCylinders, selected: _cylinders, onToggle: (v) => setState(() => _cylinders = _toggle(_cylinders, v)));
+      case 11: return _checklistSection(items: _availableIntColors, selected: _intColors, onToggle: (v) => setState(() => _intColors = _toggle(_intColors, v)));
+      case 12: return _checklistSection(items: _availableRegions, selected: _regions, onToggle: (v) => setState(() => _regions = _toggle(_regions, v)));
+      case 13: return _checklistSection(items: _availableCities, selected: _cities, onToggle: (v) => setState(() => _cities = _toggle(_cities, v)));
       case 14: return _priceRangeSection();
       default: return const SizedBox();
     }
