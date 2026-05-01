@@ -277,10 +277,9 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
       _intColors.clear();
       _regions.clear();
       _cities.clear();
-      _fromYear = 2000;
-      _toYear = 2027;
       _minPrice = 0;
       _maxPrice = 150000;
+      // Keep original year range from navigation, don't reset it
     });
   }
 
