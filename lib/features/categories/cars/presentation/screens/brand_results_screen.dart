@@ -165,11 +165,18 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
         final carYear = int.tryParse(car.year) ?? 0;
         if (carYear < f.fromYear || carYear > f.toYear) return false;
 
-        if (f.makes.isNotEmpty && !_matchesFilter(car.make, f.makes)) return false;
-        if (f.models.isNotEmpty && !_matchesFilter(car.model, f.models)) return false;
-        if (f.transmission.isNotEmpty && !_matchesFilter(car.transmission, f.transmission)) return false;
-        if (f.fuelType.isNotEmpty && !_matchesFilter(car.fuelType, f.fuelType)) return false;
-        if (f.extColors.isNotEmpty && !_matchesFilter(car.color, f.extColors)) return false;
+        // Apply only the most critical filters
+        if (f.makes.isNotEmpty) {
+          final carMakeLower = car.make.toLowerCase().trim();
+          final matchesAnyMake = f.makes.any((m) => carMakeLower.contains(m.toLowerCase().trim()));
+          if (!matchesAnyMake) return false;
+        }
+
+        if (f.models.isNotEmpty) {
+          final carModelLower = car.model.toLowerCase().trim();
+          final matchesAnyModel = f.models.any((m) => carModelLower.contains(m.toLowerCase().trim()));
+          if (!matchesAnyModel) return false;
+        }
 
         final price = double.tryParse(car.price) ?? 0;
         if (price < f.minPrice || price > f.maxPrice) return false;
@@ -181,11 +188,6 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
     }).toList();
   }
 
-  bool _matchesFilter(String carValue, Set<String> filterValues) {
-    if (filterValues.isEmpty) return true;
-    final carLower = carValue.toLowerCase().trim();
-    return filterValues.any((f) => carLower.contains(f.toLowerCase().trim()));
-  }
 
   List<CarSaleModel> _sorted(List<CarSaleModel> list) {
     final copy = List<CarSaleModel>.from(list);
