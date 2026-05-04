@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/widgets/favorite_button.dart';
 import '../../../../../features/listings/data/models/car_sale_model.dart';
 import '../providers/car_listings_provider.dart';
 
@@ -570,13 +571,13 @@ class _GridCard extends StatelessWidget {
                 Positioned(
                   top: 6,
                   right: 6,
-                  child: Container(
-                    width: 28,
-                    height: 28,
-                    decoration: const BoxDecoration(
-                        color: Colors.white, shape: BoxShape.circle),
-                    child: const Icon(Icons.favorite_border,
-                        size: 16, color: Colors.black54),
+                  child: FavoriteButton(
+                    listingId: listing.id,
+                    size: 28,
+                    backgroundColor: const Color(0x100F172A),
+                        showShadow: false,
+                    unselectedIconColor: Colors.white,
+                    selectedIconColor: Colors.red,
                   ),
                 ),
               ],

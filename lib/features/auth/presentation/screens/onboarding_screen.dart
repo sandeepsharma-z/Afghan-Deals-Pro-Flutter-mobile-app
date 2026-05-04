@@ -8,6 +8,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/app_bottom_nav.dart';
 import '../providers/auth_provider.dart';
 
 class OnboardingScreen extends ConsumerWidget {
@@ -22,7 +23,8 @@ class OnboardingScreen extends ConsumerWidget {
       if (next is AuthActionError) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(next.message, style: AppTextStyles.body.copyWith(color: AppColors.white)),
+            content: Text(next.message,
+                style: AppTextStyles.body.copyWith(color: AppColors.white)),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -39,12 +41,16 @@ class OnboardingScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.white,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: const AppSellFab(),
+      bottomNavigationBar: const AppBottomNav(activeIndex: 0),
       body: SafeArea(
         child: Column(
           children: [
             // Top bar
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: AppDimensions.sm),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.md, vertical: AppDimensions.sm),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -54,7 +60,8 @@ class OnboardingScreen extends ConsumerWidget {
                   ),
                   Row(
                     children: [
-                      const Icon(Icons.info_outline, size: 18, color: AppColors.grey),
+                      const Icon(Icons.info_outline,
+                          size: 18, color: AppColors.grey),
                       const SizedBox(width: 4),
                       Text('Help', style: AppTextStyles.caption),
                     ],
@@ -65,12 +72,14 @@ class OnboardingScreen extends ConsumerWidget {
 
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: AppDimensions.screenPadding),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimensions.screenPadding),
                 child: Column(
                   children: [
                     const SizedBox(height: AppDimensions.md),
 
-                    Image.asset('assets/images/logo.png', width: 130, height: 130, fit: BoxFit.contain),
+                    Image.asset('assets/images/logo.png',
+                        width: 130, height: 130, fit: BoxFit.contain),
                     const SizedBox(height: 20),
 
                     Text(
@@ -93,9 +102,11 @@ class OnboardingScreen extends ConsumerWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.smartphone_outlined, size: 20, color: AppColors.black),
+                          const Icon(Icons.smartphone_outlined,
+                              size: 20, color: AppColors.black),
                           const SizedBox(width: 10),
-                          Text('Continue with Phone', style: AppTextStyles.label),
+                          Text('Continue with Phone',
+                              style: AppTextStyles.label),
                         ],
                       ),
                     ),
@@ -103,15 +114,20 @@ class OnboardingScreen extends ConsumerWidget {
 
                     // Continue with Google
                     _OutlineButton(
-                      onTap: isLoading ? null : () async {
-                        await ref.read(authNotifierProvider.notifier).signInWithGoogle();
-                      },
+                      onTap: isLoading
+                          ? null
+                          : () async {
+                              await ref
+                                  .read(authNotifierProvider.notifier)
+                                  .signInWithGoogle();
+                            },
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           _GoogleIcon(),
                           const SizedBox(width: 10),
-                          Text('Continue with Google', style: AppTextStyles.label),
+                          Text('Continue with Google',
+                              style: AppTextStyles.label),
                         ],
                       ),
                     ),
@@ -120,11 +136,16 @@ class OnboardingScreen extends ConsumerWidget {
                     // Sign in with Apple
                     AppButton(
                       label: 'Sign in with Apple',
-                      onTap: isLoading ? null : () async {
-                        await ref.read(authNotifierProvider.notifier).signInWithApple();
-                      },
+                      onTap: isLoading
+                          ? null
+                          : () async {
+                              await ref
+                                  .read(authNotifierProvider.notifier)
+                                  .signInWithApple();
+                            },
                       isLoading: isLoading,
-                      prefixIcon: const Icon(Icons.apple, size: 22, color: AppColors.white),
+                      prefixIcon: const Icon(Icons.apple,
+                          size: 22, color: AppColors.white),
                     ),
 
                     const SizedBox(height: 20),
@@ -132,12 +153,16 @@ class OnboardingScreen extends ConsumerWidget {
                     // OR divider
                     Row(
                       children: [
-                        const Expanded(child: Divider(color: AppColors.greyBorder, thickness: 1)),
+                        const Expanded(
+                            child: Divider(
+                                color: AppColors.greyBorder, thickness: 1)),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           child: Text('OR', style: AppTextStyles.small),
                         ),
-                        const Expanded(child: Divider(color: AppColors.greyBorder, thickness: 1)),
+                        const Expanded(
+                            child: Divider(
+                                color: AppColors.greyBorder, thickness: 1)),
                       ],
                     ),
                     const SizedBox(height: AppDimensions.md),
@@ -163,10 +188,14 @@ class OnboardingScreen extends ConsumerWidget {
                       text: TextSpan(
                         style: AppTextStyles.small.copyWith(height: 1.6),
                         children: [
-                          const TextSpan(text: 'If you continue, you are accepting\n'),
+                          const TextSpan(
+                              text: 'If you continue, you are accepting\n'),
                           TextSpan(
-                            text: 'AFGHAN DEALS PRO Terms and Conditions\nand Privacy Policy',
-                            style: AppTextStyles.small.copyWith(fontWeight: FontWeight.w600, color: AppColors.grey),
+                            text:
+                                'AFGHAN DEALS PRO Terms and Conditions\nand Privacy Policy',
+                            style: AppTextStyles.small.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.grey),
                           ),
                         ],
                       ),

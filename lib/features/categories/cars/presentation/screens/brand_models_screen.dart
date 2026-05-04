@@ -3,9 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../../core/widgets/app_search_field.dart';
 import '../providers/brand_listings_provider.dart';
-import 'brand_results_screen.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -264,10 +262,18 @@ class _BrandModelsScreenState extends ConsumerState<BrandModelsScreen> {
           const Icon(Icons.search, size: 16, color: Colors.black87),
           const SizedBox(width: 8),
           Expanded(
-            child: AppSearchField(
-              controller: TextEditingController(text: _search),
-              hintText: 'Search',
+            child: TextField(
               onChanged: (v) => setState(() => _search = v),
+              style: GoogleFonts.poppins(fontSize: 14, color: Colors.black87),
+              decoration: InputDecoration(
+                isCollapsed: true,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                hintText: 'Search',
+                hintStyle: GoogleFonts.poppins(fontSize: 14, color: const Color(0xFF1E1E1E)),
+                contentPadding: EdgeInsets.zero,
+              ),
             ),
           ),
           const SizedBox(width: 12),

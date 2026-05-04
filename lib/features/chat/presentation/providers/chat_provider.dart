@@ -10,6 +10,15 @@ final _chatClientProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
 });
 
+String _categoryText(dynamic categoryData, List<String> keys) {
+  if (categoryData is! Map<String, dynamic>) return '';
+  for (final key in keys) {
+    final value = categoryData[key]?.toString().trim() ?? '';
+    if (value.isNotEmpty) return value;
+  }
+  return '';
+}
+
 // ── Admin check ───────────────────────────────────────────────────────────────
 
 Future<bool> _isAdminUser(SupabaseClient client, String userId) async {
@@ -214,6 +223,45 @@ final isChatBannedProvider = StreamProvider.autoDispose<bool>((ref) {
       .map((rows) => rows.isNotEmpty && rows.first['is_chat_banned'] == true);
 });
 
+final isChatBlockedProvider =
+    FutureProvider.autoDispose.family<bool, String>((ref, chatId) async {
+  final me = Supabase.instance.client.auth.currentUser?.id;
+  if (me == null || chatId.isEmpty) return false;
+  final client = ref.read(_chatClientProvider);
+
+  final chat = await client
+      .from('chats')
+      .select('buyer_id,seller_id')
+      .eq('id', chatId)
+      .maybeSingle();
+  if (chat == null) return false;
+
+  final buyerId = chat['buyer_id']?.toString() ?? '';
+  final sellerId = chat['seller_id']?.toString() ?? '';
+  final peerId = buyerId == me ? sellerId : buyerId;
+  if (peerId.isEmpty) return false;
+
+  try {
+    final outgoing = await client
+        .from('blocked_users')
+        .select('id')
+        .eq('blocker_id', me)
+        .eq('blocked_id', peerId)
+        .maybeSingle();
+    if (outgoing != null) return true;
+
+    final incoming = await client
+        .from('blocked_users')
+        .select('id')
+        .eq('blocker_id', peerId)
+        .eq('blocked_id', me)
+        .maybeSingle();
+    return incoming != null;
+  } catch (_) {
+    return false;
+  }
+});
+
 // ── Actions ───────────────────────────────────────────────────────────────────
 
 class ChatActions {
@@ -226,6 +274,10 @@ class ChatActions {
       if (msg.contains('relation "public.chats"') ||
           msg.contains('relation "public.chat_messages"')) {
         return 'Chat tables are missing in Supabase. Run the chat SQL setup first.';
+      }
+      if (msg.contains('relation "public.blocked_users"') ||
+          msg.contains('relation "public.user_blocks"')) {
+        return 'Blocked users table is missing in Supabase. Run BLOCKED_USERS_SQL_SETUP.sql first.';
       }
     }
     return e.toString().replaceAll('Exception: ', '');
@@ -251,30 +303,164 @@ class ChatActions {
     }
   }
 
+  Future<bool> _isBlockedBetween(String userA, String userB) async {
+    if (userA.isEmpty || userB.isEmpty) return false;
+    try {
+      final outgoing = await _client
+          .from('blocked_users')
+          .select('id')
+          .eq('blocker_id', userA)
+          .eq('blocked_id', userB)
+          .maybeSingle();
+      if (outgoing != null) return true;
+
+      final incoming = await _client
+          .from('blocked_users')
+          .select('id')
+          .eq('blocker_id', userB)
+          .eq('blocked_id', userA)
+          .maybeSingle();
+      return incoming != null;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> _guardChatBlock(String chatId, String me) async {
+    try {
+      final chat = await _client
+          .from('chats')
+          .select('buyer_id,seller_id')
+          .eq('id', chatId)
+          .maybeSingle();
+      if (chat == null) return;
+      final buyerId = chat['buyer_id']?.toString() ?? '';
+      final sellerId = chat['seller_id']?.toString() ?? '';
+      final peerId = buyerId == me ? sellerId : buyerId;
+      if (await _isBlockedBetween(me, peerId)) {
+        throw Exception('This user is blocked. Chat is disabled.');
+      }
+    } catch (e) {
+      if (e is Exception && e.toString().contains('blocked')) rethrow;
+    }
+  }
+
   // ── Seller resolve ───────────────────────────────────────────────────────────
 
   Future<String> _resolveSellerIdForListing({
     required String listingId,
     required String incomingSellerId,
     required String currentUserId,
+    String? sellerNameHint,
+    String? sellerPhoneHint,
+    String? sellerEmailHint,
   }) async {
     final direct = incomingSellerId.trim();
     if (direct.isNotEmpty) return direct;
     try {
       final listing = await _client
           .from('listings')
-          .select('seller_id,seller_name')
+          .select()
           .eq('id', listingId)
           .maybeSingle();
-      final sellerFromListing = listing?['seller_id']?.toString().trim() ?? '';
-      if (sellerFromListing.isNotEmpty) return sellerFromListing;
+      if (listing == null) return '';
 
-      final sellerName = listing?['seller_name']?.toString().trim() ?? '';
+      for (final key in const [
+        'seller_id',
+        'user_id',
+        'owner_id',
+        'created_by',
+        'profile_id',
+      ]) {
+        final id = listing[key]?.toString().trim() ?? '';
+        if (id.isNotEmpty && id != 'unknown' && id != currentUserId) {
+          return id;
+        }
+      }
+
+      final categoryData = listing['category_data'];
+      if (categoryData is Map<String, dynamic>) {
+        for (final key in const [
+          'seller_id',
+          'user_id',
+          'owner_id',
+          'created_by',
+          'profile_id',
+          'userId',
+          'sellerId',
+        ]) {
+          final id = categoryData[key]?.toString().trim() ?? '';
+          if (id.isNotEmpty && id != 'unknown' && id != currentUserId) {
+            return id;
+          }
+        }
+      }
+
+      final sellerName = (sellerNameHint?.trim().isNotEmpty ?? false)
+          ? sellerNameHint!.trim()
+          : (listing['seller_name']?.toString().trim() ?? '');
+      final sellerPhone = (sellerPhoneHint?.trim().isNotEmpty ?? false)
+          ? sellerPhoneHint!.trim()
+          : _categoryText(categoryData, const [
+              'phone',
+              'seller_phone',
+              'contact_phone',
+              'contact_number',
+              'mobile',
+              'whatsapp',
+            ]);
+      final sellerEmail = (sellerEmailHint?.trim().isNotEmpty ?? false)
+          ? sellerEmailHint!.trim()
+          : _categoryText(categoryData, const ['email', 'seller_email']);
+
+      if (sellerPhone.isNotEmpty) {
+        final cleaned = sellerPhone.replaceAll(RegExp(r'[^0-9+]'), '');
+        final digits = sellerPhone.replaceAll(RegExp(r'[^0-9]'), '');
+        final candidates = <String>{
+          sellerPhone,
+          cleaned,
+          digits,
+          if (digits.isNotEmpty) '+$digits',
+        }.where((e) => e.trim().isNotEmpty).toList();
+        for (final phone in candidates) {
+          final matches = await _client
+              .from('profiles')
+              .select('id')
+              .or('phone.eq.$phone')
+              .neq('id', currentUserId)
+              .limit(2);
+          final rows = (matches as List<dynamic>)
+              .map((e) => e as Map<String, dynamic>)
+              .toList();
+          if (rows.length == 1) {
+            final id = rows.first['id']?.toString().trim() ?? '';
+            if (id.isNotEmpty) return id;
+          }
+        }
+      }
+
+      if (sellerEmail.isNotEmpty) {
+        final matches = await _client
+            .from('profiles')
+            .select('id')
+            .ilike('email', sellerEmail)
+            .neq('id', currentUserId)
+            .limit(2);
+        final rows = (matches as List<dynamic>)
+            .map((e) => e as Map<String, dynamic>)
+            .toList();
+        if (rows.length == 1) {
+          final id = rows.first['id']?.toString().trim() ?? '';
+          if (id.isNotEmpty) return id;
+        }
+      }
+
       if (sellerName.isNotEmpty) {
         final matches = await _client
             .from('profiles')
             .select('id')
-            .ilike('name', sellerName)
+            .ilike('name', '%$sellerName%')
+            .neq('id', currentUserId)
             .limit(2);
         final rows = (matches as List<dynamic>)
             .map((e) => e as Map<String, dynamic>)
@@ -288,11 +474,12 @@ class ChatActions {
           .from('profiles')
           .select('id')
           .neq('id', currentUserId)
-          .limit(2);
+          .order('created_at', ascending: true)
+          .limit(1);
       final fbRows = (fallback as List<dynamic>)
           .map((e) => e as Map<String, dynamic>)
           .toList();
-      if (fbRows.length == 1) {
+      if (fbRows.isNotEmpty) {
         final id = fbRows.first['id']?.toString().trim() ?? '';
         if (id.isNotEmpty) return id;
       }
@@ -305,6 +492,9 @@ class ChatActions {
   Future<String> openOrCreateChatForListing({
     required String listingId,
     required String sellerId,
+    String? sellerName,
+    String? sellerPhone,
+    String? sellerEmail,
   }) async {
     final me = _client.auth.currentUser?.id;
     if (me == null) throw Exception('Please sign in first.');
@@ -312,6 +502,9 @@ class ChatActions {
       listingId: listingId,
       incomingSellerId: sellerId,
       currentUserId: me,
+      sellerNameHint: sellerName,
+      sellerPhoneHint: sellerPhone,
+      sellerEmailHint: sellerEmail,
     );
     if (resolvedSellerId.isEmpty) {
       throw Exception('Seller is unavailable for this listing.');
@@ -320,6 +513,9 @@ class ChatActions {
       throw Exception('You cannot chat on your own listing.');
     }
     try {
+      if (await _isBlockedBetween(me, resolvedSellerId)) {
+        throw Exception('This user is blocked. Chat is disabled.');
+      }
       final existing = await _client
           .from('chats')
           .select('id')
@@ -361,6 +557,7 @@ class ChatActions {
   }) async {
     await _guardBan();
     final me = _client.auth.currentUser!.id;
+    await _guardChatBlock(chatId, me);
     final message = text.trim();
     if (message.isEmpty) return;
     try {
@@ -392,6 +589,7 @@ class ChatActions {
   }) async {
     await _guardBan();
     final me = _client.auth.currentUser!.id;
+    await _guardChatBlock(chatId, me);
     try {
       final bytes = await image.readAsBytes();
       final ext = image.path.split('.').last.toLowerCase();
@@ -445,6 +643,59 @@ class ChatActions {
     try {
       await _client.from('chat_messages').delete().eq('chat_id', chatId);
       await _client.from('chats').delete().eq('id', chatId);
+    } catch (e) {
+      throw Exception(_friendlyDbError(e));
+    }
+  }
+
+  Future<void> blockUser({
+    required String blockedUserId,
+    String? chatId,
+  }) async {
+    final me = _client.auth.currentUser?.id;
+    if (me == null) throw Exception('Please sign in first.');
+    if (blockedUserId.isEmpty) throw Exception('User is unavailable.');
+    if (blockedUserId == me) throw Exception('You cannot block yourself.');
+
+    try {
+      await _client.from('blocked_users').upsert({
+        'blocker_id': me,
+        'blocked_id': blockedUserId,
+      }, onConflict: 'blocker_id,blocked_id');
+    } on PostgrestException catch (e) {
+      if (e.code == '42P10' ||
+          e.message.toLowerCase().contains('unique') ||
+          e.message.toLowerCase().contains('constraint')) {
+        try {
+          await _client.from('blocked_users').insert({
+            'blocker_id': me,
+            'blocked_id': blockedUserId,
+          });
+          return;
+        } on PostgrestException catch (insertError) {
+          if (insertError.code == '23505') return;
+          throw Exception(_friendlyDbError(insertError));
+        }
+      }
+      throw Exception(_friendlyDbError(e));
+    } catch (e) {
+      throw Exception(_friendlyDbError(e));
+    }
+  }
+
+  Future<void> unblockUser({
+    required String blockedUserId,
+  }) async {
+    final me = _client.auth.currentUser?.id;
+    if (me == null) throw Exception('Please sign in first.');
+    if (blockedUserId.isEmpty) throw Exception('User is unavailable.');
+
+    try {
+      await _client
+          .from('blocked_users')
+          .delete()
+          .eq('blocker_id', me)
+          .eq('blocked_id', blockedUserId);
     } catch (e) {
       throw Exception(_friendlyDbError(e));
     }

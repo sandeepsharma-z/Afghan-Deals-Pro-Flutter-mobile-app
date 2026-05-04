@@ -46,30 +46,11 @@ class AccountSettingsScreen extends StatelessWidget {
               title: 'Change Password',
               onTap: () => _showChangePassword(context),
             ),
-            _divider(),
-            _settingsTile(
-              icon: Icons.email_outlined,
-              title: 'Change Email',
-              onTap: () {},
-            ),
-            _divider(),
-            _settingsTile(
-              icon: Icons.phone_outlined,
-              title: 'Change Phone Number',
-              onTap: () {},
-            ),
 
             const SizedBox(height: 12),
 
             // Privacy section
             _sectionHeader('Privacy'),
-            _settingsTile(
-              icon: Icons.visibility_outlined,
-              title: 'Profile Visibility',
-              trailing: 'Public',
-              onTap: () {},
-            ),
-            _divider(),
             _settingsTile(
               icon: Icons.block_outlined,
               title: 'Blocked Users',

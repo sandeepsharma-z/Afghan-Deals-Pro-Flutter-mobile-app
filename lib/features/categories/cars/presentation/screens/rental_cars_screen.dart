@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/widgets/app_bottom_nav.dart';
-import 'car_results_screen.dart';
 
 class RentalCarsScreen extends StatelessWidget {
   const RentalCarsScreen({super.key});
@@ -68,9 +67,16 @@ class RentalCarsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOption(BuildContext context, String label, String rentalDuration) {
+  Widget _buildOption(
+      BuildContext context, String label, String rentalDuration) {
     return InkWell(
-      onTap: () => context.push('/car-results?subcategory=rental-cars&duration=$rentalDuration'),
+      onTap: () => context.push(Uri(
+        path: '/car-results',
+        queryParameters: {
+          'subcategory': 'rental-cars',
+          'duration': rentalDuration,
+        },
+      ).toString()),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Row(

@@ -19,14 +19,14 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
   int _selectedSection = 0;
 
   static const _kSections = [
-    ('Job Category',  Icons.category_outlined),
-    ('Job Type',      Icons.work_outline),
-    ('Experience',    Icons.trending_up),
-    ('Salary Range',  Icons.attach_money),
-    ('Industry',      Icons.business),
-    ('Education',     Icons.school),
-    ('Seller Type',   Icons.person_outline),
-    ('Region',        Icons.location_on_outlined),
+    ('Job Category', Icons.category_outlined),
+    ('Job Type', Icons.work_outline),
+    ('Experience', Icons.trending_up),
+    ('Salary Range', Icons.attach_money),
+    ('Industry', Icons.business),
+    ('Education', Icons.school),
+    ('Seller Type', Icons.person_outline),
+    ('Region', Icons.location_on_outlined),
   ];
 
   late JobsFilter _draft;
@@ -39,15 +39,24 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
 
   bool _sectionHasValue(int i) {
     switch (i) {
-      case 0: return _draft.jobCategories.isNotEmpty;
-      case 1: return _draft.jobTypes.isNotEmpty;
-      case 2: return _draft.experiences.isNotEmpty;
-      case 3: return _draft.minSalary != null || _draft.maxSalary != null;
-      case 4: return _draft.industries.isNotEmpty;
-      case 5: return _draft.educations.isNotEmpty;
-      case 6: return _draft.sellerTypes.isNotEmpty;
-      case 7: return _draft.region.isNotEmpty;
-      default: return false;
+      case 0:
+        return _draft.jobCategories.isNotEmpty;
+      case 1:
+        return _draft.jobTypes.isNotEmpty;
+      case 2:
+        return _draft.experiences.isNotEmpty;
+      case 3:
+        return _draft.minSalary != null || _draft.maxSalary != null;
+      case 4:
+        return _draft.industries.isNotEmpty;
+      case 5:
+        return _draft.educations.isNotEmpty;
+      case 6:
+        return _draft.sellerTypes.isNotEmpty;
+      case 7:
+        return _draft.region.isNotEmpty;
+      default:
+        return false;
     }
   }
 
@@ -60,12 +69,15 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black87),
+          icon: const Icon(Icons.arrow_back_ios_new,
+              size: 16, color: Colors.black87),
           onPressed: () => context.pop(),
         ),
         title: Text('Filter',
             style: GoogleFonts.poppins(
-                fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87)),
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87)),
         actions: [
           TextButton(
             onPressed: () {
@@ -87,7 +99,8 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
       body: Builder(builder: (context) {
         final panelH = (MediaQuery.of(context).size.height -
                 MediaQuery.of(context).padding.top -
-                MediaQuery.of(context).padding.bottom - 210)
+                MediaQuery.of(context).padding.bottom -
+                210)
             .clamp(200.0, double.infinity);
         return Padding(
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
@@ -102,13 +115,15 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFF3F4F6),
                     borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: const Color(0xFFD0D0D0), width: 1),
+                    border:
+                        Border.all(color: const Color(0xFFD0D0D0), width: 1),
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: SingleChildScrollView(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: List.generate(_kSections.length, _buildLeftItem),
+                      children:
+                          List.generate(_kSections.length, _buildLeftItem),
                     ),
                   ),
                 ),
@@ -147,13 +162,13 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
         decoration: const BoxDecoration(
           color: Colors.transparent,
-          border: Border(bottom: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
+          border:
+              Border(bottom: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
         ),
         child: Row(
           children: [
             Icon(_kSections[i].$2,
-                size: 14,
-                color: isActive ? _kBlue : const Color(0xFF7C7D88)),
+                size: 14, color: isActive ? _kBlue : const Color(0xFF7C7D88)),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -171,7 +186,8 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
             ),
             if (hasValue) ...[
               const SizedBox(width: 4),
-              const Icon(Icons.check_circle, color: Color(0xFF00BA00), size: 21),
+              const Icon(Icons.check_circle,
+                  color: Color(0xFF00BA00), size: 21),
             ],
           ],
         ),
@@ -216,42 +232,43 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
     switch (_selectedSection) {
       case 0:
         return _checklistSection(
-          ref.watch(jobsSubcategoriesProvider).when(
-            loading: () => const AsyncValue.loading(),
-            error: (e, s) => AsyncValue.error(e, s),
-            data: (subs) => AsyncValue.data(subs.map((s) => s.name).toList()),
-          ),
+          ref.watch(jobsCategoriesBySubcategoryProvider(widget.subcategory)),
           selected: _draft.jobCategories,
           onToggle: (v) => setState(() => _draft =
               _draft.copyWith(jobCategories: _toggle(_draft.jobCategories, v))),
         );
       case 1:
-        return _checklistSection(ref.watch(jobsTypesProvider),
+        return _checklistSection(
+            ref.watch(jobsTypesBySubcategoryProvider(widget.subcategory)),
             selected: _draft.jobTypes,
-            onToggle: (v) => setState(() =>
-                _draft = _draft.copyWith(jobTypes: _toggle(_draft.jobTypes, v))));
+            onToggle: (v) => setState(() => _draft =
+                _draft.copyWith(jobTypes: _toggle(_draft.jobTypes, v))));
       case 2:
-        return _checklistSection(ref.watch(jobsExperiencesProvider),
+        return _checklistSection(
+            ref.watch(jobsExperiencesBySubcategoryProvider(widget.subcategory)),
             selected: _draft.experiences,
-            onToggle: (v) => setState(() =>
-                _draft = _draft.copyWith(experiences: _toggle(_draft.experiences, v))));
+            onToggle: (v) => setState(() => _draft =
+                _draft.copyWith(experiences: _toggle(_draft.experiences, v))));
       case 3:
         return _salarySection();
       case 4:
-        return _checklistSection(ref.watch(jobsIndustriesProvider),
+        return _checklistSection(
+            ref.watch(jobsIndustriesBySubcategoryProvider(widget.subcategory)),
             selected: _draft.industries,
-            onToggle: (v) => setState(() =>
-                _draft = _draft.copyWith(industries: _toggle(_draft.industries, v))));
+            onToggle: (v) => setState(() => _draft =
+                _draft.copyWith(industries: _toggle(_draft.industries, v))));
       case 5:
-        return _checklistSection(ref.watch(jobsEducationsProvider),
+        return _checklistSection(
+            ref.watch(jobsEducationsBySubcategoryProvider(widget.subcategory)),
             selected: _draft.educations,
-            onToggle: (v) => setState(() =>
-                _draft = _draft.copyWith(educations: _toggle(_draft.educations, v))));
+            onToggle: (v) => setState(() => _draft =
+                _draft.copyWith(educations: _toggle(_draft.educations, v))));
       case 6:
-        return _checklistSection(ref.watch(jobsSellerTypesProvider),
+        return _checklistSection(
+            ref.watch(jobsSellerTypesBySubcategoryProvider(widget.subcategory)),
             selected: _draft.sellerTypes,
-            onToggle: (v) => setState(() =>
-                _draft = _draft.copyWith(sellerTypes: _toggle(_draft.sellerTypes, v))));
+            onToggle: (v) => setState(() => _draft =
+                _draft.copyWith(sellerTypes: _toggle(_draft.sellerTypes, v))));
       case 7:
         return _regionSection();
       default:
@@ -279,13 +296,13 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
           ? Padding(
               padding: const EdgeInsets.all(14),
               child: Text('No options',
-                  style: GoogleFonts.poppins(
-                      fontSize: 12, color: Colors.black45)),
+                  style:
+                      GoogleFonts.poppins(fontSize: 12, color: Colors.black45)),
             )
           : Column(
               children: items.map((item) {
-                final isChecked = selected
-                    .any((s) => s.toLowerCase() == item.toLowerCase());
+                final isChecked =
+                    selected.any((s) => s.toLowerCase() == item.toLowerCase());
                 return _CheckRow(
                   label: item,
                   selected: isChecked,
@@ -313,7 +330,8 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
               hintText: 'Max salary AFN',
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFFD9D9D9), width: 1),
+                borderSide:
+                    const BorderSide(color: Color(0xFFD9D9D9), width: 1),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -338,7 +356,8 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
               hintText: 'Min salary AFN',
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFFD9D9D9), width: 1),
+                borderSide:
+                    const BorderSide(color: Color(0xFFD9D9D9), width: 1),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -376,8 +395,7 @@ class _JobsFilterScreenState extends ConsumerState<JobsFilterScreen> {
               const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         ),
         style: GoogleFonts.poppins(fontSize: 13),
-        onChanged: (v) =>
-            setState(() => _draft = _draft.copyWith(region: v)),
+        onChanged: (v) => setState(() => _draft = _draft.copyWith(region: v)),
       ),
     );
   }
@@ -396,7 +414,8 @@ class _CheckRow extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
-  const _CheckRow({required this.label, required this.selected, required this.onTap});
+  const _CheckRow(
+      {required this.label, required this.selected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -406,7 +425,8 @@ class _CheckRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: const BoxDecoration(
           color: Colors.white,
-          border: Border(bottom: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
+          border:
+              Border(bottom: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
         ),
         child: Row(
           children: [

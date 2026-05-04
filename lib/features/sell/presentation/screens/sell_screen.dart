@@ -10,6 +10,18 @@ import '../../../home/data/models/home_category_model.dart';
 class SellScreen extends ConsumerWidget {
   const SellScreen({super.key});
 
+  static const _supportedCategorySlugs = {
+    'cars',
+    'properties',
+    'mobiles',
+    'spare-parts',
+    'spare_parts',
+    'electronics',
+    'furniture',
+    'classifieds',
+    'jobs',
+  };
+
   static const _fallbackCategories = [
     _SellCategory(
       'Cars',
@@ -58,6 +70,7 @@ class SellScreen extends ConsumerWidget {
       Icons.grid_view_outlined,
       'classifieds',
       Color(0xFFEDE7F6),
+      assetPath: 'assets/images/categories/classifieds.png',
     ),
     _SellCategory(
       'Jobs',
@@ -112,9 +125,13 @@ class SellScreen extends ConsumerWidget {
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (_, __) => _buildGrid(context, _fallbackCategories),
               data: (items) {
-                final categories = items.isEmpty
+                final supportedItems = items
+                    .where((item) =>
+                        _supportedCategorySlugs.contains(item.slug.trim()))
+                    .toList();
+                final categories = supportedItems.isEmpty
                     ? _fallbackCategories
-                    : items.map(_fromHomeCategory).toList();
+                    : supportedItems.map(_fromHomeCategory).toList();
                 return _buildGrid(context, categories);
               },
             ),
@@ -139,13 +156,39 @@ class SellScreen extends ConsumerWidget {
   }
 
   _SellCategory _fromHomeCategory(HomeCategoryModel item) {
+    final slug = item.slug == 'spare_parts' ? 'spare-parts' : item.slug;
     return _SellCategory(
       item.name,
-      _iconForCategory(item.slug),
-      item.slug,
-      _bgForCategory(item.slug),
+      _iconForCategory(slug),
+      slug,
+      _bgForCategory(slug),
       imageUrl: item.imageUrl,
+      assetPath: _assetForCategory(slug),
     );
+  }
+
+  String? _assetForCategory(String slug) {
+    switch (slug) {
+      case 'cars':
+        return 'assets/images/categories/car.png';
+      case 'properties':
+        return 'assets/images/categories/home.png';
+      case 'mobiles':
+        return 'assets/images/categories/mobile.png';
+      case 'spare-parts':
+      case 'spare_parts':
+        return 'assets/images/categories/spare_parts.png';
+      case 'electronics':
+        return 'assets/images/categories/appliance.png';
+      case 'furniture':
+        return 'assets/images/categories/furniture.png';
+      case 'classifieds':
+        return 'assets/images/categories/classifieds.png';
+      case 'jobs':
+        return 'assets/images/categories/jobs.png';
+      default:
+        return null;
+    }
   }
 
   IconData _iconForCategory(String slug) {
@@ -237,7 +280,8 @@ class SellScreen extends ConsumerWidget {
         width: 56,
         height: 56,
         fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => Icon(cat.icon, size: 36, color: AppColors.primary),
+        errorBuilder: (_, __, ___) =>
+            Icon(cat.icon, size: 36, color: AppColors.primary),
       );
     }
 

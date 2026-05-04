@@ -3,6 +3,38 @@ import 'package:google_fonts/google_fonts.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
+class AppliedPropertyFilters {
+  final Set<String> subcategories;
+  final Set<String> propertyTypes;
+  final Set<String> bedrooms;
+  final Set<String> bathrooms;
+  final Set<String> furnishings;
+  final Set<String> locations;
+  final double minPrice;
+  final double maxPrice;
+
+  const AppliedPropertyFilters({
+    this.subcategories = const {},
+    this.propertyTypes = const {},
+    this.bedrooms = const {},
+    this.bathrooms = const {},
+    this.furnishings = const {},
+    this.locations = const {},
+    this.minPrice = 0,
+    this.maxPrice = 150000,
+  });
+
+  bool get isEmpty =>
+      subcategories.isEmpty &&
+      propertyTypes.isEmpty &&
+      bedrooms.isEmpty &&
+      bathrooms.isEmpty &&
+      furnishings.isEmpty &&
+      locations.isEmpty &&
+      minPrice == 0 &&
+      maxPrice == 150000;
+}
+
 // ── Left-panel categories ─────────────────────────────────────────────────────
 
 enum _Cat {
@@ -24,37 +56,63 @@ enum _Cat {
 extension _CatX on _Cat {
   String get label {
     switch (this) {
-      case _Cat.property:         return 'Property';
-      case _Cat.location:         return 'Location';
-      case _Cat.propertyType:     return 'Property Type';
-      case _Cat.residentialCate:  return 'Residential Cate...';
-      case _Cat.priceRange:       return 'Price Range';
-      case _Cat.bedrooms:         return 'Bedrooms';
-      case _Cat.bathrooms:        return 'Bathrooms';
-      case _Cat.areaSize:         return 'Area / Size';
-      case _Cat.furnishing:       return 'Furnishing Type';
-      case _Cat.excludeLocations: return 'Exclude Locations';
-      case _Cat.amenities:        return 'Amenities';
-      case _Cat.listedBy:         return 'Listed By';
-      case _Cat.rentIsPaid:       return 'Rent Is Paid';
+      case _Cat.property:
+        return 'Property';
+      case _Cat.location:
+        return 'Location';
+      case _Cat.propertyType:
+        return 'Property Type';
+      case _Cat.residentialCate:
+        return 'Residential Cate...';
+      case _Cat.priceRange:
+        return 'Price Range';
+      case _Cat.bedrooms:
+        return 'Bedrooms';
+      case _Cat.bathrooms:
+        return 'Bathrooms';
+      case _Cat.areaSize:
+        return 'Area / Size';
+      case _Cat.furnishing:
+        return 'Furnishing Type';
+      case _Cat.excludeLocations:
+        return 'Exclude Locations';
+      case _Cat.amenities:
+        return 'Amenities';
+      case _Cat.listedBy:
+        return 'Listed By';
+      case _Cat.rentIsPaid:
+        return 'Rent Is Paid';
     }
   }
 
   IconData get icon {
     switch (this) {
-      case _Cat.property:         return Icons.home_work_outlined;
-      case _Cat.location:         return Icons.location_on_outlined;
-      case _Cat.propertyType:     return Icons.category_outlined;
-      case _Cat.residentialCate:  return Icons.apartment_outlined;
-      case _Cat.priceRange:       return Icons.attach_money_outlined;
-      case _Cat.bedrooms:         return Icons.bed_outlined;
-      case _Cat.bathrooms:        return Icons.bathtub_outlined;
-      case _Cat.areaSize:         return Icons.square_foot;
-      case _Cat.furnishing:       return Icons.chair_outlined;
-      case _Cat.excludeLocations: return Icons.location_off_outlined;
-      case _Cat.amenities:        return Icons.pool_outlined;
-      case _Cat.listedBy:         return Icons.person_outline;
-      case _Cat.rentIsPaid:       return Icons.calendar_month_outlined;
+      case _Cat.property:
+        return Icons.home_work_outlined;
+      case _Cat.location:
+        return Icons.location_on_outlined;
+      case _Cat.propertyType:
+        return Icons.category_outlined;
+      case _Cat.residentialCate:
+        return Icons.apartment_outlined;
+      case _Cat.priceRange:
+        return Icons.attach_money_outlined;
+      case _Cat.bedrooms:
+        return Icons.bed_outlined;
+      case _Cat.bathrooms:
+        return Icons.bathtub_outlined;
+      case _Cat.areaSize:
+        return Icons.square_foot;
+      case _Cat.furnishing:
+        return Icons.chair_outlined;
+      case _Cat.excludeLocations:
+        return Icons.location_off_outlined;
+      case _Cat.amenities:
+        return Icons.pool_outlined;
+      case _Cat.listedBy:
+        return Icons.person_outline;
+      case _Cat.rentIsPaid:
+        return Icons.calendar_month_outlined;
     }
   }
 }
@@ -91,7 +149,7 @@ const _kResidentialCats = [
   'Villa',
 ];
 
-const _bedroomOptions  = ['Studio', '1', '2', '3', '4', '5', '6+'];
+const _bedroomOptions = ['Studio', '1', '2', '3', '4', '5', '6+'];
 const _bathroomOptions = ['1', '2', '3', '4', '5', '6', '7+'];
 
 const _furnishingOptions = [
@@ -117,8 +175,8 @@ const _amenitiesList = [
   'Covered Parking',
 ];
 
-const _listedByOptions  = ['Agency', 'Landlord', 'Developer'];
-const _rentPaidOptions  = ['Yearly', 'Bi-Yearly', 'Quarterly', 'Monthly'];
+const _listedByOptions = ['Agency', 'Landlord', 'Developer'];
+const _rentPaidOptions = ['Yearly', 'Bi-Yearly', 'Quarterly', 'Monthly'];
 
 // ── Deal type tabs ────────────────────────────────────────────────────────────
 
@@ -127,9 +185,12 @@ enum _Deal { rent, buy, offPlan }
 extension _DealX on _Deal {
   String get label {
     switch (this) {
-      case _Deal.rent:    return 'Rent';
-      case _Deal.buy:     return 'Buy';
-      case _Deal.offPlan: return 'Off-Plan';
+      case _Deal.rent:
+        return 'Rent';
+      case _Deal.buy:
+        return 'Buy';
+      case _Deal.offPlan:
+        return 'Off-Plan';
     }
   }
 }
@@ -138,43 +199,61 @@ extension _DealX on _Deal {
 
 class PropertyFilterScreen extends StatefulWidget {
   final List<String> cities;
-  const PropertyFilterScreen({super.key, this.cities = const []});
+  final List<String> subcategories;
+  final List<String> propertyTypes;
+  final List<String> bedrooms;
+  final List<String> bathrooms;
+  final List<String> furnishings;
+  final double maxPrice;
+  final AppliedPropertyFilters? initialFilters;
+
+  const PropertyFilterScreen({
+    super.key,
+    this.cities = const [],
+    this.subcategories = const [],
+    this.propertyTypes = const [],
+    this.bedrooms = const [],
+    this.bathrooms = const [],
+    this.furnishings = const [],
+    this.maxPrice = 150000,
+    this.initialFilters,
+  });
 
   @override
   State<PropertyFilterScreen> createState() => _PropertyFilterScreenState();
 }
 
 class _PropertyFilterScreenState extends State<PropertyFilterScreen> {
-  _Cat  _active = _Cat.property;
-  _Deal _deal   = _Deal.rent;
+  _Cat _active = _Cat.property;
+  _Deal _deal = _Deal.rent;
 
-  final Set<String> _subcats          = {};
-  final Set<String> _propertyTypes    = {};
-  final Set<String> _residentialCats  = {};
-  final Set<String> _bedrooms         = {};
-  final Set<String> _bathrooms        = {};
-  final Set<String> _furnishings      = {};
-  final Set<String> _regions          = {};
-  final Set<String> _excludeRegions   = {};
-  final Set<String> _amenities        = {};
-  final Set<String> _listedBy         = {};
-  final Set<String> _rentPaid         = {};
+  final Set<String> _subcats = {};
+  final Set<String> _propertyTypes = {};
+  final Set<String> _residentialCats = {};
+  final Set<String> _bedrooms = {};
+  final Set<String> _bathrooms = {};
+  final Set<String> _furnishings = {};
+  final Set<String> _regions = {};
+  final Set<String> _excludeRegions = {};
+  final Set<String> _amenities = {};
+  final Set<String> _listedBy = {};
+  final Set<String> _rentPaid = {};
 
   double _minPrice = 0;
   double _maxPrice = 150000;
-  double _minArea  = 0;
-  double _maxArea  = 10000;
+  double _minArea = 0;
+  double _maxArea = 10000;
 
-  String _subcatSearch   = '';
+  String _subcatSearch = '';
   String _propTypeSearch = '';
-  String _amenitySearch  = '';
+  String _amenitySearch = '';
   String _locationSearch = '';
-  String _excludeSearch  = '';
+  String _excludeSearch = '';
 
   final _minPriceCtrl = TextEditingController(text: '');
   final _maxPriceCtrl = TextEditingController(text: '150000');
-  final _minAreaCtrl  = TextEditingController(text: '');
-  final _maxAreaCtrl  = TextEditingController(text: '');
+  final _minAreaCtrl = TextEditingController(text: '');
+  final _maxAreaCtrl = TextEditingController(text: '');
 
   @override
   void dispose() {
@@ -185,36 +264,91 @@ class _PropertyFilterScreenState extends State<PropertyFilterScreen> {
     super.dispose();
   }
 
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initialFilters;
+    if (initial == null) return;
+    _subcats.addAll(initial.subcategories);
+    _propertyTypes.addAll(initial.propertyTypes);
+    _bedrooms.addAll(initial.bedrooms);
+    _bathrooms.addAll(initial.bathrooms);
+    _furnishings.addAll(initial.furnishings);
+    _regions.addAll(initial.locations);
+    _minPrice = initial.minPrice;
+    _maxPrice = initial.maxPrice;
+    _minPriceCtrl.text = _minPrice == 0 ? '' : _minPrice.toInt().toString();
+    _maxPriceCtrl.text = _maxPrice.toInt().toString();
+  }
+
   void _clearAll() => setState(() {
-    _subcats.clear(); _propertyTypes.clear(); _residentialCats.clear();
-    _bedrooms.clear(); _bathrooms.clear(); _furnishings.clear();
-    _regions.clear(); _excludeRegions.clear(); _amenities.clear();
-    _listedBy.clear(); _rentPaid.clear();
-    _minPrice = 0; _maxPrice = 150000;
-    _minArea = 0; _maxArea = 10000;
-    _minPriceCtrl.clear(); _maxPriceCtrl.text = '150000';
-    _minAreaCtrl.clear(); _maxAreaCtrl.clear();
-    _subcatSearch = ''; _propTypeSearch = '';
-    _amenitySearch = ''; _locationSearch = ''; _excludeSearch = '';
-    _deal = _Deal.rent;
-    _active = _Cat.property;
-  });
+        _subcats.clear();
+        _propertyTypes.clear();
+        _residentialCats.clear();
+        _bedrooms.clear();
+        _bathrooms.clear();
+        _furnishings.clear();
+        _regions.clear();
+        _excludeRegions.clear();
+        _amenities.clear();
+        _listedBy.clear();
+        _rentPaid.clear();
+        _minPrice = 0;
+        _maxPrice = widget.maxPrice;
+        _minArea = 0;
+        _maxArea = 10000;
+        _minPriceCtrl.clear();
+        _maxPriceCtrl.text = widget.maxPrice.toInt().toString();
+        _minAreaCtrl.clear();
+        _maxAreaCtrl.clear();
+        _subcatSearch = '';
+        _propTypeSearch = '';
+        _amenitySearch = '';
+        _locationSearch = '';
+        _excludeSearch = '';
+        _deal = _Deal.rent;
+        _active = _Cat.property;
+      });
+
+  List<String> _dynamicOrFallback(
+      List<String> dynamicValues, List<String> fallback) {
+    final clean = dynamicValues
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    return clean.isEmpty ? fallback : clean;
+  }
 
   bool _hasVal(_Cat cat) {
     switch (cat) {
-      case _Cat.property:         return _subcats.isNotEmpty;
-      case _Cat.location:         return _regions.isNotEmpty;
-      case _Cat.propertyType:     return _propertyTypes.isNotEmpty;
-      case _Cat.residentialCate:  return _residentialCats.isNotEmpty;
-      case _Cat.priceRange:       return _minPrice != 0 || _maxPrice != 150000;
-      case _Cat.bedrooms:         return _bedrooms.isNotEmpty;
-      case _Cat.bathrooms:        return _bathrooms.isNotEmpty;
-      case _Cat.areaSize:         return _minArea != 0 || _maxArea != 10000;
-      case _Cat.furnishing:       return _furnishings.isNotEmpty;
-      case _Cat.excludeLocations: return _excludeRegions.isNotEmpty;
-      case _Cat.amenities:        return _amenities.isNotEmpty;
-      case _Cat.listedBy:         return _listedBy.isNotEmpty;
-      case _Cat.rentIsPaid:       return _rentPaid.isNotEmpty;
+      case _Cat.property:
+        return _subcats.isNotEmpty;
+      case _Cat.location:
+        return _regions.isNotEmpty;
+      case _Cat.propertyType:
+        return _propertyTypes.isNotEmpty;
+      case _Cat.residentialCate:
+        return _residentialCats.isNotEmpty;
+      case _Cat.priceRange:
+        return _minPrice != 0 || _maxPrice != 150000;
+      case _Cat.bedrooms:
+        return _bedrooms.isNotEmpty;
+      case _Cat.bathrooms:
+        return _bathrooms.isNotEmpty;
+      case _Cat.areaSize:
+        return _minArea != 0 || _maxArea != 10000;
+      case _Cat.furnishing:
+        return _furnishings.isNotEmpty;
+      case _Cat.excludeLocations:
+        return _excludeRegions.isNotEmpty;
+      case _Cat.amenities:
+        return _amenities.isNotEmpty;
+      case _Cat.listedBy:
+        return _listedBy.isNotEmpty;
+      case _Cat.rentIsPaid:
+        return _rentPaid.isNotEmpty;
     }
   }
 
@@ -229,12 +363,15 @@ class _PropertyFilterScreenState extends State<PropertyFilterScreen> {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black87),
+          icon: const Icon(Icons.arrow_back_ios_new,
+              size: 16, color: Colors.black87),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text('Filter',
             style: GoogleFonts.poppins(
-                fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87)),
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87)),
         actions: [
           TextButton(
             onPressed: _clearAll,
@@ -269,13 +406,15 @@ class _PropertyFilterScreenState extends State<PropertyFilterScreen> {
                       constraints: BoxConstraints(
                         maxHeight: MediaQuery.of(context).size.height -
                             MediaQuery.of(context).padding.top -
-                            MediaQuery.of(context).padding.bottom - 240,
+                            MediaQuery.of(context).padding.bottom -
+                            240,
                       ),
                       child: Container(
                         decoration: BoxDecoration(
                           color: const Color(0xFFF3F4F6),
                           borderRadius: BorderRadius.circular(22),
-                          border: Border.all(color: const Color(0xFFD0D0D0), width: 1),
+                          border: Border.all(
+                              color: const Color(0xFFD0D0D0), width: 1),
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: SingleChildScrollView(
@@ -337,7 +476,8 @@ class _PropertyFilterScreenState extends State<PropertyFilterScreen> {
                     style: GoogleFonts.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: active ? const Color(0xFF2258A8) : Colors.black87)),
+                        color:
+                            active ? const Color(0xFF2258A8) : Colors.black87)),
               ),
             ),
           ),
@@ -358,12 +498,13 @@ class _PropertyFilterScreenState extends State<PropertyFilterScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
         decoration: const BoxDecoration(
           color: Colors.transparent,
-          border: Border(bottom: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
+          border:
+              Border(bottom: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
         ),
         child: Row(
           children: [
-            Icon(cat.icon, size: 14,
-                color: active ? _kBlue : const Color(0xFF7C7D88)),
+            Icon(cat.icon,
+                size: 14, color: active ? _kBlue : const Color(0xFF7C7D88)),
             const SizedBox(width: 8),
             Expanded(
               child: Text(cat.label,
@@ -376,7 +517,8 @@ class _PropertyFilterScreenState extends State<PropertyFilterScreen> {
             ),
             if (hasVal) ...[
               const SizedBox(width: 4),
-              const Icon(Icons.check_circle, color: Color(0xFF00BA00), size: 21),
+              const Icon(Icons.check_circle,
+                  color: Color(0xFF00BA00), size: 21),
             ],
           ],
         ),
@@ -390,8 +532,9 @@ class _PropertyFilterScreenState extends State<PropertyFilterScreen> {
     switch (_active) {
       case _Cat.property:
         return _buildCheckList(
-          items: _subcategories
-              .where((s) => s.toLowerCase().contains(_subcatSearch.toLowerCase()))
+          items: _dynamicOrFallback(widget.subcategories, _subcategories)
+              .where(
+                  (s) => s.toLowerCase().contains(_subcatSearch.toLowerCase()))
               .toList(),
           selected: _subcats,
           showSearch: true,
@@ -402,7 +545,8 @@ class _PropertyFilterScreenState extends State<PropertyFilterScreen> {
       case _Cat.location:
         return _buildCheckList(
           items: cities
-              .where((c) => c.toLowerCase().contains(_locationSearch.toLowerCase()))
+              .where((c) =>
+                  c.toLowerCase().contains(_locationSearch.toLowerCase()))
               .toList(),
           selected: _regions,
           showSearch: true,
@@ -412,8 +556,9 @@ class _PropertyFilterScreenState extends State<PropertyFilterScreen> {
 
       case _Cat.propertyType:
         return _buildCheckList(
-          items: _kPropertyTypes
-              .where((t) => t.toLowerCase().contains(_propTypeSearch.toLowerCase()))
+          items: _dynamicOrFallback(widget.propertyTypes, _kPropertyTypes)
+              .where((t) =>
+                  t.toLowerCase().contains(_propTypeSearch.toLowerCase()))
               .toList(),
           selected: _propertyTypes,
           showSearch: true,
@@ -432,13 +577,13 @@ class _PropertyFilterScreenState extends State<PropertyFilterScreen> {
 
       case _Cat.bedrooms:
         return _buildCheckList(
-          items: _bedroomOptions,
+          items: _dynamicOrFallback(widget.bedrooms, _bedroomOptions),
           selected: _bedrooms,
         );
 
       case _Cat.bathrooms:
         return _buildCheckList(
-          items: _bathroomOptions,
+          items: _dynamicOrFallback(widget.bathrooms, _bathroomOptions),
           selected: _bathrooms,
         );
 
@@ -447,14 +592,15 @@ class _PropertyFilterScreenState extends State<PropertyFilterScreen> {
 
       case _Cat.furnishing:
         return _buildCheckList(
-          items: _furnishingOptions,
+          items: _dynamicOrFallback(widget.furnishings, _furnishingOptions),
           selected: _furnishings,
         );
 
       case _Cat.excludeLocations:
         return _buildCheckList(
           items: cities
-              .where((c) => c.toLowerCase().contains(_excludeSearch.toLowerCase()))
+              .where(
+                  (c) => c.toLowerCase().contains(_excludeSearch.toLowerCase()))
               .toList(),
           selected: _excludeRegions,
           showSearch: true,
@@ -465,7 +611,8 @@ class _PropertyFilterScreenState extends State<PropertyFilterScreen> {
       case _Cat.amenities:
         return _buildCheckList(
           items: _amenitiesList
-              .where((a) => a.toLowerCase().contains(_amenitySearch.toLowerCase()))
+              .where(
+                  (a) => a.toLowerCase().contains(_amenitySearch.toLowerCase()))
               .toList(),
           selected: _amenities,
           showSearch: true,
@@ -522,7 +669,14 @@ class _PropertyFilterScreenState extends State<PropertyFilterScreen> {
   // ── Price range ────────────────────────────────────────────────────────────
 
   Widget _buildPriceRange() {
-    const labels = ['150K+', '113K', '75K', '38K', '0'];
+    final max = widget.maxPrice <= 0 ? 150000.0 : widget.maxPrice;
+    final labels = [
+      '${(max / 1000).round()}K+',
+      '${(max * 0.75 / 1000).round()}K',
+      '${(max * 0.5 / 1000).round()}K',
+      '${(max * 0.25 / 1000).round()}K',
+      '0',
+    ];
     const sliderPad = 24.0;
 
     return SingleChildScrollView(
@@ -551,7 +705,7 @@ class _PropertyFilterScreenState extends State<PropertyFilterScreen> {
                         child: Slider(
                           value: _maxPrice,
                           min: 0,
-                          max: 150000,
+                          max: max,
                           onChanged: (v) => setState(() {
                             _maxPrice = v;
                             _maxPriceCtrl.text = v.toInt().toString();
@@ -603,7 +757,9 @@ class _PropertyFilterScreenState extends State<PropertyFilterScreen> {
                   controller: _minPriceCtrl,
                   onChanged: (v) {
                     final n = double.tryParse(v);
-                    if (n != null) setState(() => _minPrice = n.clamp(0, 150000));
+                    if (n != null) {
+                      setState(() => _minPrice = n.clamp(0, 150000));
+                    }
                   },
                 ),
                 Positioned(
@@ -767,7 +923,6 @@ class _PropertyFilterScreenState extends State<PropertyFilterScreen> {
     );
   }
 
-
   // ── Search bar ─────────────────────────────────────────────────────────────
 
   Widget _searchBar(String val, ValueChanged<String> onChanged) {
@@ -789,7 +944,8 @@ class _PropertyFilterScreenState extends State<PropertyFilterScreen> {
               style: GoogleFonts.poppins(fontSize: 11, color: Colors.black),
               decoration: InputDecoration(
                 hintText: 'Search',
-                hintStyle: GoogleFonts.poppins(fontSize: 11, color: Colors.black),
+                hintStyle:
+                    GoogleFonts.poppins(fontSize: 11, color: Colors.black),
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
@@ -816,7 +972,18 @@ class _PropertyFilterScreenState extends State<PropertyFilterScreen> {
             width: double.infinity,
             height: 50,
             child: ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(context).pop(
+                AppliedPropertyFilters(
+                  subcategories: Set<String>.from(_subcats),
+                  propertyTypes: Set<String>.from(_propertyTypes),
+                  bedrooms: Set<String>.from(_bedrooms),
+                  bathrooms: Set<String>.from(_bathrooms),
+                  furnishings: Set<String>.from(_furnishings),
+                  locations: Set<String>.from(_regions),
+                  minPrice: _minPrice,
+                  maxPrice: _maxPrice,
+                ),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _kBlue,
                 shape: RoundedRectangleBorder(
@@ -857,8 +1024,8 @@ class _CheckRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
         decoration: const BoxDecoration(
           color: Colors.white,
-          border: Border(
-              bottom: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
+          border:
+              Border(bottom: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
         ),
         child: Row(
           children: [

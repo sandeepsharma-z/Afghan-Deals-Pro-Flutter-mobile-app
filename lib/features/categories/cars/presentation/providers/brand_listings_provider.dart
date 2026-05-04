@@ -57,8 +57,8 @@ class BrandMetaFilter {
 }
 
 /// Fetches unique models + year range for a given brand from Supabase.
-final brandMetaProvider =
-    FutureProvider.autoDispose.family<BrandMeta, BrandMetaFilter>((ref, filter) async {
+final brandMetaProvider = FutureProvider.autoDispose
+    .family<BrandMeta, BrandMetaFilter>((ref, filter) async {
   final brandPattern = '%${filter.brand.trim()}%';
   // Derive models + year range directly from listings (make/model/year).
   var baseMetaQuery = Supabase.instance.client
@@ -67,7 +67,8 @@ final brandMetaProvider =
       .eq('category', 'cars')
       .eq('is_active', true);
   baseMetaQuery = _applySubcategoryFilter(baseMetaQuery, filter.subcategory);
-  var response = await baseMetaQuery.filter('category_data->>make', 'ilike', brandPattern);
+  var response =
+      await baseMetaQuery.filter('category_data->>make', 'ilike', brandPattern);
 
   var list = response as List<dynamic>;
   if (list.isEmpty) {
@@ -108,14 +109,14 @@ final brandMetaProvider =
   final currentYear = DateTime.now().year;
   final minYear =
       years.isNotEmpty ? years.reduce((a, b) => a < b ? a : b) : 2000;
-  final maxYear = years.isNotEmpty
-      ? years.reduce((a, b) => a > b ? a : b)
-      : currentYear;
+  final maxYear =
+      years.isNotEmpty ? years.reduce((a, b) => a > b ? a : b) : currentYear;
 
   return BrandMeta(
     modelOptions: (modelDisplayByKey.values.toList()
           ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase())))
-        .map((m) => BrandModelOption(name: m, iconUrl: modelIconByKey[m.toLowerCase()]))
+        .map((m) =>
+            BrandModelOption(name: m, iconUrl: modelIconByKey[m.toLowerCase()]))
         .toList(),
     minYear: minYear,
     maxYear: maxYear,
@@ -151,14 +152,13 @@ class BrandFilter {
 }
 
 /// Fetches listings filtered by brand + optional model + year range.
-final brandListingsProvider =
-    FutureProvider.autoDispose.family<List<CarSaleModel>, BrandFilter>(
-        (ref, filter) async {
+final brandListingsProvider = FutureProvider.autoDispose
+    .family<List<CarSaleModel>, BrandFilter>((ref, filter) async {
   final brandPattern = '%${filter.brand.trim()}%';
   var query = Supabase.instance.client
       .from('listings')
       .select(
-          'id,seller_id,title,description,seller_name,price,currency,images,city,is_featured,created_at,category_data')
+          'id,seller_id,title,description,seller_name,price,currency,images,city,region,is_featured,created_at,category_data')
       .eq('category', 'cars')
       .eq('is_active', true);
   query = _applySubcategoryFilter(query, filter.subcategory);
@@ -183,7 +183,7 @@ final brandListingsProvider =
     var fallbackQuery = Supabase.instance.client
         .from('listings')
         .select(
-            'id,seller_id,title,description,seller_name,price,currency,images,city,is_featured,created_at,category_data')
+            'id,seller_id,title,description,seller_name,price,currency,images,city,region,is_featured,created_at,category_data')
         .eq('category', 'cars')
         .eq('is_active', true);
     fallbackQuery = _applySubcategoryFilter(fallbackQuery, filter.subcategory);

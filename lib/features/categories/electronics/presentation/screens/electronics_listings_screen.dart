@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:go_router/go_router.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../../core/widgets/favorite_button.dart';
 import '../../../../../features/listings/data/models/electronics_listing_model.dart';
 import '../providers/electronics_provider.dart';
 import 'electronics_detail_screen.dart';
@@ -44,52 +45,72 @@ class _ElectronicsListingsScreenState
         elevation: 0,
         leading: GestureDetector(
           onTap: () => context.pop(),
-          child: const Icon(Icons.arrow_back_ios_new, size: 18, color: Colors.black87),
+          child: const Icon(Icons.arrow_back_ios_new,
+              size: 18, color: Colors.black87),
         ),
         title: Text(
           widget.subcategoryLabel,
-          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black),
+          style: GoogleFonts.poppins(
+              fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black),
         ),
         actions: [
           GestureDetector(
             onTap: () async {
-              await Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => ElectronicsFilterScreen(subcategory: widget.subcategory),
-              ));
+              await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) =>
+                      ElectronicsFilterScreen(subcategory: widget.subcategory),
+                ),
+              );
             },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Stack(
-                children: [
-                  SvgPicture.asset('assets/icons/filter.svg', width: 20, height: 20),
-                  if (!filter.isEmpty)
-                    Positioned(
-                      top: 0, right: 0,
-                      child: Container(
-                        width: 8, height: 8,
-                        decoration: const BoxDecoration(color: _kBlue, shape: BoxShape.circle),
+            child: SizedBox(
+              width: 44,
+              height: kToolbarHeight,
+              child: Center(
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    SvgPicture.asset('assets/icons/filter.svg',
+                        width: 20, height: 20),
+                    if (!filter.isEmpty)
+                      Positioned(
+                        top: -1,
+                        right: -1,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                              color: _kBlue, shape: BoxShape.circle),
+                        ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
           GestureDetector(
             onTap: () => _showSortSheet(context),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: SvgPicture.asset('assets/icons/bars_sort.svg', width: 20, height: 20),
+            child: SizedBox(
+              width: 44,
+              height: kToolbarHeight,
+              child: Center(
+                child: SvgPicture.asset('assets/icons/bars_sort.svg',
+                    width: 20, height: 20),
+              ),
             ),
           ),
+          const SizedBox(width: 4),
         ],
       ),
       body: listingsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: _kBlue)),
+        loading: () =>
+            const Center(child: CircularProgressIndicator(color: _kBlue)),
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (listings) {
           if (listings.isEmpty) {
             return const Center(
-              child: Text('No listings found', style: TextStyle(color: Colors.black45)),
+              child: Text('No listings found',
+                  style: TextStyle(color: Colors.black45)),
             );
           }
           return GridView.builder(
@@ -98,13 +119,15 @@ class _ElectronicsListingsScreenState
               crossAxisCount: 2,
               crossAxisSpacing: 10,
               mainAxisSpacing: 10,
-              mainAxisExtent: 240,
+              mainAxisExtent: 245,
             ),
             itemCount: listings.length,
             itemBuilder: (_, i) => GestureDetector(
-              onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => ElectronicsDetailScreen(item: listings[i]),
-              )),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => ElectronicsDetailScreen(item: listings[i]),
+                ),
+              ),
               child: _ListingCard(item: listings[i]),
             ),
           );
@@ -121,6 +144,7 @@ class _ElectronicsListingsScreenState
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) {
+        final currentSort = ref.read(electronicsFilterProvider).sortBy;
         final options = [
           ('newest', 'Newest to Oldest'),
           ('oldest', 'Oldest to Newest'),
@@ -133,21 +157,25 @@ class _ElectronicsListingsScreenState
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-              child: Text('Sort', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600)),
+              child: Text('Sort',
+                  style: GoogleFonts.poppins(
+                      fontSize: 18, fontWeight: FontWeight.w600)),
             ),
-            ...options.map((opt) => ListTile(
-              title: Text(opt.$2, style: GoogleFonts.poppins(fontSize: 14)),
-              trailing: _sortBy == opt.$1
-                  ? const Icon(Icons.check, color: _kBlue)
-                  : null,
-              onTap: () {
-                setState(() => _sortBy = opt.$1);
-                ref.read(electronicsFilterProvider.notifier).update(
-                  (f) => f.copyWith(sortBy: opt.$1),
-                );
-                context.pop();
-              },
-            )),
+            ...options.map(
+              (opt) => ListTile(
+                title: Text(opt.$2, style: GoogleFonts.poppins(fontSize: 14)),
+                trailing: currentSort == opt.$1 || _sortBy == opt.$1
+                    ? const Icon(Icons.check, color: _kBlue)
+                    : null,
+                onTap: () {
+                  setState(() => _sortBy = opt.$1);
+                  ref.read(electronicsFilterProvider.notifier).update(
+                        (f) => f.copyWith(sortBy: opt.$1),
+                      );
+                  context.pop();
+                },
+              ),
+            ),
             const SizedBox(height: 12),
           ],
         );
@@ -160,13 +188,40 @@ class _ListingCard extends StatelessWidget {
   final ElectronicsListingModel item;
   const _ListingCard({required this.item});
 
+  String _formatDate(String raw) {
+    final dt = DateTime.tryParse(raw);
+    if (dt == null) return '';
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    return '${dt.day} ${months[dt.month - 1]}, ${dt.year}';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(7.38),
-        boxShadow: const [BoxShadow(color: Color(0x40000000), blurRadius: 4.22, offset: Offset(0, 1.05))],
+        border: Border.all(color: const Color(0xFFD9D9D9), width: 1),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x40000000),
+            blurRadius: 4,
+            offset: Offset(0, 1),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -174,63 +229,173 @@ class _ListingCard extends StatelessWidget {
           Stack(
             children: [
               ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(7.38), topRight: Radius.circular(7.38),
-                ),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(7.38)),
                 child: item.images.isEmpty
                     ? _placeholder()
-                    : Image.network(item.imageUrl, height: 110, width: double.infinity, fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _placeholder()),
+                    : Image.network(
+                        item.imageUrl,
+                        height: 110,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _placeholder(),
+                      ),
               ),
               Positioned(
-                top: 6, left: 6,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(4)),
-                  child: Text(item.timeAgo, style: GoogleFonts.poppins(fontSize: 9, color: Colors.white)),
+                top: 6,
+                right: 6,
+                child: Row(
+                  children: [
+                    const _CircleBtn(icon: Icons.reply_outlined),
+                    const SizedBox(width: 4),
+                    FavoriteButton(
+                      listingId: item.id,
+                      size: 24,
+                      backgroundColor: const Color(0x100F172A),
+                        showShadow: false,
+                      unselectedIconColor: Colors.white,
+                      selectedIconColor: Colors.red,
+                    ),
+                  ],
                 ),
               ),
-              Positioned(
-                top: 6, right: 6,
-                child: Container(
-                  width: 26, height: 26,
-                  decoration: const BoxDecoration(color: Color(0x20000000), shape: BoxShape.circle),
-                  child: const Icon(Icons.favorite_border, size: 13, color: Colors.white),
+              if (item.images.isNotEmpty)
+                Positioned(
+                  bottom: 6,
+                  left: 6,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0x63000000),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.image_outlined,
+                            color: Colors.white, size: 9),
+                        const SizedBox(width: 3),
+                        Text(
+                          '${item.images.length}',
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 8,
+                            fontWeight: FontWeight.w500,
+                            height: 1,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+              if (item.isFeatured)
+                Positioned(
+                  top: 6,
+                  left: 6,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFC107),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'Featured',
+                      style: GoogleFonts.poppins(
+                        fontSize: 7,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+            padding: const EdgeInsets.fromLTRB(8, 6, 8, 0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.formattedPrice,
-                    style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: _kBlue)),
-                const SizedBox(height: 2),
-                Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w400, color: Colors.black87)),
-                if (item.age.isNotEmpty || item.brand.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    [if (item.age.isNotEmpty) 'Age: ${item.age}', if (item.brand.isNotEmpty) item.brand].join(' · '),
-                    maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(fontSize: 10.5, color: Colors.black54),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item.formattedPrice,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: _kBlue,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      _formatDate(item.createdAt),
+                      style: GoogleFonts.poppins(
+                        fontSize: 7.5,
+                        color: const Color(0xFF505050),
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  item.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.black,
                   ),
-                ],
+                ),
+                Text(
+                  'Electronics${item.brand.isNotEmpty ? ' / ${item.brand}' : ''}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style:
+                      GoogleFonts.poppins(fontSize: 10, color: Colors.black54),
+                ),
+                if (item.condition.isNotEmpty)
+                  Text(
+                    'Age: ${item.condition}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                        fontSize: 10, color: Colors.black54),
+                  ),
                 const SizedBox(height: 4),
-                Row(children: [
-                  const Icon(Icons.location_on_outlined, size: 11, color: Color(0xFF505050)),
-                  const SizedBox(width: 2),
-                  Expanded(child: Text(item.location, maxLines: 1, overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(fontSize: 10.5, color: const Color(0xFF505050)))),
-                ]),
-                const SizedBox(height: 6),
-                Row(children: [
-                  Expanded(child: _actionBtn(Icons.phone_outlined, () => _call(item.phone))),
-                  const SizedBox(width: 6),
-                  Expanded(child: _waBtn(() => _whatsapp(item.phone))),
-                ]),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on_outlined,
+                        size: 10, color: Color(0xFF505050)),
+                    const SizedBox(width: 2),
+                    Expanded(
+                      child: Text(
+                        item.location,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          color: const Color(0xFF505050),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                const Divider(
+                    height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Spacer(),
+                    _actionBtn(Icons.phone_outlined, () => _call(item.phone)),
+                    const SizedBox(width: 6),
+                    _waBtn(() => _whatsapp(item.phone)),
+                  ],
+                ),
               ],
             ),
           ),
@@ -243,8 +408,13 @@ class _ListingCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 28,
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), border: Border.all(color: const Color(0xFFD9D9D9))),
+        width: 31,
+        height: 22,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(7),
+          border: Border.all(color: const Color(0xFFD9D9D9)),
+          color: Colors.white,
+        ),
         child: Center(child: Icon(icon, size: 14, color: _kBlue)),
       ),
     );
@@ -254,16 +424,25 @@ class _ListingCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 28,
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), border: Border.all(color: const Color(0xFFD9D9D9))),
-        child: const Center(child: FaIcon(FontAwesomeIcons.whatsapp, size: 14, color: _kBlue)),
+        width: 31,
+        height: 22,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(7),
+          border: Border.all(color: const Color(0xFFD9D9D9)),
+          color: Colors.white,
+        ),
+        child: const Center(
+            child: FaIcon(FontAwesomeIcons.whatsapp, size: 14, color: _kBlue)),
       ),
     );
   }
 
   Widget _placeholder() => Container(
-      height: 110, color: const Color(0xFFEDEDED),
-      child: const Center(child: Icon(Icons.devices_other, color: Colors.grey, size: 34)));
+        height: 110,
+        color: const Color(0xFFEDEDED),
+        child: const Center(
+            child: Icon(Icons.devices_other, color: Colors.grey, size: 34)),
+      );
 
   void _call(String phone) {
     final cleaned = phone.replaceAll(RegExp(r'[^0-9+]'), '');
@@ -272,7 +451,25 @@ class _ListingCard extends StatelessWidget {
 
   void _whatsapp(String phone) {
     final cleaned = phone.replaceAll(RegExp(r'[^0-9]'), '');
-    launchUrl(Uri.parse('https://wa.me/${cleaned.isEmpty ? '93700000000' : cleaned}'),
-        mode: LaunchMode.externalApplication);
+    launchUrl(
+      Uri.parse('https://wa.me/${cleaned.isEmpty ? '93700000000' : cleaned}'),
+      mode: LaunchMode.externalApplication,
+    );
+  }
+}
+
+class _CircleBtn extends StatelessWidget {
+  final IconData icon;
+  const _CircleBtn({required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 28,
+      height: 28,
+      decoration:
+          const BoxDecoration(color: Color(0x100F172A), shape: BoxShape.circle),
+      child: Icon(icon, size: 14, color: Colors.white),
+    );
   }
 }

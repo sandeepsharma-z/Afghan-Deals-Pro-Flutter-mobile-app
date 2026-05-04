@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../../core/router/route_names.dart';
+import '../../../../../core/widgets/favorite_button.dart';
 import '../providers/electronics_provider.dart';
 import '../../../../../features/listings/data/models/electronics_listing_model.dart';
 import 'electronics_listings_screen.dart';
@@ -14,26 +15,39 @@ import 'electronics_detail_screen.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
-/// Local SVG asset per subcategory slug (named to match Supabase slugs)
 const _kSlugAssets = <String, String>{
-  'tvs-video-audio':        'assets/icons/electronics/tvs-video-audio.svg',
-  'kitchen-other-appliance':'assets/icons/electronics/kitchen-other-appliance.svg',
-  'fridges':                'assets/icons/electronics/fridges.svg',
-  'cameras-lenses':         'assets/icons/electronics/cameras-lenses.svg',
-  'washing-machines':       'assets/icons/electronics/washing-machines.svg',
-  'acs':                    'assets/icons/electronics/acs.svg',
-  'games-entertainment':    'assets/icons/electronics/games-entertainment.svg',
+  'tvs-video-audio': 'assets/icons/electronics/tvs-video-audio.svg',
+  'kitchen-other-appliance':
+      'assets/icons/electronics/kitchen-other-appliance.svg',
+  'fridges': 'assets/icons/electronics/fridges.svg',
+  'cameras-lenses': 'assets/icons/electronics/cameras-lenses.svg',
+  'washing-machines': 'assets/icons/electronics/washing-machines.svg',
+  'acs': 'assets/icons/electronics/acs.svg',
+  'games-entertainment': 'assets/icons/electronics/games-entertainment.svg',
 };
 
-/// Fallback Material icon if no local asset found
 IconData _iconForSlug(String slug) {
-  if (slug.contains('tv') || slug.contains('video') || slug.contains('audio')) return Icons.tv_outlined;
-  if (slug.contains('kitchen') || slug.contains('appliance')) return Icons.kitchen_outlined;
-  if (slug.contains('fridge') || slug.contains('refrigerator')) return Icons.ac_unit_outlined;
-  if (slug.contains('camera') || slug.contains('lens')) return Icons.camera_alt_outlined;
-  if (slug.contains('washing') || slug.contains('laundry')) return Icons.local_laundry_service_outlined;
-  if (slug.contains('ac') || slug.contains('air')) return Icons.wind_power_outlined;
-  if (slug.contains('game') || slug.contains('entertainment')) return Icons.sports_esports_outlined;
+  if (slug.contains('tv') || slug.contains('video') || slug.contains('audio')) {
+    return Icons.tv_outlined;
+  }
+  if (slug.contains('kitchen') || slug.contains('appliance')) {
+    return Icons.kitchen_outlined;
+  }
+  if (slug.contains('fridge') || slug.contains('refrigerator')) {
+    return Icons.ac_unit_outlined;
+  }
+  if (slug.contains('camera') || slug.contains('lens')) {
+    return Icons.camera_alt_outlined;
+  }
+  if (slug.contains('washing') || slug.contains('laundry')) {
+    return Icons.local_laundry_service_outlined;
+  }
+  if (slug.contains('ac') || slug.contains('air')) {
+    return Icons.wind_power_outlined;
+  }
+  if (slug.contains('game') || slug.contains('entertainment')) {
+    return Icons.sports_esports_outlined;
+  }
   return Icons.devices_other_outlined;
 }
 
@@ -66,8 +80,43 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
   static const _headerBoxDecoration = BoxDecoration(
     color: Color(0xFFF6F6F6),
     borderRadius: BorderRadius.all(Radius.circular(6)),
-    boxShadow: [BoxShadow(color: Color(0x40000000), blurRadius: 4, offset: Offset(0, 1))],
+    boxShadow: [
+      BoxShadow(color: Color(0x40000000), blurRadius: 4, offset: Offset(0, 1))
+    ],
   );
+
+  bool _matchesSearch(ElectronicsListingModel item) {
+    if (_searchQuery.isEmpty) return true;
+    final haystack = [
+      item.title,
+      item.description,
+      item.subcategory,
+      item.subcategoryLabel,
+      item.brand,
+      item.model,
+      item.condition,
+      item.age,
+      item.usage,
+      item.warranty,
+      item.sellerType,
+      item.sellerName,
+      item.city,
+      item.currency,
+      item.price,
+      item.formattedPrice,
+    ].join(' ').toLowerCase();
+    return haystack.contains(_searchQuery);
+  }
+
+  List<ElectronicsSubcategory> _filterSubcategories(
+    List<ElectronicsSubcategory> subs,
+  ) {
+    if (_searchQuery.isEmpty) return subs;
+    return subs.where((s) {
+      final haystack = '${s.name} ${s.slug}'.toLowerCase();
+      return haystack.contains(_searchQuery);
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +137,8 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
             const SizedBox(height: 14),
             Expanded(
               child: listingsAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator(color: _kBlue)),
+                loading: () => const Center(
+                    child: CircularProgressIndicator(color: _kBlue)),
                 error: (e, _) => Center(child: Text('Error: $e')),
                 data: (listings) => _buildBody(listings, subcategoriesAsync),
               ),
@@ -103,15 +153,7 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
     List<ElectronicsListingModel> listings,
     AsyncValue<List<ElectronicsSubcategory>> subcategoriesAsync,
   ) {
-    var filtered = listings;
-    if (_searchQuery.isNotEmpty) {
-      filtered = listings
-          .where((l) =>
-              l.title.toLowerCase().contains(_searchQuery) ||
-              l.description.toLowerCase().contains(_searchQuery) ||
-              l.subcategory.toLowerCase().contains(_searchQuery))
-          .toList();
-    }
+    final filtered = listings.where(_matchesSearch).toList();
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -129,7 +171,7 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
                 child: Center(child: CircularProgressIndicator(color: _kBlue)),
               ),
               error: (_, __) => const SizedBox.shrink(),
-              data: (subs) => _buildSubcategoryGrid(subs),
+              data: (subs) => _buildSubcategoryGrid(_filterSubcategories(subs)),
             ),
             const SizedBox(height: 18),
             _buildTopDealsHeader(filtered),
@@ -138,7 +180,8 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
               const SizedBox(
                 height: 280,
                 child: Center(
-                  child: Text('No listings yet', style: TextStyle(color: Colors.black45)),
+                  child: Text('No listings yet',
+                      style: TextStyle(color: Colors.black45)),
                 ),
               )
             else
@@ -156,7 +199,8 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
                   itemCount: filtered.length,
                   itemBuilder: (_, i) => GestureDetector(
                     onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => ElectronicsDetailScreen(item: filtered[i]),
+                      builder: (_) =>
+                          ElectronicsDetailScreen(item: filtered[i]),
                     )),
                     child: _ElectronicsCard(item: filtered[i]),
                   ),
@@ -173,26 +217,26 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
     // Show first 7 + "More" button
     final visible = subs.take(7).toList();
     final slots = <Object?>[...visible, 'more'];
-    while (slots.length % 4 != 0) { slots.add(null); }
+    while (slots.length % 4 != 0) {
+      slots.add(null);
+    }
     final rows = <List<Object?>>[];
-    for (int i = 0; i < slots.length; i += 4) { rows.add(slots.sublist(i, i + 4)); }
+    for (int i = 0; i < slots.length; i += 4) {
+      rows.add(slots.sublist(i, i + 4));
+    }
 
     return Column(
       children: rows.map((r) {
         return Padding(
           padding: const EdgeInsets.only(bottom: 14),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: r.map((slot) {
               if (slot == null) return const Expanded(child: SizedBox());
               if (slot == 'more') {
                 return Expanded(
                   child: GestureDetector(
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => const ElectronicsListingsScreen(
-                        subcategory: '',
-                        subcategoryLabel: 'All Electronics',
-                      ),
-                    )),
+                    onTap: () => _openMoreCategories(subs),
                     child: _subcategoryCircle(
                       label: 'More',
                       iconUrl: null,
@@ -225,6 +269,21 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
     );
   }
 
+  void _openMoreCategories(List<ElectronicsSubcategory> subs) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => _ElectronicsMoreCategoriesScreen(
+          subcategories: subs,
+          itemBuilder: (subcategory) => _subcategoryCircle(
+            label: subcategory.name,
+            iconUrl: subcategory.iconUrl,
+            slug: subcategory.slug,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _subcategoryCircle({
     required String label,
     required String? iconUrl,
@@ -254,7 +313,8 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
           width: 26,
           height: 26,
           fit: BoxFit.contain,
-          placeholderBuilder: (_) => Icon(fallbackIcon, color: _kBlue, size: 22),
+          placeholderBuilder: (_) =>
+              Icon(fallbackIcon, color: _kBlue, size: 22),
         );
       } else {
         iconWidget = Image.network(
@@ -262,35 +322,46 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
           width: 26,
           height: 26,
           fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => Icon(fallbackIcon, color: _kBlue, size: 22),
+          errorBuilder: (_, __, ___) =>
+              Icon(fallbackIcon, color: _kBlue, size: 22),
         );
       }
     } else {
       iconWidget = Icon(fallbackIcon, color: _kBlue, size: 22);
     }
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 55,
-          height: 55,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white,
-            border: Border.all(color: _kBlue, width: 1.5),
+    return SizedBox(
+      height: 94,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Container(
+            width: 55,
+            height: 55,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              border: Border.all(color: _kBlue, width: 1.5),
+            ),
+            child: Center(child: iconWidget),
           ),
-          child: Center(child: iconWidget),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          maxLines: 2,
-          textAlign: TextAlign.center,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.poppins(fontSize: 11.6, fontWeight: FontWeight.w400),
-        ),
-      ],
+          const SizedBox(height: 4),
+          SizedBox(
+            height: 34,
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: Text(
+                label,
+                maxLines: 2,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                    fontSize: 11.6, fontWeight: FontWeight.w400),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -300,7 +371,8 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
       child: Row(
         children: [
           Text('Top Deals',
-              style: GoogleFonts.poppins(fontSize: 14.75, fontWeight: FontWeight.w600)),
+              style: GoogleFonts.poppins(
+                  fontSize: 14.75, fontWeight: FontWeight.w600)),
           const Spacer(),
           GestureDetector(
             onTap: () => Navigator.of(context).push(MaterialPageRoute(
@@ -310,7 +382,8 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
               ),
             )),
             child: Text('See all',
-                style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w500)),
+                style: GoogleFonts.poppins(
+                    fontSize: 11, fontWeight: FontWeight.w500)),
           ),
         ],
       ),
@@ -324,25 +397,38 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
         children: [
           GestureDetector(
             onTap: () => context.pop(),
-            child: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black87),
+            child: const Icon(Icons.arrow_back_ios_new,
+                size: 20, color: Colors.black87),
           ),
           const Spacer(),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             decoration: _headerBoxDecoration,
             child: Row(children: [
-              Image.asset('assets/images/flags/afghanistan.png', width: 22, height: 22, fit: BoxFit.cover),
+              Image.asset('assets/images/flags/afghanistan.png',
+                  width: 22, height: 22, fit: BoxFit.cover),
               const SizedBox(width: 5),
               Text('Afghanistan',
-                  style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w500)),
+                  style: GoogleFonts.montserrat(
+                      fontSize: 12, fontWeight: FontWeight.w500)),
             ]),
           ),
           const SizedBox(width: 10),
-          Container(width: 34, height: 34, decoration: _headerBoxDecoration,
-              child: const Center(child: Icon(Icons.help_outline, size: 22, color: Colors.black54))),
+          Container(
+              width: 34,
+              height: 34,
+              decoration: _headerBoxDecoration,
+              child: const Center(
+                  child: Icon(Icons.help_outline,
+                      size: 22, color: Colors.black54))),
           const SizedBox(width: 10),
-          Container(width: 34, height: 34, decoration: _headerBoxDecoration,
-              child: const Center(child: Icon(Icons.notifications_outlined, size: 22, color: Colors.black87))),
+          Container(
+              width: 34,
+              height: 34,
+              decoration: _headerBoxDecoration,
+              child: const Center(
+                  child: Icon(Icons.notifications_outlined,
+                      size: 22, color: Colors.black87))),
         ],
       ),
     );
@@ -366,15 +452,24 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
               child: TextField(
                 controller: _searchCtrl,
                 decoration: InputDecoration(
-                  hintText: 'Search electronics...',
+                  isCollapsed: true,
+                  filled: false,
+                  fillColor: Colors.transparent,
+                  hintText: 'Search electronics',
                   hintStyle: GoogleFonts.poppins(
                       fontSize: 11,
                       fontWeight: FontWeight.w400,
                       color: Colors.black45),
                   border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  disabledBorder: InputBorder.none,
+                  errorBorder: InputBorder.none,
+                  focusedErrorBorder: InputBorder.none,
                   contentPadding: EdgeInsets.zero,
                 ),
-                style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400),
+                style: GoogleFonts.poppins(
+                    fontSize: 11, fontWeight: FontWeight.w400),
               ),
             ),
             if (_searchCtrl.text.isNotEmpty)
@@ -391,7 +486,9 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
             else
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Center(child: SvgPicture.asset('assets/icons/filter.svg', width: 16, height: 16)),
+                child: Center(
+                    child: SvgPicture.asset('assets/icons/filter.svg',
+                        width: 16, height: 16)),
               ),
           ],
         ),
@@ -403,15 +500,23 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
     return GestureDetector(
       onTap: () => context.push(RouteNames.sell),
       child: SizedBox(
-        width: 58, height: 58,
+        width: 58,
+        height: 58,
         child: CustomPaint(
           foregroundPainter: _SellRingPainter(),
           child: Container(
             decoration: const BoxDecoration(
-              shape: BoxShape.circle, color: Colors.white,
-              boxShadow: [BoxShadow(color: Color(0x25000000), blurRadius: 8, offset: Offset(0, 2))],
+              shape: BoxShape.circle,
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                    color: Color(0x25000000),
+                    blurRadius: 8,
+                    offset: Offset(0, 2))
+              ],
             ),
-            child: const Center(child: Icon(Icons.add, color: _kBlue, size: 28)),
+            child:
+                const Center(child: Icon(Icons.add, color: _kBlue, size: 28)),
           ),
         ),
       ),
@@ -421,7 +526,10 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
   Widget _buildBottomNav(BuildContext context) {
     return DecoratedBox(
       decoration: const BoxDecoration(
-        boxShadow: [BoxShadow(color: Color(0x28000000), blurRadius: 12, offset: Offset(0, -4))],
+        boxShadow: [
+          BoxShadow(
+              color: Color(0x28000000), blurRadius: 12, offset: Offset(0, -4))
+        ],
       ),
       child: BottomAppBar(
         shape: const CircularNotchedRectangle(),
@@ -431,14 +539,28 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
         child: SizedBox(
           height: 66,
           child: Row(children: [
-            Expanded(child: _navItem(Icons.home_rounded, 'HOME', () => context.go(RouteNames.home))),
-            Expanded(child: _navItem(Icons.chat_bubble_outline, 'CHATS', () => context.go(RouteNames.chats))),
-            Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
-              Text('SELL', style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.black38)),
+            Expanded(
+                child: _navItem(Icons.home_rounded, 'HOME',
+                    () => context.go(RouteNames.home))),
+            Expanded(
+                child: _navItem(Icons.chat_bubble_outline, 'CHATS',
+                    () => context.go(RouteNames.chats))),
+            Expanded(
+                child:
+                    Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+              Text('SELL',
+                  style: GoogleFonts.montserrat(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black38)),
               const SizedBox(height: 8),
             ])),
-            Expanded(child: _navItem(Icons.favorite_border, 'MY ADS', () => context.go(RouteNames.myAds))),
-            Expanded(child: _navItem(Icons.person_outline, 'ACCOUNT', () => context.go(RouteNames.account))),
+            Expanded(
+                child: _navItem(Icons.favorite_border, 'MY ADS',
+                    () => context.push(RouteNames.myAds))),
+            Expanded(
+                child: _navItem(Icons.person_outline, 'ACCOUNT',
+                    () => context.go(RouteNames.account))),
           ]),
         ),
       ),
@@ -454,7 +576,11 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
         child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
           Icon(icon, size: 24, color: Colors.black38),
           const SizedBox(height: 7),
-          Text(label, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.black38)),
+          Text(label,
+              style: GoogleFonts.montserrat(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black38)),
           const SizedBox(height: 8),
         ]),
       ),
@@ -473,7 +599,12 @@ class _ElectronicsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(7.38),
-        boxShadow: const [BoxShadow(color: Color(0x40000000), blurRadius: 4.22, offset: Offset(0, 1.05))],
+        boxShadow: const [
+          BoxShadow(
+              color: Color(0x40000000),
+              blurRadius: 4.22,
+              offset: Offset(0, 1.05))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -481,39 +612,78 @@ class _ElectronicsCard extends StatelessWidget {
           Stack(children: [
             ClipRRect(
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(7.38), topRight: Radius.circular(7.38),
+                topLeft: Radius.circular(7.38),
+                topRight: Radius.circular(7.38),
               ),
               child: item.images.isEmpty
                   ? _placeholder()
-                  : Image.network(item.imageUrl, height: 101.27, width: double.infinity, fit: BoxFit.cover,
+                  : Image.network(item.imageUrl,
+                      height: 101.27,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => _placeholder()),
             ),
             if (item.isFeatured)
-              Positioned(top: 8, left: 8, child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                decoration: BoxDecoration(color: const Color(0xFFFF6B00), borderRadius: BorderRadius.circular(4)),
-                child: Text('Featured', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w600, color: Colors.white)),
-              )),
-            Positioned(top: 8, right: 8, child: Container(
-              width: 28, height: 28,
-              decoration: const BoxDecoration(color: Color(0x140F172A), shape: BoxShape.circle),
-              child: const Icon(Icons.favorite_border, size: 14, color: Colors.white),
-            )),
+              Positioned(
+                  top: 8,
+                  left: 8,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(
+                        color: const Color(0xFFFF6B00),
+                        borderRadius: BorderRadius.circular(4)),
+                    child: Text('Featured',
+                        style: GoogleFonts.poppins(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white)),
+                  )),
+            Positioned(
+                top: 8,
+                right: 8,
+                child: FavoriteButton(
+                  listingId: item.id,
+                  size: 28,
+                  backgroundColor: const Color(0x100F172A),
+                  showShadow: false,
+                  unselectedIconColor: Colors.white,
+                  selectedIconColor: Colors.red,
+                )),
           ]),
           Padding(
             padding: const EdgeInsets.fromLTRB(8, 6, 8, 5),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(item.formattedPrice,
-                  style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, height: 1.3, color: _kBlue)),
+                  style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      height: 1.3,
+                      color: _kBlue)),
               const SizedBox(height: 4),
-              Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w400, height: 1.3, color: Colors.black87)),
+              Text(item.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      height: 1.3,
+                      color: Colors.black87)),
               const SizedBox(height: 5),
               Row(children: [
-                const Icon(Icons.location_on_outlined, size: 12, color: Color(0xFF505050)),
+                const Icon(Icons.location_on_outlined,
+                    size: 12, color: Color(0xFF505050)),
                 const SizedBox(width: 3),
-                Expanded(child: Text(item.location, maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400, height: 1.3, color: const Color(0xFF505050)))),
+                Expanded(
+                    child: Text(item.location,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w400,
+                            height: 1.3,
+                            color: const Color(0xFF505050)))),
               ]),
             ]),
           ),
@@ -522,8 +692,76 @@ class _ElectronicsCard extends StatelessWidget {
     );
   }
 
-  Widget _placeholder() => Container(height: 101.27, color: const Color(0xFFEDEDED),
-      child: const Center(child: Icon(Icons.devices_other, color: Colors.grey, size: 34)));
+  Widget _placeholder() => Container(
+      height: 101.27,
+      color: const Color(0xFFEDEDED),
+      child: const Center(
+          child: Icon(Icons.devices_other, color: Colors.grey, size: 34)));
+}
+
+class _ElectronicsMoreCategoriesScreen extends StatelessWidget {
+  final List<ElectronicsSubcategory> subcategories;
+  final Widget Function(ElectronicsSubcategory subcategory) itemBuilder;
+
+  const _ElectronicsMoreCategoriesScreen({
+    required this.subcategories,
+    required this.itemBuilder,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(Icons.arrow_back_ios_new,
+              size: 18, color: Colors.black87),
+        ),
+        title: Text(
+          'Electronics',
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+        ),
+      ),
+      body: GridView.builder(
+        padding: const EdgeInsets.fromLTRB(12, 18, 12, 20),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 4,
+          crossAxisSpacing: 0,
+          mainAxisSpacing: 16,
+          mainAxisExtent: 94,
+        ),
+        itemCount: subcategories.length,
+        itemBuilder: (_, index) {
+          final subcategory = subcategories[index];
+          return GestureDetector(
+            onTap: () {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (_) => ElectronicsListingsScreen(
+                    subcategory: subcategory.slug,
+                    subcategoryLabel: subcategory.name,
+                  ),
+                ),
+              );
+            },
+            child: itemBuilder(subcategory),
+          );
+        },
+      ),
+    );
+  }
 }
 
 class _SellRingPainter extends CustomPainter {
@@ -534,11 +772,16 @@ class _SellRingPainter extends CustomPainter {
     final radius = size.width / 2 - strokeW / 2 - 1;
     final rect = Rect.fromCircle(center: center, radius: radius);
     Paint arc(Color c) => Paint()
-      ..color = c ..style = PaintingStyle.stroke ..strokeWidth = strokeW ..strokeCap = StrokeCap.butt;
+      ..color = c
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeW
+      ..strokeCap = StrokeCap.butt;
     const third = 2 * pi / 3;
     canvas.drawArc(rect, -pi / 2, third, false, arc(const Color(0xFF1D57A7)));
-    canvas.drawArc(rect, -pi / 2 + third, third, false, arc(const Color(0xFF000000)));
-    canvas.drawArc(rect, -pi / 2 + 2 * third, third, false, arc(const Color(0xFF3B77FE)));
+    canvas.drawArc(
+        rect, -pi / 2 + third, third, false, arc(const Color(0xFF000000)));
+    canvas.drawArc(
+        rect, -pi / 2 + 2 * third, third, false, arc(const Color(0xFF3B77FE)));
   }
 
   @override

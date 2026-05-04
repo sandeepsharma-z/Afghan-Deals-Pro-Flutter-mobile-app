@@ -5,32 +5,36 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../../core/widgets/favorite_button.dart';
+import '../../../../chat/presentation/providers/chat_provider.dart';
 import '../providers/spare_parts_provider.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
-class SparePartsDetailScreen extends StatefulWidget {
+class SparePartsDetailScreen extends ConsumerStatefulWidget {
   final SparePartListing listing;
   const SparePartsDetailScreen({super.key, required this.listing});
 
   @override
-  State<SparePartsDetailScreen> createState() => _SparePartsDetailScreenState();
+  ConsumerState<SparePartsDetailScreen> createState() =>
+      _SparePartsDetailScreenState();
 }
 
-class _SparePartsDetailScreenState extends State<SparePartsDetailScreen> {
+class _SparePartsDetailScreenState
+    extends ConsumerState<SparePartsDetailScreen> {
   late final PageController _pageController;
   final MapController _mapController = MapController();
   Timer? _timer;
   int _currentPage = 0;
   LatLng? _latLng;
   bool _geocoding = true;
-  bool _isFavorited = false;
 
   @override
   void initState() {
@@ -108,8 +112,8 @@ class _SparePartsDetailScreenState extends State<SparePartsDetailScreen> {
               ),
               const SizedBox(width: 8),
               Expanded(
-                  child: _actionButton(Icons.chat_bubble_outline, 'SMS',
-                      () => _launchSms(item.phone))),
+                  child: _actionButton(
+                      Icons.message_outlined, 'Chat', () => _openChat(item))),
             ],
           ),
         ),
@@ -228,13 +232,10 @@ class _SparePartsDetailScreenState extends State<SparePartsDetailScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            _circleButton(icon: Icons.reply_outlined, onTap: _shareItem),
-                            const SizedBox(width: 10),
                             _circleButton(
-                              icon: _isFavorited ? Icons.favorite : Icons.favorite_border,
-                              onTap: () => setState(() => _isFavorited = !_isFavorited),
-                              color: _isFavorited ? Colors.red : Colors.black87,
-                            ),
+                                icon: Icons.reply_outlined, onTap: _shareItem),
+                            const SizedBox(width: 10),
+                            FavoriteButton(listingId: item.id, size: 36),
                           ],
                         ),
                       ),
@@ -487,12 +488,6 @@ class _SparePartsDetailScreenState extends State<SparePartsDetailScreen> {
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
-  Future<void> _launchSms(String phone) async {
-    final cleaned = phone.replaceAll(RegExp(r'[^0-9+]'), '');
-    final uri = Uri.parse('sms:${cleaned.isEmpty ? '+93700000000' : cleaned}');
-    await launchUrl(uri);
-  }
-
   Future<void> _openMap(SparePartListing item) async {
     final mapUrl = item.mapUrl;
     if (mapUrl.isNotEmpty) {
@@ -505,9 +500,31 @@ class _SparePartsDetailScreenState extends State<SparePartsDetailScreen> {
     await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
   }
 
+  Future<void> _openChat(SparePartListing item) async {
+    try {
+      final chatId =
+          await ref.read(chatActionsProvider).openOrCreateChatForListing(
+                listingId: item.id,
+                sellerId: item.sellerId,
+              );
+      if (!mounted) return;
+      context.push('/chat/$chatId');
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceAll('Exception: ', '')),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   void _shareItem() {
     final itemName = widget.listing.title;
-    final shareText = 'Check out this spare part: $itemName on Afghan Deals Pro';
+    final shareText =
+        'Check out this spare part: $itemName on Afghan Deals Pro';
 
     showModalBottomSheet(
       context: context,
@@ -575,11 +592,13 @@ class _SparePartsDetailScreenState extends State<SparePartsDetailScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.link, color: Color(0xFF2258A8)),
-                title: Text('Copy Link',
-                    style: GoogleFonts.poppins(fontSize: 14)),
+                title:
+                    Text('Copy Link', style: GoogleFonts.poppins(fontSize: 14)),
                 onTap: () {
                   Clipboard.setData(
-                    ClipboardData(text: 'afghan-deals-pro://spare-parts/${widget.listing.id}'),
+                    ClipboardData(
+                        text:
+                            'afghan-deals-pro://spare-parts/${widget.listing.id}'),
                   );
                   context.pop();
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -597,7 +616,10 @@ class _SparePartsDetailScreenState extends State<SparePartsDetailScreen> {
     );
   }
 
-  Widget _circleButton({required IconData icon, Color color = Colors.black87, required VoidCallback onTap}) {
+  Widget _circleButton(
+      {required IconData icon,
+      Color color = Colors.black87,
+      required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(

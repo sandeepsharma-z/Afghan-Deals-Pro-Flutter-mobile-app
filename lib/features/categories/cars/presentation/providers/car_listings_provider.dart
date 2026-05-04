@@ -26,13 +26,15 @@ final carListingsProvider = FutureProvider.autoDispose
 
   final baseQuery = Supabase.instance.client
       .from('listings')
-      .select('id,seller_id,title,description,seller_name,price,currency,images,city,is_featured,created_at,category_data')
+      .select(
+          'id,seller_id,title,description,seller_name,price,currency,images,city,region,is_featured,created_at,category_data')
       .eq('category', 'cars')
       .eq('is_active', true);
 
   final query = _applySubcategoryFilter(baseQuery, key);
 
-  var rows = (await query.order('created_at', ascending: false)) as List<dynamic>;
+  var rows =
+      (await query.order('created_at', ascending: false)) as List<dynamic>;
 
   // Safety fallback: if used-cars query returns nothing, show non-rental car listings.
   if (rows.isEmpty && key.contains('used')) {

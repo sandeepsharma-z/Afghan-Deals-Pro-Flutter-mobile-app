@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../providers/brand_listings_provider.dart';
 import '../../../../../features/listings/data/models/car_sale_model.dart';
+import '../../../../../core/widgets/favorite_button.dart';
 import 'car_sale_detail_screen.dart';
 import 'cars_filter_screen.dart';
 
@@ -31,8 +32,7 @@ class BrandResultsScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<BrandResultsScreen> createState() =>
-      _BrandResultsScreenState();
+  ConsumerState<BrandResultsScreen> createState() => _BrandResultsScreenState();
 }
 
 class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
@@ -86,8 +86,8 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
             ),
             Container(
               decoration: const BoxDecoration(
-                border: Border(
-                    top: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
+                border:
+                    Border(top: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
               ),
               child: Column(
                 children: _sortOptions.map((item) {
@@ -100,8 +100,8 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
                     child: Container(
                       decoration: const BoxDecoration(
                         border: Border(
-                            bottom: BorderSide(
-                                color: Color(0xFFE8E9EB), width: 1)),
+                            bottom:
+                                BorderSide(color: Color(0xFFE8E9EB), width: 1)),
                       ),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 16),
@@ -115,8 +115,7 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
                                     color: Colors.black87)),
                           ),
                           if (selected)
-                            const Icon(Icons.check,
-                                color: _kBlue, size: 20),
+                            const Icon(Icons.check, color: _kBlue, size: 20),
                         ],
                       ),
                     ),
@@ -135,59 +134,136 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
     if (_appliedFilters == null) return list;
     final f = _appliedFilters!;
 
-    // If ALL filters are empty, return all listings
-    final hasAnyFilter = f.makes.isNotEmpty ||
-        f.models.isNotEmpty ||
-        f.subModels.isNotEmpty ||
-        f.transmission.isNotEmpty ||
-        f.fuelType.isNotEmpty ||
-        f.extColors.isNotEmpty ||
-        f.driveLines.isNotEmpty ||
-        f.cylinders.isNotEmpty ||
-        f.intColors.isNotEmpty ||
-        f.regions.isNotEmpty ||
-        f.cities.isNotEmpty ||
-        f.specs.isNotEmpty ||
-        f.dealTypes.isNotEmpty ||
-        f.minPrice > 0 ||
-        f.maxPrice < 150000;
-
-    if (!hasAnyFilter && f.fromYear == f.toYear) {
-      // Only year filter from navigation, apply it
-      return list.where((car) {
-        final carYear = int.tryParse(car.year) ?? 0;
-        return carYear >= f.fromYear && carYear <= f.toYear;
-      }).toList();
-    }
-
     return list.where((car) {
-      try {
-        final carYear = int.tryParse(car.year) ?? 0;
-        if (carYear < f.fromYear || carYear > f.toYear) return false;
+      final carYear = int.tryParse(car.year) ?? 2000;
+      final carPrice = double.tryParse(car.price) ?? 0;
 
-        // Apply only the most critical filters
-        if (f.makes.isNotEmpty) {
-          final carMakeLower = car.make.toLowerCase().trim();
-          final matchesAnyMake = f.makes.any((m) => carMakeLower.contains(m.toLowerCase().trim()));
-          if (!matchesAnyMake) return false;
-        }
+      // Year check
+      if (carYear < f.fromYear || carYear > f.toYear) return false;
 
-        if (f.models.isNotEmpty) {
-          final carModelLower = car.model.toLowerCase().trim();
-          final matchesAnyModel = f.models.any((m) => carModelLower.contains(m.toLowerCase().trim()));
-          if (!matchesAnyModel) return false;
-        }
+      // Price check
+      if (carPrice < f.minPrice || carPrice > f.maxPrice) return false;
 
-        final price = double.tryParse(car.price) ?? 0;
-        if (price < f.minPrice || price > f.maxPrice) return false;
-
-        return true;
-      } catch (e) {
-        return true;
+      // Make check - case insensitive substring matching
+      if (f.makes.isNotEmpty) {
+        final carMakeLower = car.make.toLowerCase().trim();
+        final matches =
+            f.makes.any((m) => carMakeLower.contains(m.toLowerCase().trim()));
+        if (!matches) return false;
       }
+
+      // Model check - case insensitive substring matching
+      if (f.models.isNotEmpty) {
+        final carModelLower = car.model.toLowerCase().trim();
+        final matches =
+            f.models.any((m) => carModelLower.contains(m.toLowerCase().trim()));
+        if (!matches) return false;
+      }
+
+      if (f.subModels.isNotEmpty && !_matchesAny(car.bodyType, f.subModels)) {
+        return false;
+      }
+      if (f.specs.isNotEmpty && !_matchesAny(car.condition, f.specs)) {
+        return false;
+      }
+      if (f.dealTypes.isNotEmpty && !_matchesAny(car.sellerType, f.dealTypes)) {
+        return false;
+      }
+      if (f.transmission.isNotEmpty &&
+          !_matchesAny(car.transmission, f.transmission)) {
+        return false;
+      }
+      if (f.fuelType.isNotEmpty && !_matchesAny(car.fuelType, f.fuelType)) {
+        return false;
+      }
+      if (f.extColors.isNotEmpty && !_matchesAny(car.color, f.extColors)) {
+        return false;
+      }
+      if (f.driveLines.isNotEmpty &&
+          !_matchesAny(car.driveline, f.driveLines)) {
+        return false;
+      }
+      if (f.cylinders.isNotEmpty && !_matchesAny(car.cylinders, f.cylinders)) {
+        return false;
+      }
+      if (f.intColors.isNotEmpty &&
+          !_matchesAny(car.interiorColor, f.intColors)) {
+        return false;
+      }
+      if (f.regions.isNotEmpty && !_matchesAny(car.region, f.regions)) {
+        return false;
+      }
+      if (f.cities.isNotEmpty && !_matchesAny(car.location, f.cities)) {
+        return false;
+      }
+
+      return true;
     }).toList();
   }
 
+  bool _matchesAny(String value, Set<String> selected) {
+    final normalized = value.toLowerCase().trim();
+    if (normalized.isEmpty) return false;
+    return selected.any((item) {
+      final target = item.toLowerCase().trim();
+      return normalized == target || normalized.contains(target);
+    });
+  }
+
+  CarFilterOptions _buildFilterOptions(List<CarSaleModel> listings) {
+    final years = <int>[];
+    final prices = <double>[];
+
+    List<String> distinct(Iterable<String> values) {
+      final byKey = <String, String>{};
+      for (final value in values) {
+        final clean = value.trim();
+        if (clean.isEmpty) continue;
+        byKey.putIfAbsent(clean.toLowerCase(), () => clean);
+      }
+      return byKey.values.toList()
+        ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    }
+
+    for (final car in listings) {
+      final year = int.tryParse(car.year.trim());
+      if (year != null) years.add(year);
+      final price = double.tryParse(car.price.trim());
+      if (price != null) prices.add(price);
+    }
+
+    final minYear =
+        years.isEmpty ? widget.fromYear : years.reduce((a, b) => a < b ? a : b);
+    final maxYear =
+        years.isEmpty ? widget.toYear : years.reduce((a, b) => a > b ? a : b);
+    final maxPrice =
+        prices.isEmpty ? 150000.0 : prices.reduce((a, b) => a > b ? a : b);
+
+    return CarFilterOptions(
+      makes: distinct(listings.map((c) => c.make)),
+      models: distinct(listings.map((c) => c.model)),
+      subModels: distinct(listings.map((c) => c.bodyType)),
+      specs: distinct(listings.map((c) => c.condition)),
+      dealTypes: distinct(listings.map((c) => c.sellerType)),
+      transmission: distinct(listings.map((c) => c.transmission)),
+      fuelType: distinct(listings.map((c) => c.fuelType)),
+      extColors: distinct(listings.map((c) => c.color)),
+      driveLines: distinct(listings.map((c) => c.driveline)),
+      cylinders: distinct(listings.map((c) => c.cylinders)),
+      intColors: distinct(listings.map((c) => c.interiorColor)),
+      regions: distinct(listings.map((c) => c.region)),
+      cities: distinct(listings.map((c) => c.location)),
+      minYear: minYear,
+      maxYear: maxYear,
+      minPrice: 0,
+      maxPrice: _roundPriceCeil(maxPrice),
+    );
+  }
+
+  double _roundPriceCeil(double price) {
+    if (price <= 0) return 150000;
+    return ((price / 5000).ceil() * 5000).toDouble();
+  }
 
   List<CarSaleModel> _sorted(List<CarSaleModel> list) {
     final copy = List<CarSaleModel>.from(list);
@@ -199,19 +275,16 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
         copy.sort((a, b) => a.createdAt.compareTo(b.createdAt));
         break;
       case 'Price Highest to Lowest':
-        copy.sort((a, b) =>
-            (double.tryParse(b.price) ?? 0)
-                .compareTo(double.tryParse(a.price) ?? 0));
+        copy.sort((a, b) => (double.tryParse(b.price) ?? 0)
+            .compareTo(double.tryParse(a.price) ?? 0));
         break;
       case 'Price Lowest to Highest':
-        copy.sort((a, b) =>
-            (double.tryParse(a.price) ?? 0)
-                .compareTo(double.tryParse(b.price) ?? 0));
+        copy.sort((a, b) => (double.tryParse(a.price) ?? 0)
+            .compareTo(double.tryParse(b.price) ?? 0));
         break;
     }
     return copy;
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -248,35 +321,41 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
                     fontWeight: FontWeight.w600,
                     color: Colors.black87)),
             Text(subtitle,
-                style: GoogleFonts.poppins(
-                    fontSize: 11, color: Colors.black45)),
+                style:
+                    GoogleFonts.poppins(fontSize: 11, color: Colors.black45)),
           ],
         ),
         actions: [
           GestureDetector(
             onTap: () async {
-              final defaultFilters = _appliedFilters ?? CarFilters(
-                makes: {},
-                models: {},
-                subModels: {},
-                specs: {},
-                dealTypes: {},
-                transmission: {},
-                fuelType: {},
-                extColors: {},
-                driveLines: {},
-                cylinders: {},
-                intColors: {},
-                regions: {},
-                cities: {},
-                fromYear: widget.fromYear,
-                toYear: widget.toYear,
-                minPrice: 0,
-                maxPrice: 150000,
-              );
+              final options =
+                  _buildFilterOptions(listingsAsync.valueOrNull ?? []);
+              final defaultFilters = _appliedFilters ??
+                  CarFilters(
+                    makes: {},
+                    models: {},
+                    subModels: {},
+                    specs: {},
+                    dealTypes: {},
+                    transmission: {},
+                    fuelType: {},
+                    extColors: {},
+                    driveLines: {},
+                    cylinders: {},
+                    intColors: {},
+                    regions: {},
+                    cities: {},
+                    fromYear: widget.fromYear,
+                    toYear: widget.toYear,
+                    minPrice: options.minPrice,
+                    maxPrice: options.maxPrice,
+                  );
               final result = await Navigator.of(context).push<CarFilters>(
                 MaterialPageRoute(
-                  builder: (_) => CarsFilterScreen(initialFilters: defaultFilters),
+                  builder: (_) => CarsFilterScreen(
+                    initialFilters: defaultFilters,
+                    options: options,
+                  ),
                 ),
               );
               if (result != null) {
@@ -285,21 +364,22 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
             },
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: SvgPicture.asset('assets/icons/filter.svg', width: 20, height: 20),
+              child: SvgPicture.asset('assets/icons/filter.svg',
+                  width: 20, height: 20),
             ),
           ),
           GestureDetector(
             onTap: _openSortSheet,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: SvgPicture.asset('assets/icons/bars_sort.svg', width: 20, height: 20),
+              child: SvgPicture.asset('assets/icons/bars_sort.svg',
+                  width: 20, height: 20),
             ),
           ),
         ],
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(1),
-          child:
-              Divider(height: 1, thickness: 1, color: Color(0xFFE8E8E8)),
+          child: Divider(height: 1, thickness: 1, color: Color(0xFFE8E8E8)),
         ),
       ),
       body: listingsAsync.when(
@@ -307,8 +387,7 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
             const Center(child: CircularProgressIndicator(color: _kBlue)),
         error: (e, _) => Center(
             child: Text('Error: $e',
-                style: GoogleFonts.poppins(
-                    fontSize: 13, color: Colors.red))),
+                style: GoogleFonts.poppins(fontSize: 13, color: Colors.red))),
         data: (listings) {
           final filtered = _applyFilters(listings);
           final sorted = _sorted(filtered);
@@ -349,10 +428,8 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
               ),
               Expanded(
                 child: GridView.builder(
-                  padding:
-                      const EdgeInsets.fromLTRB(10, 4, 10, 20),
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
+                  padding: const EdgeInsets.fromLTRB(10, 4, 10, 20),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     mainAxisSpacing: 10,
                     crossAxisSpacing: 10,
@@ -371,15 +448,15 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
 }
 
 // ── Car Card (real data) ──────────────────────────────────────────────────────
-class _CarCard extends StatefulWidget {
+class _CarCard extends ConsumerStatefulWidget {
   final CarSaleModel car;
   const _CarCard({required this.car});
 
   @override
-  State<_CarCard> createState() => _CarCardState();
+  ConsumerState<_CarCard> createState() => _CarCardState();
 }
 
-class _CarCardState extends State<_CarCard> {
+class _CarCardState extends ConsumerState<_CarCard> {
   late final PageController _pageController;
   Timer? _timer;
   int _currentPage = 0;
@@ -456,21 +533,27 @@ class _CarCardState extends State<_CarCard> {
                             itemBuilder: (_, i) => Image.network(
                               car.images[i],
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) =>
-                                  _placeholderImage(),
+                              errorBuilder: (_, __, ___) => _placeholderImage(),
                             ),
                           ),
                   ),
                 ),
                 // Share + Heart
-                const Positioned(
+                Positioned(
                   top: 6,
                   right: 6,
                   child: Row(
                     children: [
-                      _CircleBtn(icon: Icons.reply_outlined),
-                      SizedBox(width: 4),
-                      _CircleBtn(icon: Icons.favorite_border),
+                      const _CircleBtn(icon: Icons.reply_outlined),
+                      const SizedBox(width: 4),
+                      FavoriteButton(
+                        listingId: car.id,
+                        size: 22,
+                        backgroundColor: const Color(0x100F172A),
+                        showShadow: false,
+                        unselectedIconColor: Colors.white,
+                        selectedIconColor: Colors.red,
+                      ),
                     ],
                   ),
                 ),
@@ -614,9 +697,7 @@ class _CarCardState extends State<_CarCard> {
                   ),
                   const SizedBox(height: 7),
                   const Divider(
-                      height: 1,
-                      thickness: 1,
-                      color: Color(0xFFD9D9D9)),
+                      height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
                   const SizedBox(height: 7),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -624,8 +705,7 @@ class _CarCardState extends State<_CarCard> {
                       _ActionBtn(
                         child: const Icon(Icons.phone_outlined,
                             color: _kBlue, size: 14),
-                        onTap: () =>
-                            launchUrl(Uri.parse('tel:+93700000000')),
+                        onTap: () => launchUrl(Uri.parse('tel:+93700000000')),
                       ),
                       const SizedBox(width: 6),
                       _ActionBtn(
@@ -719,3 +799,4 @@ class _ActionBtn extends StatelessWidget {
     );
   }
 }
+

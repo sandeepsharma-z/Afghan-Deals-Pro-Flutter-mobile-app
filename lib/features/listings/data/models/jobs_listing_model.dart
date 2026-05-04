@@ -6,6 +6,7 @@ class JobsListingModel {
   final String description;
   final String price;
   final String currency;
+  final String country;
   final String city;
   final List<String> images;
   final bool isFeatured;
@@ -33,6 +34,7 @@ class JobsListingModel {
     required this.description,
     required this.price,
     required this.currency,
+    required this.country,
     required this.city,
     required this.images,
     required this.isFeatured,
@@ -81,14 +83,25 @@ class JobsListingModel {
     final dt = DateTime.tryParse(createdAt);
     if (dt == null) return createdAt;
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
     ];
     return '${dt.day} ${months[dt.month - 1]}, ${dt.year}';
   }
 
   String get subcategoryLabel {
     const map = {
+      'sales-and-marketing': 'Sales & Marketing',
       'sales-marketing': 'Sales & Marketing',
       'teacher': 'Teacher',
       'accountant': 'Accountant',
@@ -103,10 +116,9 @@ class JobsListingModel {
 
   factory JobsListingModel.fromMap(Map<String, dynamic> map) {
     final cd = (map['category_data'] as Map<String, dynamic>?) ?? {};
-    final imgs = (map['images'] as List<dynamic>?)
-            ?.map((e) => e.toString())
-            .toList() ??
-        [];
+    final imgs =
+        (map['images'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
+            [];
     return JobsListingModel(
       id: map['id']?.toString() ?? '',
       sellerId: map['seller_id']?.toString() ?? '',
@@ -115,6 +127,7 @@ class JobsListingModel {
       description: map['description']?.toString() ?? '',
       price: map['price']?.toString() ?? '0',
       currency: map['currency']?.toString() ?? 'AFN',
+      country: map['country']?.toString() ?? '',
       city: map['city']?.toString() ?? '',
       images: imgs,
       isFeatured: map['is_featured'] as bool? ?? false,

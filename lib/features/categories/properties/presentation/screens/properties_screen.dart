@@ -8,10 +8,13 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../../core/router/route_names.dart';
+import '../../../../../core/widgets/favorite_button.dart';
 import '../../../cars/data/models/subcategory_model.dart';
 import '../../../cars/presentation/providers/subcategories_provider.dart';
 import '../../data/models/property_listing_model.dart';
 import '../providers/property_listings_provider.dart';
+import 'property_detail_screen.dart';
+import 'property_listings_screen.dart';
 import 'property_subtype_screen.dart';
 
 const _kBlue = Color(0xFF2258A8);
@@ -70,11 +73,13 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
             const SizedBox(height: 14),
             Expanded(
               child: listingsAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator(color: _kBlue)),
+                loading: () => const Center(
+                    child: CircularProgressIndicator(color: _kBlue)),
                 error: (e, _) => Center(child: Text('Error: $e')),
                 data: (listings) {
                   return subcatsAsync.when(
-                    loading: () => const Center(child: CircularProgressIndicator(color: _kBlue)),
+                    loading: () => const Center(
+                        child: CircularProgressIndicator(color: _kBlue)),
                     error: (_, __) => _buildBody(listings, const []),
                     data: (subcats) => _buildBody(listings, subcats),
                   );
@@ -87,7 +92,8 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
     );
   }
 
-  Widget _buildBody(List<PropertyListingModel> listings, List<SubcategoryModel> subcats) {
+  Widget _buildBody(
+      List<PropertyListingModel> listings, List<SubcategoryModel> subcats) {
     final types = {
       for (final l in listings)
         if (l.propertyType.trim().isNotEmpty) l.propertyType.trim()
@@ -97,7 +103,11 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
     final chips = ['All', ...types.take(4)];
     var filtered = _activeType == 'All'
         ? listings
-        : listings.where((l) => l.propertyType.toLowerCase().contains(_activeType.toLowerCase())).toList();
+        : listings
+            .where((l) => l.propertyType
+                .toLowerCase()
+                .contains(_activeType.toLowerCase()))
+            .toList();
 
     if (_searchQuery.isNotEmpty) {
       filtered = filtered
@@ -128,7 +138,8 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
               const SizedBox(
                 height: 280,
                 child: Center(
-                  child: Text('No properties yet', style: TextStyle(color: Colors.black45)),
+                  child: Text('No properties yet',
+                      style: TextStyle(color: Colors.black45)),
                 ),
               )
             else
@@ -160,7 +171,9 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
     // Build flat slot list: 'item' | 'more' | 'empty'
     // Each slot is either a SubcategoryModel, the string 'more', or null (empty)
     final slots = <Object?>[...items, 'more']; // always show More
-    while (slots.length % 4 != 0) { slots.add(null); } // empty padding
+    while (slots.length % 4 != 0) {
+      slots.add(null);
+    } // empty padding
 
     final rows = <List<Object?>>[];
     for (int i = 0; i < slots.length; i += 4) {
@@ -178,7 +191,8 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
               }
               if (slot == 'more') {
                 return Expanded(
-                  child: _subcategoryCircle(name: 'More', iconUrl: null, isMore: true),
+                  child: _subcategoryCircle(
+                      name: 'More', iconUrl: null, isMore: true),
                 );
               }
               final item = slot as SubcategoryModel;
@@ -234,14 +248,16 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
                         width: 26,
                         height: 26,
                         fit: BoxFit.contain,
-                        placeholderBuilder: (_) => Icon(fallback, color: _kBlue, size: 22),
+                        placeholderBuilder: (_) =>
+                            Icon(fallback, color: _kBlue, size: 22),
                       )
                     : Image.network(
                         safeIconUrl,
                         width: 26,
                         height: 26,
                         fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => Icon(fallback, color: _kBlue, size: 22),
+                        errorBuilder: (_, __, ___) =>
+                            Icon(fallback, color: _kBlue, size: 22),
                       ))
                 : Icon(fallback, color: _kBlue, size: 22),
           ),
@@ -252,7 +268,8 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
           maxLines: 2,
           textAlign: TextAlign.center,
           overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.poppins(fontSize: 11.6, fontWeight: FontWeight.w400),
+          style:
+              GoogleFonts.poppins(fontSize: 11.6, fontWeight: FontWeight.w400),
         ),
       ],
     );
@@ -298,9 +315,27 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         children: [
-          Text('Top Deals', style: GoogleFonts.poppins(fontSize: 29.5 / 2, fontWeight: FontWeight.w600)),
+          Text('Top Deals',
+              style: GoogleFonts.poppins(
+                  fontSize: 29.5 / 2, fontWeight: FontWeight.w600)),
           const Spacer(),
-          Text('See all', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w500)),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const PropertyListingsScreen(
+                  subcategoryName: 'All Properties',
+                  subcategorySlug: '',
+                ),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+              child: Text('See all',
+                  style: GoogleFonts.poppins(
+                      fontSize: 11, fontWeight: FontWeight.w500)),
+            ),
+          ),
         ],
       ),
     );
@@ -313,7 +348,8 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
         children: [
           GestureDetector(
             onTap: () => context.pop(),
-            child: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black87),
+            child: const Icon(Icons.arrow_back_ios_new,
+                size: 20, color: Colors.black87),
           ),
           const Spacer(),
           Container(
@@ -321,9 +357,12 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
             decoration: _headerBoxDecoration,
             child: Row(
               children: [
-                Image.asset('assets/images/flags/afghanistan.png', width: 22, height: 22, fit: BoxFit.cover),
+                Image.asset('assets/images/flags/afghanistan.png',
+                    width: 22, height: 22, fit: BoxFit.cover),
                 const SizedBox(width: 5),
-                Text('Afghanistan', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w500)),
+                Text('Afghanistan',
+                    style: GoogleFonts.montserrat(
+                        fontSize: 12, fontWeight: FontWeight.w500)),
               ],
             ),
           ),
@@ -332,14 +371,18 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
             width: 34,
             height: 34,
             decoration: _headerBoxDecoration,
-            child: const Center(child: Icon(Icons.help_outline, size: 22, color: Colors.black54)),
+            child: const Center(
+                child:
+                    Icon(Icons.help_outline, size: 22, color: Colors.black54)),
           ),
           const SizedBox(width: 10),
           Container(
             width: 34,
             height: 34,
             decoration: _headerBoxDecoration,
-            child: const Center(child: Icon(Icons.notifications_outlined, size: 22, color: Colors.black87)),
+            child: const Center(
+                child: Icon(Icons.notifications_outlined,
+                    size: 22, color: Colors.black87)),
           ),
         ],
       ),
@@ -370,9 +413,16 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
                       fontWeight: FontWeight.w400,
                       color: Colors.black45),
                   border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  disabledBorder: InputBorder.none,
+                  errorBorder: InputBorder.none,
+                  focusedErrorBorder: InputBorder.none,
+                  isCollapsed: true,
                   contentPadding: EdgeInsets.zero,
                 ),
-                style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400),
+                style: GoogleFonts.poppins(
+                    fontSize: 11, fontWeight: FontWeight.w400),
               ),
             ),
             if (_searchCtrl.text.isNotEmpty)
@@ -389,7 +439,8 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
             else
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: SvgPicture.asset('assets/icons/filter.svg', width: 16, height: 16),
+                child: SvgPicture.asset('assets/icons/filter.svg',
+                    width: 16, height: 16),
               ),
           ],
         ),
@@ -409,9 +460,15 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.white,
-              boxShadow: [BoxShadow(color: Color(0x25000000), blurRadius: 8, offset: Offset(0, 2))],
+              boxShadow: [
+                BoxShadow(
+                    color: Color(0x25000000),
+                    blurRadius: 8,
+                    offset: Offset(0, 2))
+              ],
             ),
-            child: const Center(child: Icon(Icons.add, color: _kBlue, size: 28)),
+            child:
+                const Center(child: Icon(Icons.add, color: _kBlue, size: 28)),
           ),
         ),
       ),
@@ -440,10 +497,12 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
           child: Row(
             children: [
               Expanded(
-                child: _navItem(context, Icons.home_rounded, 'HOME', () => context.go(RouteNames.home)),
+                child: _navItem(context, Icons.home_rounded, 'HOME',
+                    () => context.go(RouteNames.home)),
               ),
               Expanded(
-                child: _navItem(context, Icons.chat_bubble_outline, 'CHATS', () => context.go(RouteNames.chats)),
+                child: _navItem(context, Icons.chat_bubble_outline, 'CHATS',
+                    () => context.go(RouteNames.chats)),
               ),
               Expanded(
                 child: Column(
@@ -464,10 +523,12 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
                 ),
               ),
               Expanded(
-                child: _navItem(context, Icons.favorite_border, 'MY ADS', () => context.go(RouteNames.favorites)),
+                child: _navItem(context, Icons.favorite_border, 'MY ADS',
+                    () => context.push(RouteNames.myAds)),
               ),
               Expanded(
-                child: _navItem(context, Icons.person_outline, 'ACCOUNT', () => context.go(RouteNames.account)),
+                child: _navItem(context, Icons.person_outline, 'ACCOUNT',
+                    () => context.go(RouteNames.account)),
               ),
             ],
           ),
@@ -476,7 +537,8 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
     );
   }
 
-  Widget _navItem(BuildContext context, IconData icon, String label, VoidCallback onTap) {
+  Widget _navItem(
+      BuildContext context, IconData icon, String label, VoidCallback onTap) {
     final isHome = label == 'HOME';
     return GestureDetector(
       onTap: onTap,
@@ -546,118 +608,132 @@ class _PropertyCardState extends State<_PropertyCard> {
   @override
   Widget build(BuildContext context) {
     final item = widget.item;
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(7.38),
-        boxShadow: const [
-          BoxShadow(color: Color(0x40000000), blurRadius: 4.22, offset: Offset(0, 1.05)),
-        ],
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => PropertyDetailScreen(property: item),
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(7.38),
-                  topRight: Radius.circular(7.38),
-                ),
-                child: item.images.isEmpty
-                    ? _placeholder()
-                    : SizedBox(
-                        height: 101.27,
-                        width: double.infinity,
-                        child: PageView.builder(
-                          controller: _pageController,
-                          itemCount: item.images.length,
-                          onPageChanged: (i) => setState(() => _currentPage = i),
-                          itemBuilder: (_, i) => Image.network(
-                            item.images[i],
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => _placeholder(),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(7.38),
+          boxShadow: const [
+            BoxShadow(
+                color: Color(0x40000000),
+                blurRadius: 4.22,
+                offset: Offset(0, 1.05)),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(7.38),
+                    topRight: Radius.circular(7.38),
+                  ),
+                  child: item.images.isEmpty
+                      ? _placeholder()
+                      : SizedBox(
+                          height: 101.27,
+                          width: double.infinity,
+                          child: PageView.builder(
+                            controller: _pageController,
+                            itemCount: item.images.length,
+                            onPageChanged: (i) =>
+                                setState(() => _currentPage = i),
+                            itemBuilder: (_, i) => Image.network(
+                              item.images[i],
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => _placeholder(),
+                            ),
                           ),
                         ),
-                      ),
-              ),
-              Positioned(
-                top: 8,
-                right: 8,
-                child: Container(
-                  width: 28,
-                  height: 28,
-                  decoration: const BoxDecoration(
-                      color: Color(0x140F172A), shape: BoxShape.circle),
-                  child: const Icon(Icons.favorite_border, size: 14, color: Colors.white),
                 ),
-              ),
-              if (item.images.length > 1)
                 Positioned(
-                  bottom: 6,
-                  left: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: const Color(0x63000000),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      '${_currentPage + 1}/${item.images.length}',
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontSize: 8,
-                        fontWeight: FontWeight.w500,
+                  top: 8,
+                  right: 8,
+                  child: FavoriteButton(
+                    listingId: item.id,
+                    size: 28,
+                    backgroundColor: const Color(0x100F172A),
+                    showShadow: false,
+                    unselectedIconColor: Colors.white,
+                    selectedIconColor: Colors.red,
+                  ),
+                ),
+                if (item.images.length > 1)
+                  Positioned(
+                    bottom: 6,
+                    left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0x63000000),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '${_currentPage + 1}/${item.images.length}',
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 8,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),
-                ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(8, 6, 8, 5),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(item.formattedPrice,
-                    style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        height: 1.3,
-                        color: _kBlue)),
-                const SizedBox(height: 4),
-                Text(item.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        height: 1.3,
-                        color: Colors.black87)),
-                const SizedBox(height: 5),
-                Row(
-                  children: [
-                    const Icon(Icons.location_on_outlined,
-                        size: 12, color: Color(0xFF505050)),
-                    const SizedBox(width: 3),
-                    Expanded(
-                      child: Text(
-                        item.location,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w400,
-                            height: 1.3,
-                            color: const Color(0xFF505050)),
-                      ),
-                    ),
-                  ],
-                ),
               ],
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 6, 8, 5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(item.formattedPrice,
+                      style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          height: 1.3,
+                          color: _kBlue)),
+                  const SizedBox(height: 4),
+                  Text(item.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          height: 1.3,
+                          color: Colors.black87)),
+                  const SizedBox(height: 5),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on_outlined,
+                          size: 12, color: Color(0xFF505050)),
+                      const SizedBox(width: 3),
+                      Expanded(
+                        child: Text(
+                          item.location,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w400,
+                              height: 1.3,
+                              color: const Color(0xFF505050)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -684,8 +760,10 @@ class _SellRingPainter extends CustomPainter {
 
     const third = 2 * pi / 3;
     canvas.drawArc(rect, -pi / 2, third, false, arc(const Color(0xFF1D57A7)));
-    canvas.drawArc(rect, -pi / 2 + third, third, false, arc(const Color(0xFF000000)));
-    canvas.drawArc(rect, -pi / 2 + 2 * third, third, false, arc(const Color(0xFF3B77FE)));
+    canvas.drawArc(
+        rect, -pi / 2 + third, third, false, arc(const Color(0xFF000000)));
+    canvas.drawArc(
+        rect, -pi / 2 + 2 * third, third, false, arc(const Color(0xFF3B77FE)));
   }
 
   @override

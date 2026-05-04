@@ -4,11 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../../core/widgets/favorite_button.dart';
 import '../../../../chat/presentation/providers/chat_provider.dart';
-import '../../../../chat/presentation/screens/chat_detail_screen.dart';
 import '../../../../../features/listings/data/models/electronics_listing_model.dart';
 
 class ElectronicsDetailScreen extends ConsumerStatefulWidget {
@@ -20,11 +21,11 @@ class ElectronicsDetailScreen extends ConsumerStatefulWidget {
       _ElectronicsDetailScreenState();
 }
 
-class _ElectronicsDetailScreenState extends ConsumerState<ElectronicsDetailScreen> {
+class _ElectronicsDetailScreenState
+    extends ConsumerState<ElectronicsDetailScreen> {
   late final PageController _pageController;
   Timer? _timer;
   int _currentImage = 0;
-  bool _isFavorited = false;
 
   @override
   void initState() {
@@ -68,18 +69,21 @@ class _ElectronicsDetailScreenState extends ConsumerState<ElectronicsDetailScree
                   child: item.images.isEmpty
                       ? Container(
                           color: const Color(0xFFE8E8E8),
-                          child: const Icon(Icons.devices_other, size: 50, color: Colors.grey),
+                          child: const Icon(Icons.devices_other,
+                              size: 50, color: Colors.grey),
                         )
                       : PageView.builder(
                           controller: _pageController,
                           itemCount: item.images.length,
-                          onPageChanged: (i) => setState(() => _currentImage = i),
+                          onPageChanged: (i) =>
+                              setState(() => _currentImage = i),
                           itemBuilder: (_, i) => Image.network(
                             item.images[i],
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => Container(
                               color: const Color(0xFFE8E8E8),
-                              child: const Icon(Icons.devices_other, size: 50, color: Colors.grey),
+                              child: const Icon(Icons.devices_other,
+                                  size: 50, color: Colors.grey),
                             ),
                           ),
                         ),
@@ -96,7 +100,8 @@ class _ElectronicsDetailScreenState extends ConsumerState<ElectronicsDetailScree
                         color: Colors.white,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.arrow_back_ios_new, size: 12, color: Colors.black87),
+                      child: const Icon(Icons.arrow_back_ios_new,
+                          size: 12, color: Colors.black87),
                     ),
                   ),
                 ),
@@ -104,14 +109,16 @@ class _ElectronicsDetailScreenState extends ConsumerState<ElectronicsDetailScree
                   left: 14,
                   bottom: 12,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: const Color(0x63000000),
                       borderRadius: BorderRadius.circular(7),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.image_outlined, color: Colors.white, size: 15),
+                        const Icon(Icons.image_outlined,
+                            color: Colors.white, size: 15),
                         const SizedBox(width: 4),
                         Text(
                           '${_currentImage + 1}/${item.images.isEmpty ? 1 : item.images.length}',
@@ -167,13 +174,10 @@ class _ElectronicsDetailScreenState extends ConsumerState<ElectronicsDetailScree
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          _circleButton(icon: Icons.reply_outlined, onTap: _shareItem),
-                          const SizedBox(width: 10),
                           _circleButton(
-                            icon: _isFavorited ? Icons.favorite : Icons.favorite_border,
-                            onTap: () => setState(() => _isFavorited = !_isFavorited),
-                            color: _isFavorited ? Colors.red : Colors.black87,
-                          ),
+                              icon: Icons.reply_outlined, onTap: _shareItem),
+                          const SizedBox(width: 10),
+                          FavoriteButton(listingId: item.id, size: 36),
                         ],
                       ),
                     ),
@@ -201,7 +205,8 @@ class _ElectronicsDetailScreenState extends ConsumerState<ElectronicsDetailScree
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.location_on_outlined, size: 15, color: Color(0xFF505050)),
+                      const Icon(Icons.location_on_outlined,
+                          size: 15, color: Color(0xFF505050)),
                       const SizedBox(width: 5),
                       Text(
                         item.location,
@@ -227,7 +232,8 @@ class _ElectronicsDetailScreenState extends ConsumerState<ElectronicsDetailScree
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+                      const Divider(
+                          height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
                       const SizedBox(height: 14),
                       if (item.description.isNotEmpty)
                         Text(
@@ -239,18 +245,28 @@ class _ElectronicsDetailScreenState extends ConsumerState<ElectronicsDetailScree
                             height: 1.6,
                           ),
                         ),
-                      if (item.description.isNotEmpty) const SizedBox(height: 14),
-                      if (item.description.isNotEmpty) const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
-                      if (item.description.isNotEmpty) const SizedBox(height: 14),
-                      if (item.brand.isNotEmpty) _overviewRow('Brand', item.brand),
-                      if (item.model.isNotEmpty) _overviewRow('Model', item.model),
-                      if (item.condition.isNotEmpty) _overviewRow('Condition', item.condition),
+                      if (item.description.isNotEmpty)
+                        const SizedBox(height: 14),
+                      if (item.description.isNotEmpty)
+                        const Divider(
+                            height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+                      if (item.description.isNotEmpty)
+                        const SizedBox(height: 14),
+                      if (item.brand.isNotEmpty)
+                        _overviewRow('Brand', item.brand),
+                      if (item.model.isNotEmpty)
+                        _overviewRow('Model', item.model),
+                      if (item.condition.isNotEmpty)
+                        _overviewRow('Condition', item.condition),
                       if (item.age.isNotEmpty) _overviewRow('Age', item.age),
-                      if (item.usage.isNotEmpty) _overviewRow('Usage', item.usage),
-                      if (item.warranty.isNotEmpty) _overviewRow('Warranty', item.warranty),
+                      if (item.usage.isNotEmpty)
+                        _overviewRow('Usage', item.usage),
+                      if (item.warranty.isNotEmpty)
+                        _overviewRow('Warranty', item.warranty),
                       _overviewRow('Posted', item.formattedDate),
                       const SizedBox(height: 14),
-                      const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+                      const Divider(
+                          height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
                     ],
                   ),
                 ),
@@ -263,11 +279,15 @@ class _ElectronicsDetailScreenState extends ConsumerState<ElectronicsDetailScree
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
               child: Row(
                 children: [
-                  Expanded(child: _detailAction(Icons.phone_outlined, 'Call', onTap: () => _launch('tel:${item.phone}'))),
+                  Expanded(
+                      child: _detailAction(Icons.phone_outlined, 'Call',
+                          onTap: () => _launch('tel:${item.phone}'))),
                   const SizedBox(width: 8),
                   Expanded(child: _whatsAppAction(onTap: () => _openChat())),
                   const SizedBox(width: 8),
-                  Expanded(child: _detailAction(Icons.sms_outlined, 'SMS', onTap: () => _launch('sms:${item.phone}'))),
+                  Expanded(
+                      child: _detailAction(Icons.message_outlined, 'Chat',
+                          onTap: _openChat)),
                 ],
               ),
             ),
@@ -316,7 +336,8 @@ class _ElectronicsDetailScreenState extends ConsumerState<ElectronicsDetailScree
 
   void _shareItem() {
     final itemName = widget.item.title;
-    final shareText = 'Check out this electronics item: $itemName - ${widget.item.formattedPrice} on Afghan Deals Pro';
+    final shareText =
+        'Check out this electronics item: $itemName - ${widget.item.formattedPrice} on Afghan Deals Pro';
 
     showModalBottomSheet(
       context: context,
@@ -384,11 +405,13 @@ class _ElectronicsDetailScreenState extends ConsumerState<ElectronicsDetailScree
               ),
               ListTile(
                 leading: const Icon(Icons.link, color: Color(0xFF2258A8)),
-                title: Text('Copy Link',
-                    style: GoogleFonts.poppins(fontSize: 14)),
+                title:
+                    Text('Copy Link', style: GoogleFonts.poppins(fontSize: 14)),
                 onTap: () {
                   Clipboard.setData(
-                    ClipboardData(text: 'afghan-deals-pro://electronics/${widget.item.id}'),
+                    ClipboardData(
+                        text:
+                            'afghan-deals-pro://electronics/${widget.item.id}'),
                   );
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -406,7 +429,10 @@ class _ElectronicsDetailScreenState extends ConsumerState<ElectronicsDetailScree
     );
   }
 
-  Widget _circleButton({required IconData icon, Color color = Colors.black87, required VoidCallback onTap}) {
+  Widget _circleButton(
+      {required IconData icon,
+      Color color = Colors.black87,
+      required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -486,9 +512,7 @@ class _ElectronicsDetailScreenState extends ConsumerState<ElectronicsDetailScree
                 sellerId: widget.item.sellerId,
               );
       if (!mounted) return;
-      Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => ChatDetailScreen(chatId: chatId),
-      ));
+      context.push('/chat/$chatId');
     } catch (e) {
       if (!mounted) return;
       final message = e.toString().replaceAll('Exception: ', '');

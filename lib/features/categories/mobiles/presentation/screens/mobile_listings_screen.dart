@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../../core/router/route_names.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/widgets/favorite_button.dart';
 import '../../../../../features/chat/presentation/providers/chat_provider.dart';
 import '../../../../../features/listings/data/models/mobile_listing_model.dart';
 import '../providers/mobile_listings_provider.dart';
@@ -36,6 +36,37 @@ class MobileListingsScreen extends ConsumerStatefulWidget {
 
 class _MobileListingsScreenState extends ConsumerState<MobileListingsScreen> {
   String _sortBy = 'Newest to Oldest';
+  AppliedMobileFilters? _appliedFilters;
+
+  bool _matches(String value, Set<String> selected) {
+    if (selected.isEmpty) return true;
+    final normalized = value.toLowerCase().trim();
+    return selected.any((s) => normalized.contains(s.toLowerCase().trim()));
+  }
+
+  List<MobileListingModel> _applyFilters(List<MobileListingModel> list) {
+    final filters = _appliedFilters;
+    if (filters == null || filters.isEmpty) return list;
+
+    return list.where((item) {
+      final price = double.tryParse(item.price) ?? 0;
+      if (price < filters.minPrice || price > filters.maxPrice) return false;
+      if (!_matches(item.brand, filters.brands)) return false;
+      if (!_matches(item.model, filters.models)) return false;
+      if (!_matches(item.condition, filters.conditions)) return false;
+      if (!_matches(item.sellerType, filters.sellerTypes)) return false;
+      if (!_matches(item.age, filters.ages)) return false;
+      if (!_matches(item.warranty, filters.warranties)) return false;
+      if (!_matches(item.screenSize, filters.screenSizes)) return false;
+      if (!_matches(item.damageDetails, filters.damages)) return false;
+      if (!_matches(item.batteryHealth, filters.batteries)) return false;
+      if (!_matches(item.version, filters.versions)) return false;
+      if (!_matches(item.storage, filters.storages)) return false;
+      if (!_matches(item.color, filters.colors)) return false;
+      if (!_matches(item.location, filters.regions)) return false;
+      return true;
+    }).toList();
+  }
 
   List<MobileListingModel> _sorted(List<MobileListingModel> list) {
     final out = List<MobileListingModel>.from(list);
@@ -90,21 +121,32 @@ class _MobileListingsScreenState extends ConsumerState<MobileListingsScreen> {
         ),
         actions: [
           GestureDetector(
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => MobileFilterScreen(cities: cities),
-              ),
-            ),
+            onTap: () async {
+              final result =
+                  await Navigator.of(context).push<AppliedMobileFilters>(
+                MaterialPageRoute(
+                  builder: (_) => MobileFilterScreen(
+                    cities: cities,
+                    initialFilters: _appliedFilters,
+                  ),
+                ),
+              );
+              if (result != null) {
+                setState(() => _appliedFilters = result);
+              }
+            },
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: SvgPicture.asset('assets/icons/filter.svg', width: 20, height: 20),
+              child: SvgPicture.asset('assets/icons/filter.svg',
+                  width: 20, height: 20),
             ),
           ),
           GestureDetector(
             onTap: () => _showSortSheet(context),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: SvgPicture.asset('assets/icons/bars_sort.svg', width: 20, height: 20),
+              child: SvgPicture.asset('assets/icons/bars_sort.svg',
+                  width: 20, height: 20),
             ),
           ),
         ],
@@ -118,7 +160,7 @@ class _MobileListingsScreenState extends ConsumerState<MobileListingsScreen> {
             const Center(child: CircularProgressIndicator(color: _kBlue)),
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (listings) {
-          final sorted = _sorted(listings);
+          final sorted = _sorted(_applyFilters(listings));
           return Column(
             children: [
               Expanded(
@@ -312,14 +354,21 @@ class _MobileListCard extends ConsumerWidget {
                       : _placeholder(),
                 ),
                 // Share + Heart
-                const Positioned(
+                Positioned(
                   top: 6,
                   right: 6,
                   child: Row(
                     children: [
-                      _CircleBtn(icon: Icons.reply_outlined),
-                      SizedBox(width: 4),
-                      _CircleBtn(icon: Icons.favorite_border),
+                      const _CircleBtn(icon: Icons.reply_outlined),
+                      const SizedBox(width: 4),
+                      FavoriteButton(
+                        listingId: listing.id,
+                        size: 24,
+                        backgroundColor: const Color(0x100F172A),
+                        showShadow: false,
+                        unselectedIconColor: Colors.white,
+                        selectedIconColor: Colors.red,
+                      ),
                     ],
                   ),
                 ),
@@ -495,7 +544,7 @@ class _CircleBtn extends StatelessWidget {
       width: 28,
       height: 28,
       decoration:
-          const BoxDecoration(color: Color(0x140F172A), shape: BoxShape.circle),
+          const BoxDecoration(color: Color(0x100F172A), shape: BoxShape.circle),
       child: Icon(icon, size: 14, color: Colors.white),
     );
   }

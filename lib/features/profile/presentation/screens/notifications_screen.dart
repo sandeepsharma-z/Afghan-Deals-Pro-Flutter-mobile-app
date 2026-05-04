@@ -1,78 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/router/route_names.dart';
+import '../../data/models/notification_model.dart';
+import '../providers/notifications_provider.dart';
 
-class NotificationsScreen extends StatelessWidget {
-  const NotificationsScreen({super.key});
+class NotificationsScreen extends ConsumerWidget {
+  final VoidCallback? onBackToHome;
+  const NotificationsScreen({super.key, this.onBackToHome});
 
-  static const _notifications = [
-    _NotifData(
-      icon: Icons.local_offer_outlined,
-      iconColor: Color(0xFF1E56A6),
-      iconBg: Color(0xFFE8F0FB),
-      title: 'New offer on your listing',
-      subtitle: 'Someone made an offer on your Toyota Corolla 2020',
-      time: '2 min ago',
-      isRead: false,
-    ),
-    _NotifData(
-      icon: Icons.chat_bubble_outline,
-      iconColor: Color(0xFF27AE60),
-      iconBg: Color(0xFFE8F8EF),
-      title: 'New message received',
-      subtitle: 'Ahmad sent you a message about your iPhone 14 listing',
-      time: '15 min ago',
-      isRead: false,
-    ),
-    _NotifData(
-      icon: Icons.favorite_border,
-      iconColor: Color(0xFFC92325),
-      iconBg: Color(0xFFFEEBEB),
-      title: 'Someone saved your ad',
-      subtitle: 'Your listing "2BHK Apartment Kabul" was saved by 3 people',
-      time: '1 hr ago',
-      isRead: true,
-    ),
-    _NotifData(
-      icon: Icons.verified_outlined,
-      iconColor: Color(0xFF1E56A6),
-      iconBg: Color(0xFFE8F0FB),
-      title: 'Profile verified!',
-      subtitle: 'Your profile has been successfully verified',
-      time: '2 hr ago',
-      isRead: true,
-    ),
-    _NotifData(
-      icon: Icons.campaign_outlined,
-      iconColor: Color(0xFFFFA000),
-      iconBg: Color(0xFFFFF8E1),
-      title: 'Featured ad expiring soon',
-      subtitle: 'Your featured listing expires in 24 hours. Renew now!',
-      time: 'Yesterday',
-      isRead: true,
-    ),
-    _NotifData(
-      icon: Icons.star_outline,
-      iconColor: Color(0xFFFFA000),
-      iconBg: Color(0xFFFFF8E1),
-      title: 'New review received',
-      subtitle: 'Reza gave you a 5-star rating for your transaction',
-      time: '2 days ago',
-      isRead: true,
-    ),
-  ];
+  void _goBack(BuildContext context) {
+    if (onBackToHome != null) {
+      onBackToHome!();
+      return;
+    }
+    context.go(RouteNames.home);
+  }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notificationsAsync = ref.watch(notificationsProvider);
+    final userId = Supabase.instance.client.auth.currentUser?.id ?? '';
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F8F8),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: Colors.black87, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
+        leadingWidth: 48,
+        leading: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => _goBack(context),
+          child: const SizedBox(
+            width: 48,
+            height: kToolbarHeight,
+            child: Center(
+              child: Icon(Icons.arrow_back_ios_new,
+                  size: 18, color: Colors.black87),
+            ),
+          ),
         ),
         title: Text(
           'Notifications',
@@ -84,9 +52,15 @@ class NotificationsScreen extends StatelessWidget {
             color: Colors.black87,
           ),
         ),
+        centerTitle: true,
         actions: [
           TextButton(
-            onPressed: () {},
+            onPressed: () async {
+              await ref
+                  .read(notificationsActionsProvider)
+                  .markAllAsRead(userId);
+              ref.invalidate(notificationsProvider);
+            },
             child: Text(
               'Mark all read',
               style: GoogleFonts.montserrat(
@@ -101,14 +75,69 @@ class NotificationsScreen extends StatelessWidget {
           child: Divider(height: 1, thickness: 1, color: Color(0xFFE8E8E8)),
         ),
       ),
-      body: _notifications.isEmpty
-          ? _buildEmpty()
-          : ListView.separated(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: _notifications.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 1),
-              itemBuilder: (_, i) => _NotifTile(data: _notifications[i]),
+      body: notificationsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, st) => Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                const SizedBox(height: 16),
+                Text(
+                  'Error loading notifications',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                GestureDetector(
+                  onTap: () => ref.invalidate(notificationsProvider),
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.blue),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'Retry',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 14,
+                        color: Colors.blue,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
+          ),
+        ),
+        data: (notifications) {
+          if (notifications.isEmpty) {
+            return _buildEmpty();
+          }
+          return ListView.separated(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            itemCount: notifications.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 1),
+            itemBuilder: (_, i) => _NotifTile(
+              notification: notifications[i],
+              onMarkAsRead: () async {
+                await ref
+                    .read(notificationsActionsProvider)
+                    .markAsRead(notifications[i].id);
+                ref.invalidate(notificationsProvider);
+              },
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -142,15 +171,86 @@ class NotificationsScreen extends StatelessWidget {
 }
 
 class _NotifTile extends StatelessWidget {
-  final _NotifData data;
-  const _NotifTile({required this.data});
+  final NotificationModel notification;
+  final VoidCallback onMarkAsRead;
+
+  const _NotifTile({
+    required this.notification,
+    required this.onMarkAsRead,
+  });
+
+  String _formatTime(DateTime dt) {
+    final now = DateTime.now();
+    final diff = now.difference(dt);
+
+    if (diff.inMinutes < 1) return 'just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    if (diff.inDays < 7) return '${diff.inDays}d ago';
+
+    return '${dt.day}/${dt.month}/${dt.year}';
+  }
+
+  Map<String, dynamic> _getIconData(String iconType) {
+    const iconMap = {
+      'offer': {
+        'icon': Icons.local_offer_outlined,
+        'color': Color(0xFF1E56A6),
+        'bg': Color(0xFFE8F0FB),
+      },
+      'message': {
+        'icon': Icons.chat_bubble_outline,
+        'color': Color(0xFF27AE60),
+        'bg': Color(0xFFE8F8EF),
+      },
+      'favorite': {
+        'icon': Icons.favorite_border,
+        'color': Color(0xFFC92325),
+        'bg': Color(0xFFFEEBEB),
+      },
+      'verified': {
+        'icon': Icons.verified_outlined,
+        'color': Color(0xFF1E56A6),
+        'bg': Color(0xFFE8F0FB),
+      },
+      'featured': {
+        'icon': Icons.campaign_outlined,
+        'color': Color(0xFFFFA000),
+        'bg': Color(0xFFFFF8E1),
+      },
+      'review': {
+        'icon': Icons.star_outline,
+        'color': Color(0xFFFFA000),
+        'bg': Color(0xFFFFF8E1),
+      },
+      'report': {
+        'icon': Icons.flag_outlined,
+        'color': Color(0xFFC92325),
+        'bg': Color(0xFFFEEBEB),
+      },
+      'block': {
+        'icon': Icons.block,
+        'color': Color(0xFFC92325),
+        'bg': Color(0xFFFEEBEB),
+      },
+    };
+
+    return iconMap[iconType] ??
+        {
+          'icon': Icons.notifications_outlined,
+          'color': const Color(0xFF1E56A6),
+          'bg': const Color(0xFFE8F0FB),
+        };
+  }
 
   @override
   Widget build(BuildContext context) {
+    final iconData = _getIconData(notification.iconType);
+
     return Container(
-      color: data.isRead ? Colors.white : const Color(0xFFF0F5FF),
+      color: notification.isRead ? Colors.white : const Color(0xFFF0F5FF),
       child: InkWell(
-        onTap: () {},
+        onTap: onMarkAsRead,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
@@ -161,10 +261,11 @@ class _NotifTile extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: data.iconBg,
+                  color: iconData['bg'] as Color,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(data.icon, size: 22, color: data.iconColor),
+                child: Icon(iconData['icon'] as IconData,
+                    size: 22, color: iconData['color'] as Color),
               ),
               const SizedBox(width: 12),
               // Content
@@ -176,17 +277,17 @@ class _NotifTile extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            data.title,
+                            notification.title,
                             style: GoogleFonts.montserrat(
                               fontSize: 14,
-                              fontWeight: data.isRead
+                              fontWeight: notification.isRead
                                   ? FontWeight.w500
                                   : FontWeight.w700,
                               color: Colors.black87,
                             ),
                           ),
                         ),
-                        if (!data.isRead)
+                        if (!notification.isRead)
                           Container(
                             width: 8,
                             height: 8,
@@ -199,13 +300,13 @@ class _NotifTile extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      data.subtitle,
+                      notification.subtitle,
                       style: GoogleFonts.montserrat(
                           fontSize: 13, color: Colors.black54, height: 1.4),
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      data.time,
+                      _formatTime(notification.createdAt),
                       style: GoogleFonts.montserrat(
                           fontSize: 12, color: Colors.black38),
                     ),
@@ -218,24 +319,4 @@ class _NotifTile extends StatelessWidget {
       ),
     );
   }
-}
-
-class _NotifData {
-  final IconData icon;
-  final Color iconColor;
-  final Color iconBg;
-  final String title;
-  final String subtitle;
-  final String time;
-  final bool isRead;
-
-  const _NotifData({
-    required this.icon,
-    required this.iconColor,
-    required this.iconBg,
-    required this.title,
-    required this.subtitle,
-    required this.time,
-    required this.isRead,
-  });
 }

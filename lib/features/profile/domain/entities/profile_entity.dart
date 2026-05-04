@@ -9,6 +9,9 @@ class ProfileEntity extends Equatable {
   final String country;
   final String? region;
   final String? city;
+  final String? nationality;
+  final String? gender;
+  final String? dob;
   final bool isVerified;
   final DateTime? createdAt;
 
@@ -21,10 +24,25 @@ class ProfileEntity extends Equatable {
     required this.country,
     this.region,
     this.city,
+    this.nationality,
+    this.gender,
+    this.dob,
     required this.isVerified,
     this.createdAt,
   });
 
   @override
-  List<Object?> get props => [id, email, phone];
+  List<Object?> get props => [
+        id,
+        email,
+        phone,
+        name,
+        country,
+        region,
+        city,
+        nationality,
+        gender,
+        dob,
+        isVerified,
+      ];
 }

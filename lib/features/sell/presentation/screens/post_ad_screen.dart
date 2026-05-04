@@ -41,6 +41,89 @@ const _kCurrencies = [
   'PKR',
 ];
 
+class _ClassifiedChildSubcategory {
+  final String name;
+  final String slug;
+  const _ClassifiedChildSubcategory(this.name, this.slug);
+}
+
+const _classifiedChildSubcategories =
+    <String, List<_ClassifiedChildSubcategory>>{
+  'men': [
+    _ClassifiedChildSubcategory('Shirts', 'shirts'),
+    _ClassifiedChildSubcategory('T-Shirts', 't-shirts'),
+    _ClassifiedChildSubcategory('Jeans', 'jeans'),
+    _ClassifiedChildSubcategory('Shalwar Kameez', 'shalwar-kameez'),
+    _ClassifiedChildSubcategory('Jackets', 'jackets'),
+    _ClassifiedChildSubcategory('Kurta', 'kurta'),
+    _ClassifiedChildSubcategory('Accessories', 'accessories'),
+  ],
+  'women': [
+    _ClassifiedChildSubcategory('Dresses', 'dresses'),
+    _ClassifiedChildSubcategory('Shalwar Kameez', 'shalwar-kameez'),
+    _ClassifiedChildSubcategory('Abayas', 'abayas'),
+    _ClassifiedChildSubcategory('Tops', 'tops'),
+    _ClassifiedChildSubcategory('Jeans', 'jeans'),
+    _ClassifiedChildSubcategory('Dupatta/Scarf', 'dupatta-scarf'),
+    _ClassifiedChildSubcategory('Accessories', 'accessories'),
+  ],
+  'kids-fashion': [
+    _ClassifiedChildSubcategory('Boys Wear', 'boys-wear'),
+    _ClassifiedChildSubcategory('Girls Wear', 'girls-wear'),
+    _ClassifiedChildSubcategory('Baby Clothes', 'baby-clothes'),
+    _ClassifiedChildSubcategory('School Uniform', 'school-uniform'),
+    _ClassifiedChildSubcategory('Party Wear', 'party-wear'),
+    _ClassifiedChildSubcategory('Kids Shoes', 'kids-shoes'),
+    _ClassifiedChildSubcategory('Accessories', 'accessories'),
+  ],
+  'bags': [
+    _ClassifiedChildSubcategory('Handbags', 'handbags'),
+    _ClassifiedChildSubcategory('Backpacks', 'backpacks'),
+    _ClassifiedChildSubcategory('School Bags', 'school-bags'),
+    _ClassifiedChildSubcategory('Travel Bags', 'travel-bags'),
+    _ClassifiedChildSubcategory('Wallets', 'wallets'),
+    _ClassifiedChildSubcategory('Clutches', 'clutches'),
+    _ClassifiedChildSubcategory('Pouches', 'pouches'),
+  ],
+  'footwear': [
+    _ClassifiedChildSubcategory('Men\'s Shoes', 'mens-shoes'),
+    _ClassifiedChildSubcategory('Women\'s Shoes', 'womens-shoes'),
+    _ClassifiedChildSubcategory('Kids\' Shoes', 'kids-shoes'),
+    _ClassifiedChildSubcategory('Sandals', 'sandals'),
+    _ClassifiedChildSubcategory('Boots', 'boots'),
+    _ClassifiedChildSubcategory('Sports Shoes', 'sports-shoes'),
+    _ClassifiedChildSubcategory('Slippers', 'slippers'),
+  ],
+  'jewellery': [
+    _ClassifiedChildSubcategory('Necklaces', 'necklaces'),
+    _ClassifiedChildSubcategory('Earrings', 'earrings'),
+    _ClassifiedChildSubcategory('Rings', 'rings'),
+    _ClassifiedChildSubcategory('Bracelets', 'bracelets'),
+    _ClassifiedChildSubcategory('Bangles', 'bangles'),
+    _ClassifiedChildSubcategory('Sets', 'sets'),
+    _ClassifiedChildSubcategory('Anklets', 'anklets'),
+  ],
+  'watches-accessories': [
+    _ClassifiedChildSubcategory('Watches', 'watches'),
+    _ClassifiedChildSubcategory('Sunglasses', 'sunglasses'),
+    _ClassifiedChildSubcategory('Belts', 'belts'),
+    _ClassifiedChildSubcategory('Caps & Hats', 'caps-hats'),
+    _ClassifiedChildSubcategory('Ties', 'ties'),
+    _ClassifiedChildSubcategory('Scarves', 'scarves'),
+    _ClassifiedChildSubcategory('Wallets', 'wallets'),
+  ],
+  'books-sports': [
+    _ClassifiedChildSubcategory('Academic Books', 'academic-books'),
+    _ClassifiedChildSubcategory('Fiction Books', 'fiction-books'),
+    _ClassifiedChildSubcategory('Kids Book', 'kids-book'),
+    _ClassifiedChildSubcategory('Exam Preparation', 'exam-preparation'),
+    _ClassifiedChildSubcategory('Sports Accessories', 'sports-accessories'),
+    _ClassifiedChildSubcategory('Cricket Gear', 'cricket-gear'),
+    _ClassifiedChildSubcategory('Fitness Equipment', 'fitness-equipment'),
+    _ClassifiedChildSubcategory('Musical Instruments', 'musical-instruments'),
+  ],
+};
+
 class _DetailRow {
   final TextEditingController keyCtrl;
   final TextEditingController valueCtrl;
@@ -52,6 +135,68 @@ class _DetailRow {
   void dispose() {
     keyCtrl.dispose();
     valueCtrl.dispose();
+  }
+}
+
+List<_DetailRow> _defaultDetailRows(String category) {
+  switch (category.trim().toLowerCase().replaceAll('_', '-')) {
+    case 'electronics':
+      return [
+        _DetailRow(key: 'brand'),
+        _DetailRow(key: 'model'),
+        _DetailRow(key: 'condition', value: 'Used'),
+        _DetailRow(key: 'age'),
+        _DetailRow(key: 'usage'),
+        _DetailRow(key: 'warranty'),
+        _DetailRow(key: 'seller_type', value: 'Individual'),
+        _DetailRow(key: 'phone'),
+      ];
+    case 'furniture':
+      return [
+        _DetailRow(key: 'brand'),
+        _DetailRow(key: 'condition', value: 'Used'),
+        _DetailRow(key: 'material'),
+        _DetailRow(key: 'color'),
+        _DetailRow(key: 'room_type'),
+        _DetailRow(key: 'type'),
+        _DetailRow(key: 'usage'),
+        _DetailRow(key: 'age'),
+        _DetailRow(key: 'seller_type', value: 'Individual'),
+        _DetailRow(key: 'phone'),
+      ];
+    case 'classifieds':
+      return [
+        _DetailRow(key: 'brand'),
+        _DetailRow(key: 'condition', value: 'Good'),
+        _DetailRow(key: 'age'),
+        _DetailRow(key: 'usage'),
+        _DetailRow(key: 'seller_type', value: 'Individual'),
+        _DetailRow(key: 'phone'),
+      ];
+    case 'jobs':
+      return [
+        _DetailRow(key: 'company'),
+        _DetailRow(key: 'job_type', value: 'Full-time'),
+        _DetailRow(key: 'experience'),
+        _DetailRow(key: 'industry'),
+        _DetailRow(key: 'education'),
+        _DetailRow(key: 'seller_type', value: 'Company'),
+        _DetailRow(key: 'phone'),
+      ];
+    case 'spare-parts':
+      return [
+        _DetailRow(key: 'make'),
+        _DetailRow(key: 'model'),
+        _DetailRow(key: 'part_name'),
+        _DetailRow(key: 'year'),
+        _DetailRow(key: 'mileage'),
+        _DetailRow(key: 'condition', value: 'Used'),
+        _DetailRow(key: 'seller_type', value: 'Individual'),
+        _DetailRow(key: 'phone'),
+        _DetailRow(key: 'address'),
+      ];
+    default:
+      return [_DetailRow()];
   }
 }
 
@@ -69,15 +214,22 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
   final _descCtrl = TextEditingController();
   final _priceCtrl = TextEditingController();
   final _cityCtrl = TextEditingController();
-  final List<_DetailRow> _details = [_DetailRow()];
+  late final List<_DetailRow> _details;
 
   _Country _country = _kCountries.first;
   String _currency = 'AFN';
   String _selectedSubcategory = '';
+  String _selectedClassifiedChild = '';
+
+  String get _categoryKey =>
+      widget.category.trim().toLowerCase().replaceAll('_', '-');
+
+  bool get _isClassified => _categoryKey == 'classifieds';
 
   @override
   void initState() {
     super.initState();
+    _details = _defaultDetailRows(widget.category);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(sellProvider.notifier).reset();
     });
@@ -112,6 +264,8 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
         return 'Spare Part';
       case 'jobs':
         return 'Job';
+      case 'classifieds':
+        return 'Classified';
       default:
         return 'Item';
     }
@@ -140,7 +294,8 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Text(
               'Select Country',
-              style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600),
+              style: GoogleFonts.poppins(
+                  fontSize: 15, fontWeight: FontWeight.w600),
             ),
           ),
           const Divider(height: 1),
@@ -153,7 +308,8 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
                   width: 32,
                   height: 22,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const Icon(Icons.flag, size: 22),
+                  errorBuilder: (_, __, ___) =>
+                      const Icon(Icons.flag, size: 22),
                 ),
               ),
               title: Text(c.name, style: GoogleFonts.poppins(fontSize: 14)),
@@ -206,10 +362,12 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
               ),
               const SizedBox(height: 12),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Text(
                   'Select Currency',
-                  style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600),
+                  style: GoogleFonts.poppins(
+                      fontSize: 15, fontWeight: FontWeight.w600),
                 ),
               ),
               const Divider(height: 1),
@@ -223,11 +381,14 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
                             cur,
                             style: GoogleFonts.poppins(
                               fontSize: 14,
-                              fontWeight: cur == _currency ? FontWeight.w600 : FontWeight.w400,
+                              fontWeight: cur == _currency
+                                  ? FontWeight.w600
+                                  : FontWeight.w400,
                             ),
                           ),
                           trailing: cur == _currency
-                              ? const Icon(Icons.check_circle, color: AppColors.primary, size: 20)
+                              ? const Icon(Icons.check_circle,
+                                  color: AppColors.primary, size: 20)
                               : null,
                           onTap: () {
                             setState(() => _currency = cur);
@@ -271,8 +432,66 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
     return result;
   }
 
+  String _detailValue(Map<String, dynamic> data, List<String> keys) {
+    for (final key in keys) {
+      final value = data[key]?.toString().trim() ?? '';
+      if (value.isNotEmpty) return value;
+    }
+    return '';
+  }
+
+  void _setIfEmpty(Map<String, dynamic> data, String key, dynamic value) {
+    final text = value?.toString().trim() ?? '';
+    final current = data[key]?.toString().trim() ?? '';
+    if (current.isEmpty && text.isNotEmpty) data[key] = value;
+  }
+
+  void _normalizeCategoryData(Map<String, dynamic> data) {
+    data['subcategory'] = _selectedSubcategory;
+    data['country'] = _country.name;
+    data['city'] = _cityCtrl.text.trim();
+
+    final phone = _detailValue(
+      data,
+      const ['phone', 'seller_phone', 'contact_phone', 'contact_number'],
+    );
+    if (phone.isNotEmpty) {
+      data['phone'] = phone;
+      data['seller_phone'] = phone;
+      data['contact_number'] = phone;
+    }
+
+    if (_categoryKey == 'classifieds') {
+      if (_selectedClassifiedChild.isNotEmpty) {
+        data['classified_subcategory'] = _selectedClassifiedChild;
+        data['sub_category'] = _selectedClassifiedChild;
+        data['subtype'] = _selectedClassifiedChild;
+      }
+    }
+
+    if (_categoryKey == 'jobs') {
+      _setIfEmpty(data, 'industry', _selectedSubcategory);
+      _setIfEmpty(data, 'job_category', _selectedSubcategory);
+      _setIfEmpty(data, 'seller_type', 'Company');
+    }
+
+    if (_categoryKey == 'spare-parts') {
+      _setIfEmpty(data, 'make', _selectedSubcategory);
+      _setIfEmpty(data, 'brand', data['make']);
+      _setIfEmpty(data, 'seller_type', 'Individual');
+    }
+
+    if (_categoryKey == 'electronics' ||
+        _categoryKey == 'furniture' ||
+        _categoryKey == 'classifieds') {
+      _setIfEmpty(data, 'seller_type', 'Individual');
+    }
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    final categoryData = _buildCategoryData();
+    _normalizeCategoryData(categoryData);
 
     await ref.read(sellProvider.notifier).createListing(
           category: widget.category,
@@ -283,16 +502,19 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
             'currency': _currency,
             'country': _country.name,
             'city': _cityCtrl.text.trim(),
-            'subcategory': _selectedSubcategory.isNotEmpty ? _selectedSubcategory : 'general',
+            'subcategory': _selectedSubcategory.isNotEmpty
+                ? _selectedSubcategory
+                : 'general',
           },
-          categoryData: _buildCategoryData(),
+          categoryData: categoryData,
         );
   }
 
   @override
   Widget build(BuildContext context) {
     final sellState = ref.watch(sellProvider);
-    final subcategoriesAsync = ref.watch(sellSubcategoriesProvider(widget.category));
+    final subcategoriesAsync =
+        ref.watch(sellSubcategoriesProvider(widget.category));
 
     ref.listen<SellState>(sellProvider, (prev, next) {
       if (next.success && !(prev?.success ?? false)) {
@@ -340,7 +562,8 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
         ),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new,
+              color: Colors.black87, size: 20),
           onPressed: () => context.pop(),
         ),
         bottom: const PreferredSize(
@@ -379,17 +602,20 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
                           width: 28,
                           height: 19,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Icon(Icons.flag, size: 20),
+                          errorBuilder: (_, __, ___) =>
+                              const Icon(Icons.flag, size: 20),
                         ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           _country.name,
-                          style: GoogleFonts.poppins(fontSize: 14, color: Colors.black87),
+                          style: GoogleFonts.poppins(
+                              fontSize: 14, color: Colors.black87),
                         ),
                       ),
-                      const Icon(Icons.keyboard_arrow_down, color: Colors.black54, size: 20),
+                      const Icon(Icons.keyboard_arrow_down,
+                          color: Colors.black54, size: 20),
                     ],
                   ),
                 ),
@@ -399,7 +625,9 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
               AppTextField(
                 controller: _titleCtrl,
                 hintText: 'e.g. $_categoryLabel for sale',
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Title is required' : null,
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'Title is required'
+                    : null,
               ),
               const SizedBox(height: 16),
               _label('Description'),
@@ -419,7 +647,8 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: AppColors.primary, width: 1.8),
+                    borderSide:
+                        const BorderSide(color: AppColors.primary, width: 1.8),
                   ),
                   contentPadding: const EdgeInsets.all(12),
                 ),
@@ -431,7 +660,8 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
                   GestureDetector(
                     onTap: _showCurrencyPicker,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 14),
                       decoration: BoxDecoration(
                         border: Border.all(color: const Color(0xFFCCCCCC)),
                         borderRadius: BorderRadius.circular(8),
@@ -441,10 +671,12 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
                         children: [
                           Text(
                             _currency,
-                            style: GoogleFonts.montserrat(fontWeight: FontWeight.w600, fontSize: 14),
+                            style: GoogleFonts.montserrat(
+                                fontWeight: FontWeight.w600, fontSize: 14),
                           ),
                           const SizedBox(width: 4),
-                          const Icon(Icons.keyboard_arrow_down, size: 16, color: Colors.black54),
+                          const Icon(Icons.keyboard_arrow_down,
+                              size: 16, color: Colors.black54),
                         ],
                       ),
                     ),
@@ -464,7 +696,8 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
               AppTextField(
                 controller: _cityCtrl,
                 hintText: 'e.g. Dubai',
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'City is required' : null,
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'City is required' : null,
               ),
               const SizedBox(height: 20),
               Row(
@@ -507,7 +740,8 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
                               removed.dispose();
                             });
                           },
-                          icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                          icon: const Icon(Icons.delete_outline,
+                              color: Colors.redAccent),
                         ),
                     ],
                   ),
@@ -543,12 +777,14 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
             children: [
               Text(
                 'Photos ${sellState.images.length}/10',
-                style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600),
+                style: GoogleFonts.poppins(
+                    fontSize: 14, fontWeight: FontWeight.w600),
               ),
               if (sellState.images.isNotEmpty)
                 Text(
                   'First photo will be cover',
-                  style: GoogleFonts.poppins(fontSize: 11, color: Colors.black54),
+                  style:
+                      GoogleFonts.poppins(fontSize: 11, color: Colors.black54),
                 ),
             ],
           ),
@@ -576,7 +812,8 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
                         right: 4,
                         top: 4,
                         child: GestureDetector(
-                          onTap: () => ref.read(sellProvider.notifier).removeImage(i),
+                          onTap: () =>
+                              ref.read(sellProvider.notifier).removeImage(i),
                           child: Container(
                             width: 22,
                             height: 22,
@@ -584,7 +821,8 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
                               color: Colors.black54,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.close, color: Colors.white, size: 14),
+                            child: const Icon(Icons.close,
+                                color: Colors.white, size: 14),
                           ),
                         ),
                       ),
@@ -622,7 +860,8 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
     );
   }
 
-  Widget _buildSubcategorySection(AsyncValue<List<SellSubcategory>> asyncSubcategories) {
+  Widget _buildSubcategorySection(
+      AsyncValue<List<SellSubcategory>> asyncSubcategories) {
     return asyncSubcategories.when(
       loading: () => const Padding(
         padding: EdgeInsets.symmetric(vertical: 8),
@@ -636,7 +875,16 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
         if (_selectedSubcategory.isEmpty && subcategories.isNotEmpty) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted && _selectedSubcategory.isEmpty) {
-              setState(() => _selectedSubcategory = subcategories.first.slug);
+              setState(() {
+                _selectedSubcategory = subcategories.first.slug;
+                _selectedClassifiedChild =
+                    (_classifiedChildSubcategories[_selectedSubcategory] ?? [])
+                            .isNotEmpty
+                        ? _classifiedChildSubcategories[_selectedSubcategory]!
+                            .first
+                            .slug
+                        : '';
+              });
             }
           });
         }
@@ -648,46 +896,112 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
           );
         }
 
+        final children =
+            _classifiedChildSubcategories[_selectedSubcategory] ?? [];
+
         return Column(
-          children: subcategories.map((sub) {
-            final selected = _selectedSubcategory == sub.slug;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: GestureDetector(
-                onTap: () => setState(() => _selectedSubcategory = sub.slug),
-                child: Container(
-                  width: double.infinity,
-                  height: 50,
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  decoration: BoxDecoration(
-                    color: selected ? AppColors.primary : Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: selected ? AppColors.primary : const Color(0xFFDDDDDD),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ...subcategories.map((sub) {
+              final selected = _selectedSubcategory == sub.slug;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: GestureDetector(
+                  onTap: () => setState(() {
+                    _selectedSubcategory = sub.slug;
+                    final childList =
+                        _classifiedChildSubcategories[_selectedSubcategory] ??
+                            [];
+                    _selectedClassifiedChild =
+                        _isClassified && childList.isNotEmpty
+                            ? childList.first.slug
+                            : '';
+                  }),
+                  child: Container(
+                    width: double.infinity,
+                    height: 50,
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    decoration: BoxDecoration(
+                      color: selected ? AppColors.primary : Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: selected
+                            ? AppColors.primary
+                            : const Color(0xFFDDDDDD),
+                      ),
                     ),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          sub.name,
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight:
-                                selected ? FontWeight.w600 : FontWeight.w400,
-                            color: selected ? Colors.white : Colors.black87,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            sub.name,
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight:
+                                  selected ? FontWeight.w600 : FontWeight.w400,
+                              color: selected ? Colors.white : Colors.black87,
+                            ),
                           ),
                         ),
-                      ),
-                      if (selected)
-                        const Icon(Icons.check_circle,
-                            color: Colors.white, size: 20),
-                    ],
+                        if (selected)
+                          const Icon(Icons.check_circle,
+                              color: Colors.white, size: 20),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            );
-          }).toList(),
+              );
+            }),
+            if (_isClassified && children.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              _label('Sub Category'),
+              ...children.map((child) {
+                final selected = _selectedClassifiedChild == child.slug;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: GestureDetector(
+                    onTap: () =>
+                        setState(() => _selectedClassifiedChild = child.slug),
+                    child: Container(
+                      width: double.infinity,
+                      height: 48,
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      decoration: BoxDecoration(
+                        color: selected ? AppColors.primaryLight : Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: selected
+                              ? AppColors.primary
+                              : const Color(0xFFDDDDDD),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              child.name,
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: selected
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                                color: selected
+                                    ? AppColors.primary
+                                    : Colors.black87,
+                              ),
+                            ),
+                          ),
+                          if (selected)
+                            const Icon(Icons.check_circle,
+                                color: AppColors.primary, size: 18),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ],
         );
       },
     );

@@ -8,6 +8,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../../core/widgets/favorite_button.dart';
 import '../providers/spare_parts_provider.dart';
 import 'spare_parts_detail_screen.dart';
 
@@ -34,6 +35,101 @@ class SparePartsResultsScreen extends ConsumerStatefulWidget {
 class _SparePartsResultsScreenState
     extends ConsumerState<SparePartsResultsScreen> {
   String? _selectedRegion;
+  String _sortBy = 'Newest to Oldest';
+
+  static const _sortOptions = [
+    'Newest to Oldest',
+    'Oldest to Newest',
+    'Price Highest to Lowest',
+    'Price Lowest to Highest',
+  ];
+
+  List<SparePartListing> _sorted(List<SparePartListing> list) {
+    final out = List<SparePartListing>.from(list);
+    switch (_sortBy) {
+      case 'Oldest to Newest':
+        out.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+        break;
+      case 'Price Highest to Lowest':
+        out.sort((a, b) => (b.price ?? 0).compareTo(a.price ?? 0));
+        break;
+      case 'Price Lowest to Highest':
+        out.sort((a, b) => (a.price ?? 0).compareTo(b.price ?? 0));
+        break;
+      default:
+        out.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    }
+    return out;
+  }
+
+  void _openSortSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      builder: (_) => SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 5,
+              decoration: BoxDecoration(
+                color: const Color(0xFFCFCFCF),
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Sort',
+                    style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87)),
+              ),
+            ),
+            ..._sortOptions.map((item) {
+              final selected = item == _sortBy;
+              return InkWell(
+                onTap: () {
+                  setState(() => _sortBy = item);
+                  context.pop();
+                },
+                child: Container(
+                  decoration: const BoxDecoration(
+                    border: Border(
+                        top: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                          child: Text(item,
+                              style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black87))),
+                      if (selected)
+                        const Icon(Icons.check, color: _kBlue, size: 20),
+                    ],
+                  ),
+                ),
+              );
+            }),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
 
   Future<void> _openRegionSheet(List<String> regions) async {
     String? tempSelected = _selectedRegion;
@@ -251,10 +347,18 @@ class _SparePartsResultsScreenState
             },
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: SvgPicture.asset('assets/icons/filter.svg', width: 20, height: 20),
+              child: SvgPicture.asset('assets/icons/filter.svg',
+                  width: 20, height: 20),
             ),
           ),
-          const SizedBox(width: 6),
+          GestureDetector(
+            onTap: _openSortSheet,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: SvgPicture.asset('assets/icons/bars_sort.svg',
+                  width: 20, height: 20),
+            ),
+          ),
         ],
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(1),
@@ -270,7 +374,8 @@ class _SparePartsResultsScreenState
             style: GoogleFonts.poppins(color: Colors.red, fontSize: 12),
           ),
         ),
-        data: (listings) {
+        data: (rawListings) {
+          final listings = _sorted(rawListings);
           if (listings.isEmpty) {
             return Center(
               child: Text(
@@ -281,12 +386,12 @@ class _SparePartsResultsScreenState
           }
 
           return GridView.builder(
-            padding: const EdgeInsets.fromLTRB(14, 14, 14, 20),
+            padding: const EdgeInsets.all(12),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              mainAxisExtent: 253,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              mainAxisExtent: 245,
             ),
             itemCount: listings.length,
             itemBuilder: (_, i) => _SparePartCard(listing: listings[i]),
@@ -410,7 +515,7 @@ class _SparePartCardState extends State<_SparePartCard> {
                     topRight: Radius.circular(7.38),
                   ),
                   child: SizedBox(
-                    height: 102,
+                    height: 110,
                     width: double.infinity,
                     child: item.images.isEmpty
                         ? _placeholderImage()
@@ -435,49 +540,57 @@ class _SparePartCardState extends State<_SparePartCard> {
                               ),
                   ),
                 ),
-                const Positioned(
+                Positioned(
                   top: 6,
                   right: 6,
                   child: Row(
                     children: [
-                      _CircleBtn(icon: Icons.reply_outlined),
-                      SizedBox(width: 4),
-                      _CircleBtn(icon: Icons.favorite_border),
+                      const _CircleBtn(icon: Icons.reply_outlined),
+                      const SizedBox(width: 4),
+                      FavoriteButton(
+                        listingId: item.id,
+                        size: 24,
+                        backgroundColor: const Color(0x100F172A),
+                        showShadow: false,
+                        unselectedIconColor: Colors.white,
+                        selectedIconColor: Colors.red,
+                      ),
                     ],
                   ),
                 ),
-                Positioned(
-                  bottom: 6,
-                  left: 6,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: const Color(0x63000000),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.image_outlined,
-                            color: Colors.white, size: 9),
-                        const SizedBox(width: 3),
-                        Text(
-                          '${item.images.length}',
-                          style: GoogleFonts.poppins(
-                            color: Colors.white,
-                            fontSize: 8,
-                            fontWeight: FontWeight.w500,
-                            height: 1,
+                if (item.images.isNotEmpty)
+                  Positioned(
+                    bottom: 6,
+                    left: 6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 5, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0x63000000),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.image_outlined,
+                              color: Colors.white, size: 9),
+                          const SizedBox(width: 3),
+                          Text(
+                            '${item.images.length}',
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 8,
+                              fontWeight: FontWeight.w500,
+                              height: 1,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 5),
+              padding: const EdgeInsets.fromLTRB(8, 6, 8, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -492,6 +605,7 @@ class _SparePartCardState extends State<_SparePartCard> {
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: _kBlue,
+                            height: 1.3,
                           ),
                         ),
                       ),
@@ -500,6 +614,7 @@ class _SparePartCardState extends State<_SparePartCard> {
                         style: GoogleFonts.poppins(
                           fontSize: 7.5,
                           color: const Color(0xFF505050),
+                          height: 1.3,
                         ),
                       ),
                     ],
@@ -508,8 +623,11 @@ class _SparePartCardState extends State<_SparePartCard> {
                     item.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style:
-                        GoogleFonts.poppins(fontSize: 13, color: Colors.black),
+                    style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.black,
+                        height: 1.3),
                   ),
                   if (item.subtitle.isNotEmpty)
                     Text(
@@ -517,7 +635,7 @@ class _SparePartCardState extends State<_SparePartCard> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
-                          fontSize: 11, color: Colors.black87),
+                          fontSize: 10, color: Colors.black54, height: 1.3),
                     ),
                   if (item.yearMileageLine.isNotEmpty)
                     Text(
@@ -525,8 +643,9 @@ class _SparePartCardState extends State<_SparePartCard> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
-                          fontSize: 10, color: Colors.black87),
+                          fontSize: 10, color: Colors.black54, height: 1.3),
                     ),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
                       const Icon(Icons.location_on_outlined,
@@ -538,15 +657,17 @@ class _SparePartCardState extends State<_SparePartCard> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.poppins(
-                              fontSize: 10, color: const Color(0xFF505050)),
+                              fontSize: 10,
+                              color: const Color(0xFF505050),
+                              height: 1.3),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   const Divider(
                       height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -621,13 +742,11 @@ class _CircleBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 20,
-      height: 20,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.82),
-        shape: BoxShape.circle,
-      ),
-      child: Icon(icon, size: 11, color: Colors.black87),
+      width: 28,
+      height: 28,
+      decoration:
+          const BoxDecoration(color: Color(0x100F172A), shape: BoxShape.circle),
+      child: Icon(icon, size: 14, color: Colors.white),
     );
   }
 }

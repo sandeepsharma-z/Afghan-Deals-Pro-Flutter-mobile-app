@@ -19,6 +19,7 @@ class ClassifiedListingModel {
   final String usage;
   final String sellerType;
   final String phone;
+  final String classifiedSubcategory;
 
   const ClassifiedListingModel({
     required this.id,
@@ -39,6 +40,7 @@ class ClassifiedListingModel {
     required this.usage,
     required this.sellerType,
     required this.phone,
+    required this.classifiedSubcategory,
   });
 
   String get imageUrl => images.isNotEmpty ? images.first : '';
@@ -71,18 +73,27 @@ class ClassifiedListingModel {
     final dt = DateTime.tryParse(createdAt);
     if (dt == null) return createdAt;
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
     ];
     return '${dt.day} ${months[dt.month - 1]}, ${dt.year}';
   }
 
   factory ClassifiedListingModel.fromMap(Map<String, dynamic> map) {
     final cd = (map['category_data'] as Map<String, dynamic>?) ?? {};
-    final imgs = (map['images'] as List<dynamic>?)
-            ?.map((e) => e.toString())
-            .toList() ??
-        [];
+    final imgs =
+        (map['images'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
+            [];
     return ClassifiedListingModel(
       id: map['id']?.toString() ?? '',
       sellerId: map['seller_id']?.toString() ?? '',
@@ -102,6 +113,10 @@ class ClassifiedListingModel {
       usage: cd['usage']?.toString() ?? '',
       sellerType: cd['seller_type']?.toString() ?? '',
       phone: cd['phone']?.toString() ?? map['phone']?.toString() ?? '',
+      classifiedSubcategory: cd['classified_subcategory']?.toString() ??
+          cd['sub_category']?.toString() ??
+          cd['subtype']?.toString() ??
+          '',
     );
   }
 }

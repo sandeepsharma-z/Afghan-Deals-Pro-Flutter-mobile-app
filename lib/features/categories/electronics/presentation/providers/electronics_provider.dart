@@ -4,6 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../features/listings/data/models/electronics_listing_model.dart';
 import '../../../../admin/presentation/providers/admin_dynamic_provider.dart';
 
+const _unset = Object();
+
 // ── Subcategory model (fetched from Supabase) ──────────────────────────────
 class ElectronicsSubcategory {
   final String name;
@@ -28,6 +30,23 @@ class ElectronicsSubcategory {
   }
 }
 
+const _defaultElectronicsSubcategories = [
+  ElectronicsSubcategory(
+      name: 'TVs, Video-Audio', slug: 'tvs-video-audio', sortOrder: 1),
+  ElectronicsSubcategory(
+      name: 'Kitchen & Other Appliance',
+      slug: 'kitchen-other-appliance',
+      sortOrder: 2),
+  ElectronicsSubcategory(name: 'Fridges', slug: 'fridges', sortOrder: 3),
+  ElectronicsSubcategory(
+      name: 'Cameras & Lenses', slug: 'cameras-lenses', sortOrder: 4),
+  ElectronicsSubcategory(
+      name: 'Washing Machines', slug: 'washing-machines', sortOrder: 5),
+  ElectronicsSubcategory(name: 'ACs', slug: 'acs', sortOrder: 6),
+  ElectronicsSubcategory(
+      name: 'Games & Entertainment', slug: 'games-entertainment', sortOrder: 7),
+];
+
 /// Fetches electronics subcategories from Supabase subcategories table
 final electronicsSubcategoriesProvider =
     FutureProvider.autoDispose<List<ElectronicsSubcategory>>((ref) async {
@@ -40,22 +59,22 @@ final electronicsSubcategoriesProvider =
       .order('name', ascending: true);
 
   final rows = (response as List<dynamic>)
-      .map((e) => ElectronicsSubcategory.fromMap(Map<String, dynamic>.from(e as Map)))
+      .map((e) =>
+          ElectronicsSubcategory.fromMap(Map<String, dynamic>.from(e as Map)))
       .where((s) => s.name.isNotEmpty && s.slug.isNotEmpty)
       .toList();
 
-  if (rows.isNotEmpty) return rows;
+  final bySlug = {
+    for (final item in _defaultElectronicsSubcategories) item.slug: item,
+    for (final item in rows) item.slug: item,
+  };
 
-  // Fallback static list if Supabase has no subcategories yet
-  return const [
-    ElectronicsSubcategory(name: 'TVs, Video-Audio',          slug: 'tvs-video-audio',           sortOrder: 1),
-    ElectronicsSubcategory(name: 'Kitchen & Other Appliance', slug: 'kitchen-other-appliance',    sortOrder: 2),
-    ElectronicsSubcategory(name: 'Fridges',                   slug: 'fridges',                   sortOrder: 3),
-    ElectronicsSubcategory(name: 'Cameras & Lenses',          slug: 'cameras-lenses',            sortOrder: 4),
-    ElectronicsSubcategory(name: 'Washing Machines',          slug: 'washing-machines',          sortOrder: 5),
-    ElectronicsSubcategory(name: 'ACs',                       slug: 'acs',                       sortOrder: 6),
-    ElectronicsSubcategory(name: 'Games & Entertainment',     slug: 'games-entertainment',       sortOrder: 7),
-  ];
+  return bySlug.values.toList()
+    ..sort((a, b) {
+      final byOrder = a.sortOrder.compareTo(b.sortOrder);
+      if (byOrder != 0) return byOrder;
+      return a.name.compareTo(b.name);
+    });
 });
 
 // ── Filter model ───────────────────────────────────────────────────────────
@@ -91,8 +110,8 @@ class ElectronicsFilter {
     List<String>? ages,
     List<String>? warranties,
     List<String>? sellerTypes,
-    double? minPrice,
-    double? maxPrice,
+    Object? minPrice = _unset,
+    Object? maxPrice = _unset,
     String? region,
     String? sortBy,
   }) =>
@@ -103,8 +122,10 @@ class ElectronicsFilter {
         ages: ages ?? this.ages,
         warranties: warranties ?? this.warranties,
         sellerTypes: sellerTypes ?? this.sellerTypes,
-        minPrice: minPrice ?? this.minPrice,
-        maxPrice: maxPrice ?? this.maxPrice,
+        minPrice:
+            identical(minPrice, _unset) ? this.minPrice : minPrice as double?,
+        maxPrice:
+            identical(maxPrice, _unset) ? this.maxPrice : maxPrice as double?,
         region: region ?? this.region,
         sortBy: sortBy ?? this.sortBy,
       );
@@ -121,11 +142,12 @@ class ElectronicsFilter {
       region.isEmpty;
 }
 
-final electronicsFilterProvider =
-    StateProvider.autoDispose<ElectronicsFilter>((ref) => const ElectronicsFilter());
+final electronicsFilterProvider = StateProvider.autoDispose<ElectronicsFilter>(
+    (ref) => const ElectronicsFilter());
 
 // ── Listings providers ─────────────────────────────────────────────────────
-Future<List<ElectronicsListingModel>> _fetchElectronics({String subcategory = ''}) async {
+Future<List<ElectronicsListingModel>> _fetchElectronics(
+    {String subcategory = ''}) async {
   var query = Supabase.instance.client
       .from('listings')
       .select()
@@ -145,29 +167,31 @@ final electronicsListingsProvider =
   return _fetchElectronics();
 });
 
-final electronicsBySubcategoryProvider =
-    FutureProvider.autoDispose.family<List<ElectronicsListingModel>, String>(
-        (ref, subcategory) async {
+final electronicsBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<ElectronicsListingModel>, String>((ref, subcategory) async {
   return _fetchElectronics(subcategory: subcategory);
 });
 
-final electronicsFilteredProvider =
-    FutureProvider.autoDispose.family<List<ElectronicsListingModel>, String>(
-        (ref, subcategory) async {
+final electronicsFilteredProvider = FutureProvider.autoDispose
+    .family<List<ElectronicsListingModel>, String>((ref, subcategory) async {
   final filter = ref.watch(electronicsFilterProvider);
-  final all = await ref.watch(electronicsBySubcategoryProvider(subcategory).future);
+  final all =
+      await ref.watch(electronicsBySubcategoryProvider(subcategory).future);
 
   var result = all.where((item) {
     if (filter.brands.isNotEmpty &&
-        !filter.brands.any((b) => b.toLowerCase() == item.brand.toLowerCase())) {
+        !filter.brands
+            .any((b) => b.toLowerCase() == item.brand.toLowerCase())) {
       return false;
     }
     if (filter.models.isNotEmpty &&
-        !filter.models.any((m) => m.toLowerCase() == item.model.toLowerCase())) {
+        !filter.models
+            .any((m) => m.toLowerCase() == item.model.toLowerCase())) {
       return false;
     }
     if (filter.conditions.isNotEmpty &&
-        !filter.conditions.any((c) => c.toLowerCase() == item.condition.toLowerCase())) {
+        !filter.conditions
+            .any((c) => c.toLowerCase() == item.condition.toLowerCase())) {
       return false;
     }
     if (filter.ages.isNotEmpty &&
@@ -175,16 +199,22 @@ final electronicsFilteredProvider =
       return false;
     }
     if (filter.warranties.isNotEmpty &&
-        !filter.warranties.any((w) => w.toLowerCase() == item.warranty.toLowerCase())) {
+        !filter.warranties
+            .any((w) => w.toLowerCase() == item.warranty.toLowerCase())) {
       return false;
     }
     if (filter.sellerTypes.isNotEmpty &&
-        !filter.sellerTypes.any((s) => s.toLowerCase() == item.sellerType.toLowerCase())) {
+        !filter.sellerTypes
+            .any((s) => s.toLowerCase() == item.sellerType.toLowerCase())) {
       return false;
     }
     final price = double.tryParse(item.price) ?? 0;
-    if (filter.minPrice != null && price < filter.minPrice!) { return false; }
-    if (filter.maxPrice != null && price > filter.maxPrice!) { return false; }
+    if (filter.minPrice != null && price < filter.minPrice!) {
+      return false;
+    }
+    if (filter.maxPrice != null && price > filter.maxPrice!) {
+      return false;
+    }
     if (filter.region.isNotEmpty &&
         !item.city.toLowerCase().contains(filter.region.toLowerCase())) {
       return false;
@@ -194,11 +224,11 @@ final electronicsFilteredProvider =
 
   switch (filter.sortBy) {
     case 'price_high':
-      result.sort((a, b) =>
-          (double.tryParse(b.price) ?? 0).compareTo(double.tryParse(a.price) ?? 0));
+      result.sort((a, b) => (double.tryParse(b.price) ?? 0)
+          .compareTo(double.tryParse(a.price) ?? 0));
     case 'price_low':
-      result.sort((a, b) =>
-          (double.tryParse(a.price) ?? 0).compareTo(double.tryParse(b.price) ?? 0));
+      result.sort((a, b) => (double.tryParse(a.price) ?? 0)
+          .compareTo(double.tryParse(b.price) ?? 0));
     case 'oldest':
       result.sort((a, b) => a.createdAt.compareTo(b.createdAt));
     default:
@@ -209,17 +239,22 @@ final electronicsFilteredProvider =
 });
 
 // ── Filter option providers (dynamic from listings) ────────────────────────
-Future<List<String>> _distinctField(String field, {String subcategory = ''}) async {
+Future<List<String>> _distinctField(String field,
+    {String subcategory = ''}) async {
   var query = Supabase.instance.client
       .from('listings')
       .select('category_data')
       .eq('category', 'electronics')
       .eq('is_active', true);
-  if (subcategory.isNotEmpty) { query = query.eq('subcategory', subcategory); }
+  if (subcategory.isNotEmpty) {
+    query = query.eq('subcategory', subcategory);
+  }
   final response = await query;
   return (response as List<dynamic>)
       .map((e) {
-        final cd = (e as Map<String, dynamic>)['category_data'] as Map<String, dynamic>? ?? {};
+        final cd = (e as Map<String, dynamic>)['category_data']
+                as Map<String, dynamic>? ??
+            {};
         return cd[field]?.toString().trim() ?? '';
       })
       .where((v) => v.isNotEmpty)
@@ -232,23 +267,46 @@ Future<List<String>> _distinctField(String field, {String subcategory = ''}) asy
 final electronicsBrandsProvider =
     FutureProvider.autoDispose<List<String>>((ref) => _distinctField('brand'));
 
+final electronicsBrandsBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, subcategory) =>
+        _distinctField('brand', subcategory: subcategory));
+
 /// Models per brand (dynamic from listings)
 final electronicsModelsProvider =
     FutureProvider.autoDispose.family<List<String>, String>((ref, brand) async {
+  return _modelsForBrand(brand: brand);
+});
+
+final electronicsModelsBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<String>, ({String brand, String subcategory})>((ref, args) {
+  return _modelsForBrand(brand: args.brand, subcategory: args.subcategory);
+});
+
+Future<List<String>> _modelsForBrand({
+  required String brand,
+  String subcategory = '',
+}) async {
   final response = await Supabase.instance.client
       .from('listings')
-      .select('category_data')
+      .select('category_data, subcategory')
       .eq('category', 'electronics')
       .eq('is_active', true);
-  return (response as List<dynamic>)
+  final rows = (response as List<dynamic>)
       .map((e) {
-        final cd = (e as Map<String, dynamic>)['category_data'] as Map<String, dynamic>? ?? {};
+        final cd = (e as Map<String, dynamic>)['category_data']
+                as Map<String, dynamic>? ??
+            {};
         return (
+          subcategory: e['subcategory']?.toString().trim() ?? '',
           brand: cd['brand']?.toString().trim() ?? '',
           model: cd['model']?.toString().trim() ?? '',
         );
       })
       .where((r) {
+        if (subcategory.isNotEmpty &&
+            r.subcategory.toLowerCase() != subcategory.toLowerCase()) {
+          return false;
+        }
         if (brand.isNotEmpty && r.brand.toLowerCase() != brand.toLowerCase()) {
           return false;
         }
@@ -258,7 +316,8 @@ final electronicsModelsProvider =
       .toSet()
       .toList()
     ..sort();
-});
+  return rows;
+}
 
 /// Conditions — admin table → listings → static fallback
 final electronicsConditionsProvider =
@@ -270,6 +329,14 @@ final electronicsConditionsProvider =
   return const ['Flawless', 'Excellent', 'Good', 'Average', 'Poor'];
 });
 
+final electronicsConditionsBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, subcategory) async {
+  final fromListings =
+      await _distinctField('condition', subcategory: subcategory);
+  if (fromListings.isNotEmpty) return fromListings;
+  return ref.watch(electronicsConditionsProvider.future);
+});
+
 /// Ages — admin table → listings → static fallback
 final electronicsAgesProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
@@ -278,9 +345,22 @@ final electronicsAgesProvider =
   final fromListings = await _distinctField('age');
   if (fromListings.isNotEmpty) return fromListings;
   return const [
-    'Brand New', '0-1 month', '1-6 months', '6-12 months',
-    '1-2 years', '2-5 years', '5-10 years', '10+ years',
+    'Brand New',
+    '0-1 month',
+    '1-6 months',
+    '6-12 months',
+    '1-2 years',
+    '2-5 years',
+    '5-10 years',
+    '10+ years',
   ];
+});
+
+final electronicsAgesBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, subcategory) async {
+  final fromListings = await _distinctField('age', subcategory: subcategory);
+  if (fromListings.isNotEmpty) return fromListings;
+  return ref.watch(electronicsAgesProvider.future);
 });
 
 /// Warranties — admin table → listings → static fallback
@@ -293,6 +373,14 @@ final electronicsWarrantiesProvider =
   return const ['Yes', 'No', 'Does not apply'];
 });
 
+final electronicsWarrantiesBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, subcategory) async {
+  final fromListings =
+      await _distinctField('warranty', subcategory: subcategory);
+  if (fromListings.isNotEmpty) return fromListings;
+  return ref.watch(electronicsWarrantiesProvider.future);
+});
+
 /// Seller Types — admin table → listings → static fallback
 final electronicsSellerTypesProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
@@ -301,6 +389,14 @@ final electronicsSellerTypesProvider =
   final fromListings = await _distinctField('seller_type');
   if (fromListings.isNotEmpty) return fromListings;
   return const ['All Sellers', 'Individuals', 'Businesses'];
+});
+
+final electronicsSellerTypesBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, subcategory) async {
+  final fromListings =
+      await _distinctField('seller_type', subcategory: subcategory);
+  if (fromListings.isNotEmpty) return fromListings;
+  return ref.watch(electronicsSellerTypesProvider.future);
 });
 
 final electronicsCitiesProvider =
@@ -316,4 +412,41 @@ final electronicsCitiesProvider =
       .toSet()
       .toList()
     ..sort();
+});
+
+final electronicsCitiesBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, subcategory) async {
+  var query = Supabase.instance.client
+      .from('listings')
+      .select('city')
+      .eq('category', 'electronics')
+      .eq('is_active', true);
+  if (subcategory.isNotEmpty) query = query.eq('subcategory', subcategory);
+  final response = await query;
+  return (response as List<dynamic>)
+      .map((e) => (e as Map<String, dynamic>)['city']?.toString().trim() ?? '')
+      .where((c) => c.isNotEmpty)
+      .toSet()
+      .toList()
+    ..sort();
+});
+
+final electronicsMaxPriceBySubcategoryProvider =
+    FutureProvider.autoDispose.family<double, String>((ref, subcategory) async {
+  var query = Supabase.instance.client
+      .from('listings')
+      .select('price')
+      .eq('category', 'electronics')
+      .eq('is_active', true);
+  if (subcategory.isNotEmpty) query = query.eq('subcategory', subcategory);
+  final response = await query;
+  final prices = (response as List<dynamic>)
+      .map((e) => double.tryParse(
+          ((e as Map<String, dynamic>)['price'] ?? '').toString()))
+      .whereType<double>()
+      .where((price) => price > 0)
+      .toList();
+  if (prices.isEmpty) return 100000;
+  final maxPrice = prices.reduce((a, b) => a > b ? a : b);
+  return ((maxPrice / 10000).ceil() * 10000).toDouble();
 });

@@ -116,8 +116,13 @@ class _PostPropertyScreenState extends ConsumerState<PostPropertyScreen> {
         'bedrooms': _beds,
         'bathrooms': _baths,
         'area': _areaCtrl.text.trim(),
+        'country': _country.name,
+        'city': _cityCtrl.text.trim(),
         'contact_name': _contactNameCtrl.text.trim(),
         'contact_phone': _phoneCtrl.text.trim(),
+        'phone': _phoneCtrl.text.trim(),
+        'seller_phone': _phoneCtrl.text.trim(),
+        'contact_number': _phoneCtrl.text.trim(),
         'address': _addressCtrl.text.trim(),
         'amenities': _amenitiesCtrl.text
             .split(',')
@@ -138,7 +143,8 @@ class _PostPropertyScreenState extends ConsumerState<PostPropertyScreen> {
     );
   }
 
-  void _showPicker(String title, List<String> options, ValueChanged<String> onSelect) {
+  void _showPicker(
+      String title, List<String> options, ValueChanged<String> onSelect) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -158,15 +164,19 @@ class _PostPropertyScreenState extends ConsumerState<PostPropertyScreen> {
               ),
             ),
             const SizedBox(height: 10),
-            Text(title, style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600)),
+            Text(title,
+                style: GoogleFonts.poppins(
+                    fontSize: 15, fontWeight: FontWeight.w600)),
             const Divider(height: 16),
             ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.45),
+              constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.45),
               child: ListView.builder(
                 shrinkWrap: true,
                 itemCount: options.length,
                 itemBuilder: (_, i) => ListTile(
-                  title: Text(options[i], style: GoogleFonts.poppins(fontSize: 14)),
+                  title: Text(options[i],
+                      style: GoogleFonts.poppins(fontSize: 14)),
                   onTap: () {
                     onSelect(options[i]);
                     Navigator.pop(context);
@@ -188,7 +198,8 @@ class _PostPropertyScreenState extends ConsumerState<PostPropertyScreen> {
       if (next.success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Ad submitted. It will be visible after admin approval.',
+            content: Text(
+                'Ad submitted. It will be visible after admin approval.',
                 style: GoogleFonts.poppins(color: Colors.white)),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
@@ -208,12 +219,14 @@ class _PostPropertyScreenState extends ConsumerState<PostPropertyScreen> {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: Colors.black87),
+          icon: const Icon(Icons.arrow_back_ios_new,
+              size: 18, color: Colors.black87),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
           'Post Property Ad',
-          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
+          style: GoogleFonts.poppins(
+              fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
         ),
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(1),
@@ -236,7 +249,9 @@ class _PostPropertyScreenState extends ConsumerState<PostPropertyScreen> {
                     child: _textInput(
                       _titleCtrl,
                       'e.g. Apartment 2BHK in Kabul',
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Title is required' : null,
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? 'Title is required'
+                          : null,
                     ),
                   ),
                   _Field(
@@ -245,7 +260,9 @@ class _PostPropertyScreenState extends ConsumerState<PostPropertyScreen> {
                       _descCtrl,
                       'Write details about this property...',
                       maxLines: 4,
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Description is required' : null,
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? 'Description is required'
+                          : null,
                     ),
                   ),
                 ],
@@ -256,18 +273,24 @@ class _PostPropertyScreenState extends ConsumerState<PostPropertyScreen> {
                 children: [
                   _Field(
                     label: 'Property Type *',
-                    child: _dropdown(_propertyType.isEmpty ? 'Select property type' : _propertyType,
-                        () => _showPicker('Property Type', _kPropertyTypes, (v) => setState(() => _propertyType = v))),
+                    child: _dropdown(
+                        _propertyType.isEmpty
+                            ? 'Select property type'
+                            : _propertyType,
+                        () => _showPicker('Property Type', _kPropertyTypes,
+                            (v) => setState(() => _propertyType = v))),
                   ),
                   _Field(
                     label: 'Purpose *',
-                    child: _chipGroup(_kPurposes, _purpose, (v) => setState(() => _purpose = v)),
+                    child: _chipGroup(_kPurposes, _purpose,
+                        (v) => setState(() => _purpose = v)),
                   ),
                   _Field(
                     label: 'Furnishing',
                     child: _dropdown(
                       _furnishing.isEmpty ? 'Select furnishing' : _furnishing,
-                      () => _showPicker('Furnishing', _kFurnishing, (v) => setState(() => _furnishing = v)),
+                      () => _showPicker('Furnishing', _kFurnishing,
+                          (v) => setState(() => _furnishing = v)),
                     ),
                   ),
                   Row(
@@ -277,7 +300,8 @@ class _PostPropertyScreenState extends ConsumerState<PostPropertyScreen> {
                           label: 'Bedrooms',
                           child: _dropdown(
                             _beds.isEmpty ? 'Select' : _beds,
-                            () => _showPicker('Bedrooms', _kBedBath, (v) => setState(() => _beds = v)),
+                            () => _showPicker('Bedrooms', _kBedBath,
+                                (v) => setState(() => _beds = v)),
                           ),
                         ),
                       ),
@@ -287,7 +311,8 @@ class _PostPropertyScreenState extends ConsumerState<PostPropertyScreen> {
                           label: 'Bathrooms',
                           child: _dropdown(
                             _baths.isEmpty ? 'Select' : _baths,
-                            () => _showPicker('Bathrooms', _kBedBath, (v) => setState(() => _baths = v)),
+                            () => _showPicker('Bathrooms', _kBedBath,
+                                (v) => setState(() => _baths = v)),
                           ),
                         ),
                       ),
@@ -295,7 +320,8 @@ class _PostPropertyScreenState extends ConsumerState<PostPropertyScreen> {
                   ),
                   _Field(
                     label: 'Area (sqft)',
-                    child: _textInput(_areaCtrl, 'e.g. 1200', keyboardType: TextInputType.number),
+                    child: _textInput(_areaCtrl, 'e.g. 1200',
+                        keyboardType: TextInputType.number),
                   ),
                 ],
               ),
@@ -308,7 +334,8 @@ class _PostPropertyScreenState extends ConsumerState<PostPropertyScreen> {
                     child: Row(
                       children: [
                         GestureDetector(
-                          onTap: () => _showPicker('Currency', _kCurrencies, (v) => setState(() => _currency = v)),
+                          onTap: () => _showPicker('Currency', _kCurrencies,
+                              (v) => setState(() => _currency = v)),
                           child: Container(
                             height: 50,
                             padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -320,9 +347,12 @@ class _PostPropertyScreenState extends ConsumerState<PostPropertyScreen> {
                               children: [
                                 Text(_currency,
                                     style: GoogleFonts.poppins(
-                                        fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white)),
                                 const SizedBox(width: 4),
-                                const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 18),
+                                const Icon(Icons.keyboard_arrow_down,
+                                    color: Colors.white, size: 18),
                               ],
                             ),
                           ),
@@ -333,7 +363,9 @@ class _PostPropertyScreenState extends ConsumerState<PostPropertyScreen> {
                             _priceCtrl,
                             '0',
                             keyboardType: TextInputType.number,
-                            validator: (v) => v == null || v.trim().isEmpty ? 'Price is required' : null,
+                            validator: (v) => v == null || v.trim().isEmpty
+                                ? 'Price is required'
+                                : null,
                           ),
                         ),
                       ],
@@ -342,7 +374,9 @@ class _PostPropertyScreenState extends ConsumerState<PostPropertyScreen> {
                   _Field(
                     label: 'Country',
                     child: GestureDetector(
-                      onTap: () => _showPicker('Country', _kCountries.map((e) => e.name).toList(), (v) {
+                      onTap: () => _showPicker(
+                          'Country', _kCountries.map((e) => e.name).toList(),
+                          (v) {
                         setState(() {
                           _country = _kCountries.firstWhere((c) => c.name == v);
                         });
@@ -364,14 +398,18 @@ class _PostPropertyScreenState extends ConsumerState<PostPropertyScreen> {
                                 width: 28,
                                 height: 19,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => const Icon(Icons.flag, size: 20),
+                                errorBuilder: (_, __, ___) =>
+                                    const Icon(Icons.flag, size: 20),
                               ),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
-                              child: Text(_country.name, style: GoogleFonts.poppins(fontSize: 14, color: Colors.black87)),
+                              child: Text(_country.name,
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 14, color: Colors.black87)),
                             ),
-                            const Icon(Icons.keyboard_arrow_down, size: 20, color: Colors.black45),
+                            const Icon(Icons.keyboard_arrow_down,
+                                size: 20, color: Colors.black45),
                           ],
                         ),
                       ),
@@ -382,7 +420,9 @@ class _PostPropertyScreenState extends ConsumerState<PostPropertyScreen> {
                     child: _textInput(
                       _cityCtrl,
                       'e.g. Kabul, Dubai',
-                      validator: (v) => v == null || v.trim().isEmpty ? 'City is required' : null,
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? 'City is required'
+                          : null,
                     ),
                   ),
                   _Field(
@@ -429,7 +469,8 @@ class _PostPropertyScreenState extends ConsumerState<PostPropertyScreen> {
       ),
       bottomNavigationBar: Container(
         color: Colors.white,
-        padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + MediaQuery.of(context).padding.bottom),
+        padding: EdgeInsets.fromLTRB(
+            16, 12, 16, 12 + MediaQuery.of(context).padding.bottom),
         child: SizedBox(
           height: 50,
           child: ElevatedButton(
@@ -437,17 +478,21 @@ class _PostPropertyScreenState extends ConsumerState<PostPropertyScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: _kBlue,
               disabledBackgroundColor: _kBlue.withValues(alpha: 0.6),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
             ),
             child: sell.isSubmitting
                 ? const SizedBox(
                     width: 22,
                     height: 22,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                    child: CircularProgressIndicator(
+                        color: Colors.white, strokeWidth: 2.5),
                   )
                 : Text('Post Ad',
                     style: GoogleFonts.poppins(
-                        fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white)),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white)),
           ),
         ),
       ),
@@ -472,7 +517,8 @@ class _PostPropertyScreenState extends ConsumerState<PostPropertyScreen> {
         hintStyle: GoogleFonts.poppins(fontSize: 13, color: Colors.black38),
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
@@ -512,14 +558,16 @@ class _PostPropertyScreenState extends ConsumerState<PostPropertyScreen> {
                 ),
               ),
             ),
-            const Icon(Icons.keyboard_arrow_down, size: 20, color: Colors.black45),
+            const Icon(Icons.keyboard_arrow_down,
+                size: 20, color: Colors.black45),
           ],
         ),
       ),
     );
   }
 
-  Widget _chipGroup(List<String> options, String selected, ValueChanged<String> onSelect) {
+  Widget _chipGroup(
+      List<String> options, String selected, ValueChanged<String> onSelect) {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -533,7 +581,8 @@ class _PostPropertyScreenState extends ConsumerState<PostPropertyScreen> {
             decoration: BoxDecoration(
               color: isSelected ? _kBlue : Colors.white,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: isSelected ? _kBlue : const Color(0xFFDDDDDD)),
+              border: Border.all(
+                  color: isSelected ? _kBlue : const Color(0xFFDDDDDD)),
             ),
             child: Text(
               opt,
@@ -566,9 +615,13 @@ class _PhotoSection extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            Text('Photos', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600)),
+            Text('Photos',
+                style: GoogleFonts.poppins(
+                    fontSize: 14, fontWeight: FontWeight.w600)),
             const SizedBox(width: 8),
-            Text('${images.length}/10', style: GoogleFonts.poppins(fontSize: 12, color: Colors.black45)),
+            Text('${images.length}/10',
+                style:
+                    GoogleFonts.poppins(fontSize: 12, color: Colors.black45)),
           ]),
           const SizedBox(height: 12),
           SizedBox(
@@ -586,9 +639,11 @@ class _PhotoSection extends ConsumerWidget {
                       decoration: BoxDecoration(
                         color: const Color(0xFFF0F4FF),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: _kBlue.withValues(alpha: 0.4), width: 1.5),
+                        border: Border.all(
+                            color: _kBlue.withValues(alpha: 0.4), width: 1.5),
                       ),
-                      child: const Icon(Icons.add_photo_alternate_outlined, color: _kBlue, size: 28),
+                      child: const Icon(Icons.add_photo_alternate_outlined,
+                          color: _kBlue, size: 28),
                     ),
                   ),
                 ...images.asMap().entries.map((e) {
@@ -602,7 +657,9 @@ class _PhotoSection extends ConsumerWidget {
                         margin: const EdgeInsets.only(right: 8),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
-                          image: DecorationImage(image: FileImage(File(img.path)), fit: BoxFit.cover),
+                          image: DecorationImage(
+                              image: FileImage(File(img.path)),
+                              fit: BoxFit.cover),
                         ),
                       ),
                       Positioned(
@@ -613,8 +670,10 @@ class _PhotoSection extends ConsumerWidget {
                           child: Container(
                             width: 22,
                             height: 22,
-                            decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-                            child: const Icon(Icons.close, size: 14, color: Colors.white),
+                            decoration: const BoxDecoration(
+                                color: Colors.black54, shape: BoxShape.circle),
+                            child: const Icon(Icons.close,
+                                size: 14, color: Colors.white),
                           ),
                         ),
                       ),
@@ -642,7 +701,8 @@ class _PhotoSection extends ConsumerWidget {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_library_outlined, color: _kBlue),
-              title: Text('Choose from Gallery', style: GoogleFonts.poppins(fontSize: 14)),
+              title: Text('Choose from Gallery',
+                  style: GoogleFonts.poppins(fontSize: 14)),
               onTap: () {
                 Navigator.pop(context);
                 notifier.pickFromGallery();
@@ -650,7 +710,8 @@ class _PhotoSection extends ConsumerWidget {
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt_outlined, color: _kBlue),
-              title: Text('Take a Photo', style: GoogleFonts.poppins(fontSize: 14)),
+              title: Text('Take a Photo',
+                  style: GoogleFonts.poppins(fontSize: 14)),
               onTap: () {
                 Navigator.pop(context);
                 notifier.pickFromCamera();
@@ -676,7 +737,9 @@ class _Section extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600)),
+          Text(title,
+              style: GoogleFonts.poppins(
+                  fontSize: 14, fontWeight: FontWeight.w600)),
           const SizedBox(height: 14),
           ...children,
         ],
@@ -697,7 +760,11 @@ class _Field extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.black54)),
+          Text(label,
+              style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black54)),
           const SizedBox(height: 6),
           child,
         ],

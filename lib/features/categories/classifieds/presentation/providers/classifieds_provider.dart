@@ -3,6 +3,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../../features/listings/data/models/classified_listing_model.dart';
 
+const _unset = Object();
+
 // ── Subcategory model ──────────────────────────────────────────────────────
 class ClassifiedSubcategory {
   final String name;
@@ -27,6 +29,44 @@ class ClassifiedSubcategory {
   }
 }
 
+const _defaultClassifiedSubcategories = [
+  ClassifiedSubcategory(name: 'Men', slug: 'men', sortOrder: 1),
+  ClassifiedSubcategory(name: 'Women', slug: 'women', sortOrder: 2),
+  ClassifiedSubcategory(
+      name: 'Kids Fashion', slug: 'kids-fashion', sortOrder: 3),
+  ClassifiedSubcategory(name: 'Bags', slug: 'bags', sortOrder: 4),
+  ClassifiedSubcategory(name: 'Footwear', slug: 'footwear', sortOrder: 5),
+  ClassifiedSubcategory(name: 'Jewellery', slug: 'jewellery', sortOrder: 6),
+  ClassifiedSubcategory(
+      name: 'Watches & Accessories', slug: 'watches-accessories', sortOrder: 7),
+  ClassifiedSubcategory(
+      name: 'Book & Sports', slug: 'books-sports', sortOrder: 8),
+];
+
+const _classifiedMainSlugs = {
+  'men',
+  'women',
+  'kids-fashion',
+  'bags',
+  'footwear',
+  'jewellery',
+  'jewelry',
+  'watches-accessories',
+  'books-sports',
+};
+
+ClassifiedSubcategory _normalizeClassifiedMain(ClassifiedSubcategory item) {
+  if (item.slug == 'jewelry') {
+    return ClassifiedSubcategory(
+      name: 'Jewellery',
+      slug: 'jewellery',
+      iconUrl: item.iconUrl,
+      sortOrder: item.sortOrder,
+    );
+  }
+  return item;
+}
+
 final classifiedsSubcategoriesProvider =
     FutureProvider.autoDispose<List<ClassifiedSubcategory>>((ref) async {
   final response = await Supabase.instance.client
@@ -38,30 +78,23 @@ final classifiedsSubcategoriesProvider =
       .order('name', ascending: true);
 
   final rows = (response as List<dynamic>)
-      .map((e) => ClassifiedSubcategory.fromMap(Map<String, dynamic>.from(e as Map)))
+      .map((e) =>
+          ClassifiedSubcategory.fromMap(Map<String, dynamic>.from(e as Map)))
       .where((s) => s.name.isNotEmpty && s.slug.isNotEmpty)
       .toList();
 
-  if (rows.isNotEmpty) return rows;
-
-  return const [
-    // Fashion
-    ClassifiedSubcategory(name: 'Men',                  slug: 'men',                 sortOrder: 1),
-    ClassifiedSubcategory(name: 'Women',                slug: 'women',               sortOrder: 2),
-    ClassifiedSubcategory(name: 'Kids Fashion',         slug: 'kids-fashion',        sortOrder: 3),
-    ClassifiedSubcategory(name: 'Bags',                 slug: 'bags',                sortOrder: 4),
-    ClassifiedSubcategory(name: 'Footwear',             slug: 'footwear',            sortOrder: 5),
-    ClassifiedSubcategory(name: 'Jewelry',              slug: 'jewelry',             sortOrder: 6),
-    ClassifiedSubcategory(name: 'Watches & Accessories',slug: 'watches-accessories', sortOrder: 7),
-    // Books & Sports
-    ClassifiedSubcategory(name: 'Academic Books',       slug: 'academic-books',      sortOrder: 8),
-    ClassifiedSubcategory(name: 'Fiction Books',        slug: 'fiction-books',       sortOrder: 9),
-    ClassifiedSubcategory(name: 'Kids Book',            slug: 'kids-book',           sortOrder: 10),
-    ClassifiedSubcategory(name: 'Exam Preparation',     slug: 'exam-preparation',    sortOrder: 11),
-    ClassifiedSubcategory(name: 'Sports Accessories',   slug: 'sports-accessories',  sortOrder: 12),
-    ClassifiedSubcategory(name: 'Cricket Gear',         slug: 'cricket-gear',        sortOrder: 13),
-    ClassifiedSubcategory(name: 'Fitness Equipment',    slug: 'fitness-equipment',   sortOrder: 14),
-  ];
+  final bySlug = {
+    for (final item in _defaultClassifiedSubcategories) item.slug: item,
+    for (final item in rows)
+      if (_classifiedMainSlugs.contains(item.slug))
+        _normalizeClassifiedMain(item).slug: _normalizeClassifiedMain(item),
+  };
+  return bySlug.values.toList()
+    ..sort((a, b) {
+      final byOrder = a.sortOrder.compareTo(b.sortOrder);
+      if (byOrder != 0) return byOrder;
+      return a.name.compareTo(b.name);
+    });
 });
 
 // ── Filter model ───────────────────────────────────────────────────────────
@@ -88,8 +121,8 @@ class ClassifiedsFilter {
     List<String>? conditions,
     List<String>? ages,
     List<String>? sellerTypes,
-    double? minPrice,
-    double? maxPrice,
+    Object? minPrice = _unset,
+    Object? maxPrice = _unset,
     String? region,
     String? sortBy,
   }) =>
@@ -97,8 +130,10 @@ class ClassifiedsFilter {
         conditions: conditions ?? this.conditions,
         ages: ages ?? this.ages,
         sellerTypes: sellerTypes ?? this.sellerTypes,
-        minPrice: minPrice ?? this.minPrice,
-        maxPrice: maxPrice ?? this.maxPrice,
+        minPrice:
+            identical(minPrice, _unset) ? this.minPrice : minPrice as double?,
+        maxPrice:
+            identical(maxPrice, _unset) ? this.maxPrice : maxPrice as double?,
         region: region ?? this.region,
         sortBy: sortBy ?? this.sortBy,
       );
@@ -112,11 +147,12 @@ class ClassifiedsFilter {
       region.isEmpty;
 }
 
-final classifiedsFilterProvider =
-    StateProvider.autoDispose<ClassifiedsFilter>((ref) => const ClassifiedsFilter());
+final classifiedsFilterProvider = StateProvider.autoDispose<ClassifiedsFilter>(
+    (ref) => const ClassifiedsFilter());
 
 // ── Listings providers ─────────────────────────────────────────────────────
-Future<List<ClassifiedListingModel>> _fetchClassifieds({String subcategory = ''}) async {
+Future<List<ClassifiedListingModel>> _fetchClassifieds(
+    {String subcategory = ''}) async {
   var query = Supabase.instance.client
       .from('listings')
       .select()
@@ -136,21 +172,21 @@ final classifiedsListingsProvider =
   return _fetchClassifieds();
 });
 
-final classifiedsBySubcategoryProvider =
-    FutureProvider.autoDispose.family<List<ClassifiedListingModel>, String>(
-        (ref, subcategory) async {
+final classifiedsBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<ClassifiedListingModel>, String>((ref, subcategory) async {
   return _fetchClassifieds(subcategory: subcategory);
 });
 
-final classifiedsFilteredProvider =
-    FutureProvider.autoDispose.family<List<ClassifiedListingModel>, String>(
-        (ref, subcategory) async {
+final classifiedsFilteredProvider = FutureProvider.autoDispose
+    .family<List<ClassifiedListingModel>, String>((ref, subcategory) async {
   final filter = ref.watch(classifiedsFilterProvider);
-  final all = await ref.watch(classifiedsBySubcategoryProvider(subcategory).future);
+  final all =
+      await ref.watch(classifiedsBySubcategoryProvider(subcategory).future);
 
   var result = all.where((item) {
     if (filter.conditions.isNotEmpty &&
-        !filter.conditions.any((c) => c.toLowerCase() == item.condition.toLowerCase())) {
+        !filter.conditions
+            .any((c) => c.toLowerCase() == item.condition.toLowerCase())) {
       return false;
     }
     if (filter.ages.isNotEmpty &&
@@ -158,12 +194,17 @@ final classifiedsFilteredProvider =
       return false;
     }
     if (filter.sellerTypes.isNotEmpty &&
-        !filter.sellerTypes.any((s) => s.toLowerCase() == item.sellerType.toLowerCase())) {
+        !filter.sellerTypes
+            .any((s) => s.toLowerCase() == item.sellerType.toLowerCase())) {
       return false;
     }
     final price = double.tryParse(item.price) ?? 0;
-    if (filter.minPrice != null && price < filter.minPrice!) { return false; }
-    if (filter.maxPrice != null && price > filter.maxPrice!) { return false; }
+    if (filter.minPrice != null && price < filter.minPrice!) {
+      return false;
+    }
+    if (filter.maxPrice != null && price > filter.maxPrice!) {
+      return false;
+    }
     if (filter.region.isNotEmpty &&
         !item.city.toLowerCase().contains(filter.region.toLowerCase())) {
       return false;
@@ -173,11 +214,11 @@ final classifiedsFilteredProvider =
 
   switch (filter.sortBy) {
     case 'price_high':
-      result.sort((a, b) =>
-          (double.tryParse(b.price) ?? 0).compareTo(double.tryParse(a.price) ?? 0));
+      result.sort((a, b) => (double.tryParse(b.price) ?? 0)
+          .compareTo(double.tryParse(a.price) ?? 0));
     case 'price_low':
-      result.sort((a, b) =>
-          (double.tryParse(a.price) ?? 0).compareTo(double.tryParse(b.price) ?? 0));
+      result.sort((a, b) => (double.tryParse(a.price) ?? 0)
+          .compareTo(double.tryParse(b.price) ?? 0));
     case 'oldest':
       result.sort((a, b) => a.createdAt.compareTo(b.createdAt));
     default:
@@ -185,4 +226,59 @@ final classifiedsFilteredProvider =
   }
 
   return result;
+});
+
+Future<List<String>> _distinctClassifiedField(String field,
+    {String subcategory = ''}) async {
+  var query = Supabase.instance.client
+      .from('listings')
+      .select('category_data')
+      .eq('category', 'classifieds')
+      .eq('is_active', true);
+  if (subcategory.isNotEmpty) query = query.eq('subcategory', subcategory);
+  final response = await query;
+  return (response as List<dynamic>)
+      .map((e) {
+        final cd = (e as Map<String, dynamic>)['category_data']
+                as Map<String, dynamic>? ??
+            {};
+        return cd[field]?.toString().trim() ?? '';
+      })
+      .where((v) => v.isNotEmpty)
+      .toSet()
+      .toList()
+    ..sort();
+}
+
+final classifiedsConditionsBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, subcategory) async {
+  final fromListings =
+      await _distinctClassifiedField('condition', subcategory: subcategory);
+  if (fromListings.isNotEmpty) return fromListings;
+  return const ['Flawless', 'Excellent', 'Good', 'Average', 'Poor'];
+});
+
+final classifiedsSellerTypesBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, subcategory) async {
+  final fromListings =
+      await _distinctClassifiedField('seller_type', subcategory: subcategory);
+  if (fromListings.isNotEmpty) return fromListings;
+  return const ['All Sellers', 'Individuals', 'Businesses'];
+});
+
+final classifiedsAgesBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, subcategory) async {
+  final fromListings =
+      await _distinctClassifiedField('age', subcategory: subcategory);
+  if (fromListings.isNotEmpty) return fromListings;
+  return const [
+    'Brand New',
+    '0-1 month',
+    '1-6 months',
+    '6-12 months',
+    '1-2 years',
+    '2-5 years',
+    '5-10 years',
+    '10+ years',
+  ];
 });

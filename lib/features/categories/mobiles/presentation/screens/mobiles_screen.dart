@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../../core/router/route_names.dart';
+import '../../../../../core/widgets/favorite_button.dart';
 import '../providers/mobile_brands_provider.dart';
 import '../providers/mobile_listings_provider.dart';
 import '../../../../../features/listings/data/models/mobile_listing_model.dart';
@@ -17,18 +18,24 @@ const _kBlue = Color(0xFF2258A8);
 
 // Brand SVG logos from SimpleIcons CDN
 const _kBrandSvgUrls = <String, String>{
-  'iPhone':       'https://cdn.simpleicons.org/apple/000000',
-  'Samsung':      'https://cdn.simpleicons.org/samsung/1428A0',
-  'Vivo':         'https://cdn.simpleicons.org/vivo/415FFF',
-  'Oppo':         'https://cdn.simpleicons.org/oppo/1D4289',
-  'OnePlus':      'https://cdn.simpleicons.org/oneplus/EB0028',
+  'iPhone': 'https://cdn.simpleicons.org/apple/000000',
+  'Samsung': 'https://cdn.simpleicons.org/samsung/1428A0',
+  'Vivo': 'https://cdn.simpleicons.org/vivo/415FFF',
+  'Oppo': 'https://cdn.simpleicons.org/oppo/1D4289',
+  'OnePlus': 'https://cdn.simpleicons.org/oneplus/EB0028',
   'Google Pixel': 'https://cdn.simpleicons.org/google/4285F4',
-  'Realme':       'https://cdn.simpleicons.org/realme/FF6E00',
+  'Realme': 'https://cdn.simpleicons.org/realme/FF6E00',
 };
 
 // Static brand list used as fallback when no brands in DB
 const _kBrandNames = [
-  'iPhone', 'Samsung', 'Vivo', 'Oppo', 'OnePlus', 'Google Pixel', 'Realme',
+  'iPhone',
+  'Samsung',
+  'Vivo',
+  'Oppo',
+  'OnePlus',
+  'Google Pixel',
+  'Realme',
 ];
 
 class _BrandSlot {
@@ -90,8 +97,8 @@ class _MobilesScreenState extends ConsumerState<MobilesScreen> {
             const SizedBox(height: 14),
             Expanded(
               child: listingsAsync.when(
-                loading: () =>
-                    const Center(child: CircularProgressIndicator(color: _kBlue)),
+                loading: () => const Center(
+                    child: CircularProgressIndicator(color: _kBlue)),
                 error: (e, _) => Center(child: Text('Error: $e')),
                 data: (listings) {
                   final brands = brandsAsync.valueOrNull;
@@ -105,15 +112,31 @@ class _MobilesScreenState extends ConsumerState<MobilesScreen> {
     );
   }
 
-  Widget _buildBody(List<MobileListingModel> listings, List<MobileBrand>? dbBrands) {
+  Widget _buildBody(
+      List<MobileListingModel> listings, List<MobileBrand>? dbBrands) {
     var filtered = listings;
     if (_searchQuery.isNotEmpty) {
-      filtered = listings
-          .where((l) =>
-              l.title.toLowerCase().contains(_searchQuery) ||
-              l.description.toLowerCase().contains(_searchQuery) ||
-              l.brand.toLowerCase().contains(_searchQuery))
-          .toList();
+      filtered = listings.where((l) {
+        final haystack = [
+          l.title,
+          l.description,
+          l.brand,
+          l.model,
+          l.storage,
+          l.color,
+          l.condition,
+          l.age,
+          l.warranty,
+          l.batteryHealth,
+          l.version,
+          l.damageDetails,
+          l.screenSize,
+          l.sellerType,
+          l.location,
+          l.subcategory,
+        ].join(' ').toLowerCase();
+        return haystack.contains(_searchQuery);
+      }).toList();
     }
 
     return RefreshIndicator(
@@ -176,9 +199,8 @@ class _MobilesScreenState extends ConsumerState<MobilesScreen> {
           .map((b) => _BrandSlot(name: b.name, logoUrl: b.logoUrl))
           .toList();
     } else {
-      brandSlots = _kBrandNames
-          .map((n) => _BrandSlot(name: n, logoUrl: null))
-          .toList();
+      brandSlots =
+          _kBrandNames.map((n) => _BrandSlot(name: n, logoUrl: null)).toList();
     }
 
     final slots = <Object?>[...brandSlots, 'more'];
@@ -310,8 +332,7 @@ class _MobilesScreenState extends ConsumerState<MobilesScreen> {
           ),
           const Spacer(),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             decoration: _headerBoxDecoration,
             child: Row(
               children: [
@@ -330,8 +351,8 @@ class _MobilesScreenState extends ConsumerState<MobilesScreen> {
             height: 34,
             decoration: _headerBoxDecoration,
             child: const Center(
-                child: Icon(Icons.help_outline,
-                    size: 22, color: Colors.black54)),
+                child:
+                    Icon(Icons.help_outline, size: 22, color: Colors.black54)),
           ),
           const SizedBox(width: 10),
           Container(
@@ -371,9 +392,16 @@ class _MobilesScreenState extends ConsumerState<MobilesScreen> {
                       fontWeight: FontWeight.w400,
                       color: Colors.black45),
                   border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  disabledBorder: InputBorder.none,
+                  errorBorder: InputBorder.none,
+                  focusedErrorBorder: InputBorder.none,
+                  isCollapsed: true,
                   contentPadding: EdgeInsets.zero,
                 ),
-                style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400),
+                style: GoogleFonts.poppins(
+                    fontSize: 11, fontWeight: FontWeight.w400),
               ),
             ),
             if (_searchCtrl.text.isNotEmpty)
@@ -390,7 +418,8 @@ class _MobilesScreenState extends ConsumerState<MobilesScreen> {
             else
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: SvgPicture.asset('assets/icons/filter.svg', width: 16, height: 16),
+                child: SvgPicture.asset('assets/icons/filter.svg',
+                    width: 16, height: 16),
               ),
           ],
         ),
@@ -474,7 +503,7 @@ class _MobilesScreenState extends ConsumerState<MobilesScreen> {
               ),
               Expanded(
                 child: _navItem(context, Icons.favorite_border, 'MY ADS',
-                    () => context.go(RouteNames.favorites)),
+                    () => context.push(RouteNames.myAds)),
               ),
               Expanded(
                 child: _navItem(context, Icons.person_outline, 'ACCOUNT',
@@ -487,8 +516,8 @@ class _MobilesScreenState extends ConsumerState<MobilesScreen> {
     );
   }
 
-  Widget _navItem(BuildContext context, IconData icon, String label,
-      VoidCallback onTap) {
+  Widget _navItem(
+      BuildContext context, IconData icon, String label, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -560,7 +589,8 @@ class _MobileCard extends StatelessWidget {
                   top: 8,
                   left: 8,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFF6B00),
                       borderRadius: BorderRadius.circular(4),
@@ -568,20 +598,22 @@ class _MobileCard extends StatelessWidget {
                     child: Text(
                       'Featured',
                       style: GoogleFonts.poppins(
-                          fontSize: 9, fontWeight: FontWeight.w600, color: Colors.white),
+                          fontSize: 9,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white),
                     ),
                   ),
                 ),
               Positioned(
                 top: 8,
                 right: 8,
-                child: Container(
-                  width: 28,
-                  height: 28,
-                  decoration: const BoxDecoration(
-                      color: Color(0x140F172A), shape: BoxShape.circle),
-                  child: const Icon(Icons.favorite_border,
-                      size: 14, color: Colors.white),
+                child: FavoriteButton(
+                  listingId: item.id,
+                  size: 28,
+                  backgroundColor: const Color(0x100F172A),
+                  showShadow: false,
+                  unselectedIconColor: Colors.white,
+                  selectedIconColor: Colors.red,
                 ),
               ),
             ],
@@ -660,10 +692,10 @@ class _SellRingPainter extends CustomPainter {
 
     const third = 2 * pi / 3;
     canvas.drawArc(rect, -pi / 2, third, false, arc(const Color(0xFF1D57A7)));
-    canvas.drawArc(rect, -pi / 2 + third, third, false,
-        arc(const Color(0xFF000000)));
-    canvas.drawArc(rect, -pi / 2 + 2 * third, third, false,
-        arc(const Color(0xFF3B77FE)));
+    canvas.drawArc(
+        rect, -pi / 2 + third, third, false, arc(const Color(0xFF000000)));
+    canvas.drawArc(
+        rect, -pi / 2 + 2 * third, third, false, arc(const Color(0xFF3B77FE)));
   }
 
   @override

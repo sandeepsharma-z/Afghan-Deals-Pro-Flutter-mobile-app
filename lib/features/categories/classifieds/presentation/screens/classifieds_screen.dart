@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../../core/router/route_names.dart';
+import '../../../../../core/widgets/favorite_button.dart';
 import '../providers/classifieds_provider.dart';
 import '../../../../../features/listings/data/models/classified_listing_model.dart';
 import 'classifieds_listings_screen.dart';
@@ -16,31 +17,44 @@ const _kBlue = Color(0xFF2258A8);
 
 const _kSlugAssets = <String, String>{
   // Fashion
-  'men':                 'assets/icons/classifieds/men.svg',
-  'women':               'assets/icons/classifieds/women.svg',
-  'kids-fashion':        'assets/icons/classifieds/kids-fashion.svg',
-  'bags':                'assets/icons/classifieds/bags.svg',
-  'footwear':            'assets/icons/classifieds/footwear.svg',
-  'jewelry':             'assets/icons/classifieds/jewelry.svg',
+  'men': 'assets/icons/classifieds/men.svg',
+  'women': 'assets/icons/classifieds/women.svg',
+  'kids-fashion': 'assets/icons/classifieds/kids-fashion.svg',
+  'bags': 'assets/icons/classifieds/bags.svg',
+  'footwear': 'assets/icons/classifieds/footwear.svg',
+  'jewellery': 'assets/icons/classifieds/jewelry.svg',
+  'jewelry': 'assets/icons/classifieds/jewelry.svg',
   'watches-accessories': 'assets/icons/classifieds/watches-accessories.svg',
   // Books & Sports
-  'academic-books':      'assets/icons/classifieds/academic-books.svg',
-  'fiction-books':       'assets/icons/classifieds/fiction-books.svg',
-  'kids-book':           'assets/icons/classifieds/kids-book.svg',
-  'exam-preparation':    'assets/icons/classifieds/exam-preparation.svg',
-  'sports-accessories':  'assets/icons/classifieds/sports-accessories.svg',
-  'cricket-gear':        'assets/icons/classifieds/cricket-gear.svg',
-  'fitness-equipment':   'assets/icons/classifieds/fitness-equipment.svg',
+  'academic-books': 'assets/icons/classifieds/academic-books.svg',
+  'fiction-books': 'assets/icons/classifieds/fiction-books.svg',
+  'kids-book': 'assets/icons/classifieds/kids-book.svg',
+  'exam-preparation': 'assets/icons/classifieds/exam-preparation.svg',
+  'sports-accessories': 'assets/icons/classifieds/sports-accessories.svg',
+  'cricket-gear': 'assets/icons/classifieds/cricket-gear.svg',
+  'fitness-equipment': 'assets/icons/classifieds/fitness-equipment.svg',
 };
 
 IconData _iconForSlug(String slug) {
-  if (slug.contains('men') || slug.contains('women') || slug.contains('fashion')) return Icons.checkroom_outlined;
+  if (slug.contains('men') ||
+      slug.contains('women') ||
+      slug.contains('fashion')) {
+    return Icons.checkroom_outlined;
+  }
   if (slug.contains('bag')) return Icons.shopping_bag_outlined;
-  if (slug.contains('foot') || slug.contains('shoe')) return Icons.do_not_step_outlined;
+  if (slug.contains('foot') || slug.contains('shoe')) {
+    return Icons.do_not_step_outlined;
+  }
   if (slug.contains('jewel')) return Icons.diamond_outlined;
   if (slug.contains('watch')) return Icons.watch_outlined;
-  if (slug.contains('book') || slug.contains('exam')) return Icons.menu_book_outlined;
-  if (slug.contains('sport') || slug.contains('cricket') || slug.contains('fitness')) return Icons.sports_outlined;
+  if (slug.contains('book') || slug.contains('exam')) {
+    return Icons.menu_book_outlined;
+  }
+  if (slug.contains('sport') ||
+      slug.contains('cricket') ||
+      slug.contains('fitness')) {
+    return Icons.sports_outlined;
+  }
   if (slug.contains('kid')) return Icons.child_care_outlined;
   return Icons.grid_view_outlined;
 }
@@ -75,7 +89,9 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
   static const _headerBoxDecoration = BoxDecoration(
     color: Color(0xFFF6F6F6),
     borderRadius: BorderRadius.all(Radius.circular(6)),
-    boxShadow: [BoxShadow(color: Color(0x40000000), blurRadius: 4, offset: Offset(0, 1))],
+    boxShadow: [
+      BoxShadow(color: Color(0x40000000), blurRadius: 4, offset: Offset(0, 1))
+    ],
   );
 
   @override
@@ -97,7 +113,8 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
             const SizedBox(height: 14),
             Expanded(
               child: listingsAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator(color: _kBlue)),
+                loading: () => const Center(
+                    child: CircularProgressIndicator(color: _kBlue)),
                 error: (e, _) => Center(child: Text('Error: $e')),
                 data: (listings) => _buildBody(listings, subcategoriesAsync),
               ),
@@ -114,14 +131,28 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
   ) {
     var filtered = _selectedChip.isEmpty
         ? listings
-        : listings.where((l) => l.subcategory.toLowerCase() == _selectedChip.toLowerCase()).toList();
+        : listings
+            .where((l) =>
+                l.subcategory.toLowerCase() == _selectedChip.toLowerCase())
+            .toList();
 
     if (_searchQuery.isNotEmpty) {
       filtered = filtered
-          .where((l) =>
-              l.title.toLowerCase().contains(_searchQuery) ||
-              l.description.toLowerCase().contains(_searchQuery) ||
-              l.subcategory.toLowerCase().contains(_searchQuery))
+          .where((l) => [
+                l.title,
+                l.description,
+                l.subcategory,
+                l.brand,
+                l.condition,
+                l.age,
+                l.usage,
+                l.sellerType,
+                l.sellerName,
+                l.city,
+                l.currency,
+                l.price,
+                l.formattedPrice,
+              ].join(' ').toLowerCase().contains(_searchQuery))
           .toList();
     }
 
@@ -169,7 +200,8 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
                   itemCount: filtered.length,
                   itemBuilder: (_, i) => GestureDetector(
                     onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => ClassifiedsDetailScreen(item: filtered[i]),
+                      builder: (_) =>
+                          ClassifiedsDetailScreen(item: filtered[i]),
                     )),
                     child: _ClassifiedCard(item: filtered[i]),
                   ),
@@ -182,31 +214,9 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
     );
   }
 
-  static const _fashionSlugs = {
-    'men', 'women', 'kids-fashion', 'bags', 'footwear', 'jewelry', 'watches-accessories',
-  };
-  static const _booksSportsSlugs = {
-    'academic-books', 'fiction-books', 'kids-book', 'exam-preparation',
-    'sports-accessories', 'cricket-gear', 'fitness-equipment',
-  };
-
   Widget _buildSubcategoryGrid(List<ClassifiedSubcategory> subs) {
-    final fashion = subs.where((s) => _fashionSlugs.contains(s.slug)).toList();
-    final booksAndSports = subs.where((s) => _booksSportsSlugs.contains(s.slug)).toList();
-
-    // fallback: split by index
-    final fashionList = fashion.isNotEmpty ? fashion : subs.take(7).toList();
-    final booksList = booksAndSports.isNotEmpty
-        ? booksAndSports
-        : (subs.length > 7 ? subs.skip(7).toList() : <ClassifiedSubcategory>[]);
-
-    // Build slots: 7 fashion + 1 "Books & Sports" group circle = 8 total (2 rows of 4)
-    final slots = <_CircleSlot>[
-      ...fashionList.map((s) => _CircleSlot.sub(s)),
-      if (booksList.isNotEmpty) _CircleSlot.group('Books & Sports', booksList),
-    ];
-
     final rows = <List<_CircleSlot>>[];
+    final slots = subs.map((s) => _CircleSlot.sub(s)).toList();
     for (int i = 0; i < slots.length; i += 4) {
       rows.add(slots.sublist(i, (i + 4).clamp(0, slots.length)));
     }
@@ -216,35 +226,25 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
         return Padding(
           padding: const EdgeInsets.only(bottom: 14),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ...row.map((slot) => Expanded(
-                child: slot.isGroup
-                    ? GestureDetector(
-                        onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => _BooksAndSportsScreen(subcategories: slot.groupItems!),
-                        )),
-                        child: _subcategoryCircle(
-                          label: 'Books &\nSports',
-                          iconUrl: null,
-                          slug: '__books_sports__',
-                          customIcon: Icons.sports_outlined,
-                        ),
-                      )
-                    : GestureDetector(
-                        onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => _ClassifiedsCategoryScreen(
-                            title: slot.sub!.name,
-                            slug: slot.sub!.slug,
-                          ),
-                        )),
-                        child: _subcategoryCircle(
-                          label: slot.sub!.name,
-                          iconUrl: slot.sub!.iconUrl,
+                    child: GestureDetector(
+                      onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => _ClassifiedsCategoryScreen(
+                          title: slot.sub!.name,
                           slug: slot.sub!.slug,
                         ),
+                      )),
+                      child: _subcategoryCircle(
+                        label: slot.sub!.name,
+                        iconUrl: slot.sub!.iconUrl,
+                        slug: slot.sub!.slug,
                       ),
-              )),
-              ...List.generate(4 - row.length, (_) => const Expanded(child: SizedBox())),
+                    ),
+                  )),
+              ...List.generate(
+                  4 - row.length, (_) => const Expanded(child: SizedBox())),
             ],
           ),
         );
@@ -267,50 +267,72 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
     } else if (localAsset != null) {
       iconWidget = SvgPicture.asset(
         localAsset,
-        width: 26, height: 26, fit: BoxFit.contain,
+        width: 26,
+        height: 26,
+        fit: BoxFit.contain,
         placeholderBuilder: (_) => Icon(fallbackIcon, color: _kBlue, size: 22),
       );
     } else if (iconUrl != null && iconUrl.isNotEmpty) {
       if (iconUrl.toLowerCase().contains('.svg')) {
         iconWidget = SvgPicture.network(
-          iconUrl, width: 26, height: 26, fit: BoxFit.contain,
-          placeholderBuilder: (_) => Icon(fallbackIcon, color: _kBlue, size: 22),
+          iconUrl,
+          width: 26,
+          height: 26,
+          fit: BoxFit.contain,
+          placeholderBuilder: (_) =>
+              Icon(fallbackIcon, color: _kBlue, size: 22),
         );
       } else {
         iconWidget = Image.network(
-          iconUrl, width: 26, height: 26, fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => Icon(fallbackIcon, color: _kBlue, size: 22),
+          iconUrl,
+          width: 26,
+          height: 26,
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) =>
+              Icon(fallbackIcon, color: _kBlue, size: 22),
         );
       }
     } else {
       iconWidget = Icon(fallbackIcon, color: _kBlue, size: 22);
     }
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 55, height: 55,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white,
-            border: Border.all(color: _kBlue, width: 1.5),
+    return SizedBox(
+      height: 99,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Container(
+            width: 55,
+            height: 55,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              border: Border.all(color: _kBlue, width: 1.5),
+            ),
+            child: Center(child: iconWidget),
           ),
-          child: Center(child: iconWidget),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label.contains('\n') ? label : (label.contains(' ') ? label.replaceFirst(' ', '\n') : label),
-          maxLines: 3,
-          textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(
-              fontSize: 11, height: 1.3, fontWeight: FontWeight.w400),
-        ),
-      ],
+          const SizedBox(height: 4),
+          SizedBox(
+            height: 39,
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: Text(
+                label,
+                maxLines: 3,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                    fontSize: 11, height: 1.3, fontWeight: FontWeight.w400),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildTopDealsHeader(AsyncValue<List<ClassifiedSubcategory>> subcategoriesAsync) {
+  Widget _buildTopDealsHeader(
+      AsyncValue<List<ClassifiedSubcategory>> subcategoriesAsync) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -318,7 +340,8 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Row(children: [
             Text('Top Deals',
-                style: GoogleFonts.poppins(fontSize: 14.75, fontWeight: FontWeight.w600)),
+                style: GoogleFonts.poppins(
+                    fontSize: 14.75, fontWeight: FontWeight.w600)),
             const Spacer(),
             GestureDetector(
               onTap: () => Navigator.of(context).push(MaterialPageRoute(
@@ -328,7 +351,8 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
                 ),
               )),
               child: Text('See all',
-                  style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w500)),
+                  style: GoogleFonts.poppins(
+                      fontSize: 11, fontWeight: FontWeight.w500)),
             ),
           ]),
         ),
@@ -360,7 +384,8 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected ? _kBlue : Colors.white,
-          border: Border.all(color: isSelected ? _kBlue : const Color(0xFFDDDDDD)),
+          border:
+              Border.all(color: isSelected ? _kBlue : const Color(0xFFDDDDDD)),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
@@ -381,7 +406,8 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
       child: Row(children: [
         GestureDetector(
           onTap: () => context.pop(),
-          child: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black87),
+          child: const Icon(Icons.arrow_back_ios_new,
+              size: 20, color: Colors.black87),
         ),
         const Spacer(),
         Container(
@@ -392,18 +418,26 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
                 width: 22, height: 22, fit: BoxFit.cover),
             const SizedBox(width: 5),
             Text('Afghanistan',
-                style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w500)),
+                style: GoogleFonts.montserrat(
+                    fontSize: 12, fontWeight: FontWeight.w500)),
           ]),
         ),
         const SizedBox(width: 10),
         Container(
-            width: 34, height: 34, decoration: _headerBoxDecoration,
-            child: const Center(child: Icon(Icons.help_outline, size: 22, color: Colors.black54))),
+            width: 34,
+            height: 34,
+            decoration: _headerBoxDecoration,
+            child: const Center(
+                child:
+                    Icon(Icons.help_outline, size: 22, color: Colors.black54))),
         const SizedBox(width: 10),
         Container(
-            width: 34, height: 34, decoration: _headerBoxDecoration,
+            width: 34,
+            height: 34,
+            decoration: _headerBoxDecoration,
             child: const Center(
-                child: Icon(Icons.notifications_outlined, size: 22, color: Colors.black87))),
+                child: Icon(Icons.notifications_outlined,
+                    size: 22, color: Colors.black87))),
       ]),
     );
   }
@@ -426,15 +460,24 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
               child: TextField(
                 controller: _searchCtrl,
                 decoration: InputDecoration(
-                  hintText: 'Search classifieds...',
+                  isCollapsed: true,
+                  filled: false,
+                  fillColor: Colors.transparent,
+                  hintText: 'Search classifieds',
                   hintStyle: GoogleFonts.poppins(
                       fontSize: 11,
                       fontWeight: FontWeight.w400,
                       color: Colors.black45),
                   border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  disabledBorder: InputBorder.none,
+                  errorBorder: InputBorder.none,
+                  focusedErrorBorder: InputBorder.none,
                   contentPadding: EdgeInsets.zero,
                 ),
-                style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400),
+                style: GoogleFonts.poppins(
+                    fontSize: 11, fontWeight: FontWeight.w400),
               ),
             ),
             if (_searchCtrl.text.isNotEmpty)
@@ -451,7 +494,8 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
             else
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: SvgPicture.asset('assets/icons/filter.svg', width: 16, height: 16),
+                child: SvgPicture.asset('assets/icons/filter.svg',
+                    width: 16, height: 16),
               ),
           ],
         ),
@@ -463,15 +507,23 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
     return GestureDetector(
       onTap: () => context.push(RouteNames.sell),
       child: SizedBox(
-        width: 58, height: 58,
+        width: 58,
+        height: 58,
         child: CustomPaint(
           foregroundPainter: _SellRingPainter(),
           child: Container(
             decoration: const BoxDecoration(
-              shape: BoxShape.circle, color: Colors.white,
-              boxShadow: [BoxShadow(color: Color(0x25000000), blurRadius: 8, offset: Offset(0, 2))],
+              shape: BoxShape.circle,
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                    color: Color(0x25000000),
+                    blurRadius: 8,
+                    offset: Offset(0, 2))
+              ],
             ),
-            child: const Center(child: Icon(Icons.add, color: _kBlue, size: 28)),
+            child:
+                const Center(child: Icon(Icons.add, color: _kBlue, size: 28)),
           ),
         ),
       ),
@@ -481,7 +533,10 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
   Widget _buildBottomNav(BuildContext context) {
     return DecoratedBox(
       decoration: const BoxDecoration(
-        boxShadow: [BoxShadow(color: Color(0x28000000), blurRadius: 12, offset: Offset(0, -4))],
+        boxShadow: [
+          BoxShadow(
+              color: Color(0x28000000), blurRadius: 12, offset: Offset(0, -4))
+        ],
       ),
       child: BottomAppBar(
         shape: const CircularNotchedRectangle(),
@@ -491,16 +546,28 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
         child: SizedBox(
           height: 66,
           child: Row(children: [
-            Expanded(child: _navItem(Icons.home_rounded, 'HOME', () => context.go(RouteNames.home))),
-            Expanded(child: _navItem(Icons.chat_bubble_outline, 'CHATS', () => context.go(RouteNames.chats))),
-            Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+            Expanded(
+                child: _navItem(Icons.home_rounded, 'HOME',
+                    () => context.go(RouteNames.home))),
+            Expanded(
+                child: _navItem(Icons.chat_bubble_outline, 'CHATS',
+                    () => context.go(RouteNames.chats))),
+            Expanded(
+                child:
+                    Column(mainAxisAlignment: MainAxisAlignment.end, children: [
               Text('SELL',
                   style: GoogleFonts.montserrat(
-                      fontSize: 10, fontWeight: FontWeight.w600, color: Colors.black38)),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black38)),
               const SizedBox(height: 8),
             ])),
-            Expanded(child: _navItem(Icons.favorite_border, 'MY ADS', () => context.go(RouteNames.myAds))),
-            Expanded(child: _navItem(Icons.person_outline, 'ACCOUNT', () => context.go(RouteNames.account))),
+            Expanded(
+                child: _navItem(Icons.favorite_border, 'MY ADS',
+                    () => context.push(RouteNames.myAds))),
+            Expanded(
+                child: _navItem(Icons.person_outline, 'ACCOUNT',
+                    () => context.go(RouteNames.account))),
           ]),
         ),
       ),
@@ -518,7 +585,9 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
           const SizedBox(height: 7),
           Text(label,
               style: GoogleFonts.montserrat(
-                  fontSize: 10, fontWeight: FontWeight.w700, color: Colors.black38)),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black38)),
           const SizedBox(height: 8),
         ]),
       ),
@@ -538,7 +607,10 @@ class _ClassifiedCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(7.38),
         boxShadow: const [
-          BoxShadow(color: Color(0x40000000), blurRadius: 4.22, offset: Offset(0, 1.05))
+          BoxShadow(
+              color: Color(0x40000000),
+              blurRadius: 4.22,
+              offset: Offset(0, 1.05))
         ],
       ),
       child: Column(
@@ -547,47 +619,65 @@ class _ClassifiedCard extends StatelessWidget {
           Stack(children: [
             ClipRRect(
               borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(7.38), topRight: Radius.circular(7.38)),
+                  topLeft: Radius.circular(7.38),
+                  topRight: Radius.circular(7.38)),
               child: item.images.isEmpty
                   ? _placeholder()
                   : Image.network(item.imageUrl,
-                      height: 101.27, width: double.infinity, fit: BoxFit.cover,
+                      height: 101.27,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => _placeholder()),
             ),
             if (item.isFeatured)
               Positioned(
-                top: 8, left: 8,
+                top: 8,
+                left: 8,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                   decoration: BoxDecoration(
                       color: const Color(0xFFFF6B00),
                       borderRadius: BorderRadius.circular(4)),
                   child: Text('Featured',
                       style: GoogleFonts.poppins(
-                          fontSize: 9, fontWeight: FontWeight.w600, color: Colors.white)),
+                          fontSize: 9,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white)),
                 ),
               ),
             Positioned(
-              top: 8, right: 8,
-              child: Container(
-                width: 28, height: 28,
-                decoration: const BoxDecoration(
-                    color: Color(0x140F172A), shape: BoxShape.circle),
-                child: const Icon(Icons.favorite_border, size: 14, color: Colors.white),
+              top: 8,
+              right: 8,
+              child: FavoriteButton(
+                listingId: item.id,
+                size: 28,
+                backgroundColor: const Color(0x100F172A),
+                showShadow: false,
+                unselectedIconColor: Colors.white,
+                selectedIconColor: Colors.red,
               ),
             ),
           ]),
           Padding(
             padding: const EdgeInsets.fromLTRB(8, 6, 8, 5),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(item.formattedPrice,
                   style: GoogleFonts.poppins(
-                      fontSize: 14, fontWeight: FontWeight.w600, height: 1.3, color: _kBlue)),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      height: 1.3,
+                      color: _kBlue)),
               const SizedBox(height: 4),
               Text(item.title,
-                  maxLines: 1, overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.poppins(
-                      fontSize: 12, fontWeight: FontWeight.w400, height: 1.3, color: Colors.black87)),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      height: 1.3,
+                      color: Colors.black87)),
               const SizedBox(height: 5),
               Row(children: [
                 const Icon(Icons.location_on_outlined,
@@ -595,9 +685,13 @@ class _ClassifiedCard extends StatelessWidget {
                 const SizedBox(width: 3),
                 Expanded(
                     child: Text(item.location,
-                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
-                            fontSize: 11, fontWeight: FontWeight.w400, height: 1.3, color: const Color(0xFF505050)))),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w400,
+                            height: 1.3,
+                            color: const Color(0xFF505050)))),
               ]),
             ]),
           ),
@@ -607,7 +701,8 @@ class _ClassifiedCard extends StatelessWidget {
   }
 
   Widget _placeholder() => Container(
-      height: 101.27, color: const Color(0xFFEDEDED),
+      height: 101.27,
+      color: const Color(0xFFEDEDED),
       child: const Center(
           child: Icon(Icons.grid_view_outlined, color: Colors.grey, size: 34)));
 }
@@ -615,17 +710,10 @@ class _ClassifiedCard extends StatelessWidget {
 // ── _CircleSlot helper ────────────────────────────────────────────────────────
 class _CircleSlot {
   final ClassifiedSubcategory? sub;
-  final bool isGroup;
-  final String? groupLabel;
-  final List<ClassifiedSubcategory>? groupItems;
 
-  const _CircleSlot._({this.sub, this.isGroup = false, this.groupLabel, this.groupItems});
+  const _CircleSlot._({this.sub});
 
-  factory _CircleSlot.sub(ClassifiedSubcategory s) =>
-      _CircleSlot._(sub: s);
-
-  factory _CircleSlot.group(String label, List<ClassifiedSubcategory> items) =>
-      _CircleSlot._(isGroup: true, groupLabel: label, groupItems: items);
+  factory _CircleSlot.sub(ClassifiedSubcategory s) => _CircleSlot._(sub: s);
 }
 
 // ── Books & Sports sub-screen (same UI as ClassifiedsScreen) ─────────────────
@@ -634,7 +722,8 @@ class _BooksAndSportsScreen extends ConsumerStatefulWidget {
   const _BooksAndSportsScreen({required this.subcategories});
 
   @override
-  ConsumerState<_BooksAndSportsScreen> createState() => _BooksAndSportsScreenState();
+  ConsumerState<_BooksAndSportsScreen> createState() =>
+      _BooksAndSportsScreenState();
 }
 
 class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
@@ -643,7 +732,9 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
   static const _headerBoxDecoration = BoxDecoration(
     color: Color(0xFFF6F6F6),
     borderRadius: BorderRadius.all(Radius.circular(6)),
-    boxShadow: [BoxShadow(color: Color(0x40000000), blurRadius: 4, offset: Offset(0, 1))],
+    boxShadow: [
+      BoxShadow(color: Color(0x40000000), blurRadius: 4, offset: Offset(0, 1))
+    ],
   );
 
   @override
@@ -664,11 +755,15 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
             const SizedBox(height: 14),
             Expanded(
               child: listingsAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator(color: _kBlue)),
+                loading: () => const Center(
+                    child: CircularProgressIndicator(color: _kBlue)),
                 error: (e, _) => Center(child: Text('Error: $e')),
                 data: (all) {
-                  final slugSet = widget.subcategories.map((s) => s.slug).toSet();
-                  final filtered = all.where((l) => slugSet.contains(l.subcategory)).toList();
+                  final slugSet =
+                      widget.subcategories.map((s) => s.slug).toSet();
+                  final filtered = all
+                      .where((l) => slugSet.contains(l.subcategory))
+                      .toList();
                   // if no subcategory-specific listings, show all classifieds
                   return _buildBody(filtered.isNotEmpty ? filtered : all);
                 },
@@ -686,11 +781,13 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
       child: Row(children: [
         GestureDetector(
           onTap: () => context.pop(),
-          child: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black87),
+          child: const Icon(Icons.arrow_back_ios_new,
+              size: 20, color: Colors.black87),
         ),
         const SizedBox(width: 10),
         Text('Books & Sports',
-            style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600)),
+            style:
+                GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600)),
         const Spacer(),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
@@ -700,13 +797,18 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
                 width: 22, height: 22, fit: BoxFit.cover),
             const SizedBox(width: 5),
             Text('Afghanistan',
-                style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w500)),
+                style: GoogleFonts.montserrat(
+                    fontSize: 12, fontWeight: FontWeight.w500)),
           ]),
         ),
         const SizedBox(width: 10),
         Container(
-            width: 34, height: 34, decoration: _headerBoxDecoration,
-            child: const Center(child: Icon(Icons.notifications_outlined, size: 22, color: Colors.black87))),
+            width: 34,
+            height: 34,
+            decoration: _headerBoxDecoration,
+            child: const Center(
+                child: Icon(Icons.notifications_outlined,
+                    size: 22, color: Colors.black87))),
       ]),
     );
   }
@@ -731,8 +833,10 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
           child: Row(children: [
             const Icon(Icons.search, size: 16, color: Colors.black87),
             const SizedBox(width: 8),
-            Expanded(child: Text('Search books & sports...',
-                style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400))),
+            Expanded(
+                child: Text('Search books & sports...',
+                    style: GoogleFonts.poppins(
+                        fontSize: 11, fontWeight: FontWeight.w400))),
             SvgPicture.asset('assets/icons/filter.svg', width: 16, height: 16),
           ]),
         ),
@@ -760,7 +864,8 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
               const SizedBox(
                 height: 260,
                 child: Center(
-                  child: Text('No listings yet', style: TextStyle(color: Colors.black45)),
+                  child: Text('No listings yet',
+                      style: TextStyle(color: Colors.black45)),
                 ),
               )
             else
@@ -778,7 +883,8 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
                   itemCount: filtered.length,
                   itemBuilder: (_, i) => GestureDetector(
                     onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => ClassifiedsDetailScreen(item: filtered[i]),
+                      builder: (_) =>
+                          ClassifiedsDetailScreen(item: filtered[i]),
                     )),
                     child: _ClassifiedCard(item: filtered[i]),
                   ),
@@ -794,7 +900,8 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
   Widget _buildCircleGrid() {
     final rows = <List<ClassifiedSubcategory>>[];
     for (int i = 0; i < widget.subcategories.length; i += 4) {
-      rows.add(widget.subcategories.sublist(i, (i + 4).clamp(0, widget.subcategories.length)));
+      rows.add(widget.subcategories
+          .sublist(i, (i + 4).clamp(0, widget.subcategories.length)));
     }
     return Column(
       children: rows.map((row) {
@@ -806,8 +913,12 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
                 final localAsset = _kSlugAssets[s.slug];
                 final fallback = _iconForSlug(s.slug);
                 final iconWidget = localAsset != null
-                    ? SvgPicture.asset(localAsset, width: 26, height: 26, fit: BoxFit.contain,
-                        placeholderBuilder: (_) => Icon(fallback, color: _kBlue, size: 22))
+                    ? SvgPicture.asset(localAsset,
+                        width: 26,
+                        height: 26,
+                        fit: BoxFit.contain,
+                        placeholderBuilder: (_) =>
+                            Icon(fallback, color: _kBlue, size: 22))
                     : Icon(fallback, color: _kBlue, size: 22);
                 return Expanded(
                   child: GestureDetector(
@@ -821,7 +932,8 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          width: 55, height: 55,
+                          width: 55,
+                          height: 55,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: Colors.white,
@@ -836,14 +948,15 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
                                 : s.name,
                             maxLines: 2,
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(
-                                fontSize: 11, height: 1.3)),
+                            style:
+                                GoogleFonts.poppins(fontSize: 11, height: 1.3)),
                       ],
                     ),
                   ),
                 );
               }),
-              ...List.generate(4 - row.length, (_) => const Expanded(child: SizedBox())),
+              ...List.generate(
+                  4 - row.length, (_) => const Expanded(child: SizedBox())),
             ],
           ),
         );
@@ -859,7 +972,8 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Row(children: [
             Text('Top Deals',
-                style: GoogleFonts.poppins(fontSize: 14.75, fontWeight: FontWeight.w600)),
+                style: GoogleFonts.poppins(
+                    fontSize: 14.75, fontWeight: FontWeight.w600)),
             const Spacer(),
             GestureDetector(
               onTap: () => Navigator.of(context).push(MaterialPageRoute(
@@ -869,7 +983,8 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
                 ),
               )),
               child: Text('See all',
-                  style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w500)),
+                  style: GoogleFonts.poppins(
+                      fontSize: 11, fontWeight: FontWeight.w500)),
             ),
           ]),
         ),
@@ -898,7 +1013,8 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected ? _kBlue : Colors.white,
-          border: Border.all(color: isSelected ? _kBlue : const Color(0xFFDDDDDD)),
+          border:
+              Border.all(color: isSelected ? _kBlue : const Color(0xFFDDDDDD)),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(label,
@@ -914,15 +1030,23 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
     return GestureDetector(
       onTap: () => context.push(RouteNames.sell),
       child: SizedBox(
-        width: 58, height: 58,
+        width: 58,
+        height: 58,
         child: CustomPaint(
           foregroundPainter: _SellRingPainter(),
           child: Container(
             decoration: const BoxDecoration(
-              shape: BoxShape.circle, color: Colors.white,
-              boxShadow: [BoxShadow(color: Color(0x25000000), blurRadius: 8, offset: Offset(0, 2))],
+              shape: BoxShape.circle,
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                    color: Color(0x25000000),
+                    blurRadius: 8,
+                    offset: Offset(0, 2))
+              ],
             ),
-            child: const Center(child: Icon(Icons.add, color: _kBlue, size: 28)),
+            child:
+                const Center(child: Icon(Icons.add, color: _kBlue, size: 28)),
           ),
         ),
       ),
@@ -932,7 +1056,10 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
   Widget _buildBottomNav(BuildContext context) {
     return DecoratedBox(
       decoration: const BoxDecoration(
-        boxShadow: [BoxShadow(color: Color(0x28000000), blurRadius: 12, offset: Offset(0, -4))],
+        boxShadow: [
+          BoxShadow(
+              color: Color(0x28000000), blurRadius: 12, offset: Offset(0, -4))
+        ],
       ),
       child: BottomAppBar(
         shape: const CircularNotchedRectangle(),
@@ -942,16 +1069,28 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
         child: SizedBox(
           height: 66,
           child: Row(children: [
-            Expanded(child: _navItem(Icons.home_rounded, 'HOME', () => context.go(RouteNames.home))),
-            Expanded(child: _navItem(Icons.chat_bubble_outline, 'CHATS', () => context.go(RouteNames.chats))),
-            Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+            Expanded(
+                child: _navItem(Icons.home_rounded, 'HOME',
+                    () => context.go(RouteNames.home))),
+            Expanded(
+                child: _navItem(Icons.chat_bubble_outline, 'CHATS',
+                    () => context.go(RouteNames.chats))),
+            Expanded(
+                child:
+                    Column(mainAxisAlignment: MainAxisAlignment.end, children: [
               Text('SELL',
                   style: GoogleFonts.montserrat(
-                      fontSize: 10, fontWeight: FontWeight.w600, color: Colors.black38)),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black38)),
               const SizedBox(height: 8),
             ])),
-            Expanded(child: _navItem(Icons.favorite_border, 'MY ADS', () => context.go(RouteNames.myAds))),
-            Expanded(child: _navItem(Icons.person_outline, 'ACCOUNT', () => context.go(RouteNames.account))),
+            Expanded(
+                child: _navItem(Icons.favorite_border, 'MY ADS',
+                    () => context.push(RouteNames.myAds))),
+            Expanded(
+                child: _navItem(Icons.person_outline, 'ACCOUNT',
+                    () => context.go(RouteNames.account))),
           ]),
         ),
       ),
@@ -969,7 +1108,9 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
           const SizedBox(height: 7),
           Text(label,
               style: GoogleFonts.montserrat(
-                  fontSize: 10, fontWeight: FontWeight.w700, color: Colors.black38)),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black38)),
           const SizedBox(height: 8),
         ]),
       ),
@@ -987,67 +1128,77 @@ class _SubType {
 
 const _kSubTypes = <String, List<_SubType>>{
   'men': [
-    _SubType('Shirts',         'shirts',        Icons.checkroom),
-    _SubType('T-Shirts',       't-shirts',      Icons.dry_cleaning),
-    _SubType('Jeans',          'jeans',         Icons.airline_seat_legroom_extra),
-    _SubType('Shalwar Kameez', 'shalwar-kameez',Icons.accessibility_new),
-    _SubType('Jackets',        'jackets',       Icons.layers),
-    _SubType('Kurta',          'kurta',         Icons.man),
-    _SubType('Accessories',    'accessories',   Icons.watch),
+    _SubType('Shirts', 'shirts', Icons.checkroom),
+    _SubType('T-Shirts', 't-shirts', Icons.dry_cleaning),
+    _SubType('Jeans', 'jeans', Icons.airline_seat_legroom_extra),
+    _SubType('Shalwar Kameez', 'shalwar-kameez', Icons.accessibility_new),
+    _SubType('Jackets', 'jackets', Icons.layers),
+    _SubType('Kurta', 'kurta', Icons.man),
+    _SubType('Accessories', 'accessories', Icons.watch),
   ],
   'women': [
-    _SubType('Dresses',        'dresses',       Icons.dry_cleaning),
-    _SubType('Shalwar Kameez', 'shalwar-kameez',Icons.accessibility_new),
-    _SubType('Abayas',         'abayas',        Icons.woman),
-    _SubType('Tops',           'tops',          Icons.checkroom),
-    _SubType('Jeans',          'jeans',         Icons.airline_seat_legroom_normal),
-    _SubType('Dupatta/Scarf',  'dupatta-scarf', Icons.waves),
-    _SubType('Accessories',    'accessories',   Icons.diamond),
+    _SubType('Dresses', 'dresses', Icons.dry_cleaning),
+    _SubType('Shalwar Kameez', 'shalwar-kameez', Icons.accessibility_new),
+    _SubType('Abayas', 'abayas', Icons.woman),
+    _SubType('Tops', 'tops', Icons.checkroom),
+    _SubType('Jeans', 'jeans', Icons.airline_seat_legroom_normal),
+    _SubType('Dupatta/Scarf', 'dupatta-scarf', Icons.waves),
+    _SubType('Accessories', 'accessories', Icons.diamond),
   ],
   'kids-fashion': [
-    _SubType('Boys Wear',      'boys-wear',     Icons.boy),
-    _SubType('Girls Wear',     'girls-wear',    Icons.girl),
-    _SubType('Baby Clothes',   'baby-clothes',  Icons.child_care),
-    _SubType('School Uniform', 'school-uniform',Icons.school),
-    _SubType('Party Wear',     'party-wear',    Icons.celebration),
-    _SubType('Kids Shoes',     'kids-shoes',    Icons.directions_run),
-    _SubType('Accessories',    'accessories',   Icons.toys),
+    _SubType('Boys Wear', 'boys-wear', Icons.boy),
+    _SubType('Girls Wear', 'girls-wear', Icons.girl),
+    _SubType('Baby Clothes', 'baby-clothes', Icons.child_care),
+    _SubType('School Uniform', 'school-uniform', Icons.school),
+    _SubType('Party Wear', 'party-wear', Icons.celebration),
+    _SubType('Kids Shoes', 'kids-shoes', Icons.directions_run),
+    _SubType('Accessories', 'accessories', Icons.toys),
   ],
   'bags': [
-    _SubType('Handbags',       'handbags',      Icons.shopping_bag),
-    _SubType('Backpacks',      'backpacks',     Icons.backpack),
-    _SubType('School Bags',    'school-bags',   Icons.school),
-    _SubType('Travel Bags',    'travel-bags',   Icons.luggage),
-    _SubType('Wallets',        'wallets',       Icons.account_balance_wallet),
-    _SubType('Clutches',       'clutches',      Icons.folder),
-    _SubType('Pouches',        'pouches',       Icons.archive),
+    _SubType('Handbags', 'handbags', Icons.shopping_bag),
+    _SubType('Backpacks', 'backpacks', Icons.backpack),
+    _SubType('School Bags', 'school-bags', Icons.school),
+    _SubType('Travel Bags', 'travel-bags', Icons.luggage),
+    _SubType('Wallets', 'wallets', Icons.account_balance_wallet),
+    _SubType('Clutches', 'clutches', Icons.folder),
+    _SubType('Pouches', 'pouches', Icons.archive),
   ],
   'footwear': [
-    _SubType('Men\'s Shoes',   'mens-shoes',    Icons.directions_walk),
-    _SubType('Women\'s Shoes', 'womens-shoes',  Icons.directions_walk),
-    _SubType('Kids\' Shoes',   'kids-shoes',    Icons.directions_run),
-    _SubType('Sandals',        'sandals',       Icons.beach_access),
-    _SubType('Boots',          'boots',         Icons.hiking),
-    _SubType('Sports Shoes',   'sports-shoes',  Icons.sports),
-    _SubType('Slippers',       'slippers',      Icons.home),
+    _SubType('Men\'s Shoes', 'mens-shoes', Icons.directions_walk),
+    _SubType('Women\'s Shoes', 'womens-shoes', Icons.directions_walk),
+    _SubType('Kids\' Shoes', 'kids-shoes', Icons.directions_run),
+    _SubType('Sandals', 'sandals', Icons.beach_access),
+    _SubType('Boots', 'boots', Icons.hiking),
+    _SubType('Sports Shoes', 'sports-shoes', Icons.sports),
+    _SubType('Slippers', 'slippers', Icons.home),
   ],
-  'jewelry': [
-    _SubType('Necklaces',      'necklaces',     Icons.spa),
-    _SubType('Earrings',       'earrings',      Icons.blur_on),
-    _SubType('Rings',          'rings',         Icons.radio_button_unchecked),
-    _SubType('Bracelets',      'bracelets',     Icons.data_usage),
-    _SubType('Bangles',        'bangles',       Icons.fiber_manual_record),
-    _SubType('Sets',           'sets',          Icons.diamond),
-    _SubType('Anklets',        'anklets',       Icons.show_chart),
+  'jewellery': [
+    _SubType('Necklaces', 'necklaces', Icons.spa),
+    _SubType('Earrings', 'earrings', Icons.blur_on),
+    _SubType('Rings', 'rings', Icons.radio_button_unchecked),
+    _SubType('Bracelets', 'bracelets', Icons.data_usage),
+    _SubType('Bangles', 'bangles', Icons.fiber_manual_record),
+    _SubType('Sets', 'sets', Icons.diamond),
+    _SubType('Anklets', 'anklets', Icons.show_chart),
   ],
   'watches-accessories': [
-    _SubType('Watches',        'watches',       Icons.watch),
-    _SubType('Sunglasses',     'sunglasses',    Icons.visibility),
-    _SubType('Belts',          'belts',         Icons.linear_scale),
-    _SubType('Caps & Hats',    'caps-hats',     Icons.sports_baseball),
-    _SubType('Ties',           'ties',          Icons.straighten),
-    _SubType('Scarves',        'scarves',       Icons.waves),
-    _SubType('Wallets',        'wallets',       Icons.account_balance_wallet),
+    _SubType('Watches', 'watches', Icons.watch),
+    _SubType('Sunglasses', 'sunglasses', Icons.visibility),
+    _SubType('Belts', 'belts', Icons.linear_scale),
+    _SubType('Caps & Hats', 'caps-hats', Icons.sports_baseball),
+    _SubType('Ties', 'ties', Icons.straighten),
+    _SubType('Scarves', 'scarves', Icons.waves),
+    _SubType('Wallets', 'wallets', Icons.account_balance_wallet),
+  ],
+  'books-sports': [
+    _SubType('Academic Books', 'academic-books', Icons.menu_book),
+    _SubType('Fiction Books', 'fiction-books', Icons.auto_stories),
+    _SubType('Kids Book', 'kids-book', Icons.child_care),
+    _SubType('Exam Preparation', 'exam-preparation', Icons.school),
+    _SubType('Sports Accessories', 'sports-accessories', Icons.sports),
+    _SubType('Cricket Gear', 'cricket-gear', Icons.sports_cricket),
+    _SubType('Fitness Equipment', 'fitness-equipment', Icons.fitness_center),
+    _SubType('Musical Instruments', 'musical-instruments', Icons.music_note),
   ],
 };
 
@@ -1058,16 +1209,20 @@ class _ClassifiedsCategoryScreen extends ConsumerStatefulWidget {
   const _ClassifiedsCategoryScreen({required this.title, required this.slug});
 
   @override
-  ConsumerState<_ClassifiedsCategoryScreen> createState() => _ClassifiedsCategoryScreenState();
+  ConsumerState<_ClassifiedsCategoryScreen> createState() =>
+      _ClassifiedsCategoryScreenState();
 }
 
-class _ClassifiedsCategoryScreenState extends ConsumerState<_ClassifiedsCategoryScreen> {
+class _ClassifiedsCategoryScreenState
+    extends ConsumerState<_ClassifiedsCategoryScreen> {
   String _selectedSubType = '';
 
   static const _headerBoxDecoration = BoxDecoration(
     color: Color(0xFFF6F6F6),
     borderRadius: BorderRadius.all(Radius.circular(6)),
-    boxShadow: [BoxShadow(color: Color(0x40000000), blurRadius: 4, offset: Offset(0, 1))],
+    boxShadow: [
+      BoxShadow(color: Color(0x40000000), blurRadius: 4, offset: Offset(0, 1))
+    ],
   );
 
   @override
@@ -1090,13 +1245,15 @@ class _ClassifiedsCategoryScreenState extends ConsumerState<_ClassifiedsCategory
             const SizedBox(height: 14),
             Expanded(
               child: specificAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator(color: _kBlue)),
+                loading: () => const Center(
+                    child: CircularProgressIndicator(color: _kBlue)),
                 error: (e, _) => Center(child: Text('Error: $e')),
                 data: (specific) {
                   // if subcategory has listings, show them; else show all classifieds
                   if (specific.isNotEmpty) return _buildBody(specific);
                   return allAsync.when(
-                    loading: () => const Center(child: CircularProgressIndicator(color: _kBlue)),
+                    loading: () => const Center(
+                        child: CircularProgressIndicator(color: _kBlue)),
                     error: (e, _) => Center(child: Text('Error: $e')),
                     data: (all) => _buildBody(all),
                   );
@@ -1115,11 +1272,13 @@ class _ClassifiedsCategoryScreenState extends ConsumerState<_ClassifiedsCategory
       child: Row(children: [
         GestureDetector(
           onTap: () => context.pop(),
-          child: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black87),
+          child: const Icon(Icons.arrow_back_ios_new,
+              size: 20, color: Colors.black87),
         ),
         const SizedBox(width: 10),
         Text(widget.title,
-            style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600)),
+            style:
+                GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600)),
         const Spacer(),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
@@ -1129,14 +1288,18 @@ class _ClassifiedsCategoryScreenState extends ConsumerState<_ClassifiedsCategory
                 width: 22, height: 22, fit: BoxFit.cover),
             const SizedBox(width: 5),
             Text('Afghanistan',
-                style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w500)),
+                style: GoogleFonts.montserrat(
+                    fontSize: 12, fontWeight: FontWeight.w500)),
           ]),
         ),
         const SizedBox(width: 10),
         Container(
-            width: 34, height: 34, decoration: _headerBoxDecoration,
+            width: 34,
+            height: 34,
+            decoration: _headerBoxDecoration,
             child: const Center(
-                child: Icon(Icons.notifications_outlined, size: 22, color: Colors.black87))),
+                child: Icon(Icons.notifications_outlined,
+                    size: 22, color: Colors.black87))),
       ]),
     );
   }
@@ -1154,8 +1317,10 @@ class _ClassifiedsCategoryScreenState extends ConsumerState<_ClassifiedsCategory
         child: Row(children: [
           const Icon(Icons.search, size: 16, color: Colors.black87),
           const SizedBox(width: 8),
-          Expanded(child: Text('Search ${widget.title.toLowerCase()}...',
-              style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400))),
+          Expanded(
+              child: Text('Search ${widget.title.toLowerCase()}...',
+                  style: GoogleFonts.poppins(
+                      fontSize: 11, fontWeight: FontWeight.w400))),
           SvgPicture.asset('assets/icons/filter.svg', width: 16, height: 16),
         ]),
       ),
@@ -1168,8 +1333,10 @@ class _ClassifiedsCategoryScreenState extends ConsumerState<_ClassifiedsCategory
         ? listings
         : listings
             .where((l) =>
-                l.subcategory.toLowerCase() == _selectedSubType ||
-                (l.title + l.description).toLowerCase().contains(_selectedSubType))
+                l.classifiedSubcategory.toLowerCase() == _selectedSubType ||
+                (l.title + l.description)
+                    .toLowerCase()
+                    .contains(_selectedSubType))
             .toList();
 
     return RefreshIndicator(
@@ -1239,7 +1406,8 @@ class _ClassifiedsCategoryScreenState extends ConsumerState<_ClassifiedsCategory
                   itemCount: displayed.length,
                   itemBuilder: (_, i) => GestureDetector(
                     onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => ClassifiedsDetailScreen(item: displayed[i]),
+                      builder: (_) =>
+                          ClassifiedsDetailScreen(item: displayed[i]),
                     )),
                     child: _ClassifiedCard(item: displayed[i]),
                   ),
@@ -1258,60 +1426,65 @@ class _ClassifiedsCategoryScreenState extends ConsumerState<_ClassifiedsCategory
       rows.add(subTypes.sublist(i, (i + 4).clamp(0, subTypes.length)));
     }
     return Column(
-      children: rows.map((row) => Padding(
-        padding: const EdgeInsets.only(bottom: 14),
-        child: Row(
-          children: [
-            ...row.map((s) => Expanded(
-              child: GestureDetector(
-                onTap: () => setState(() =>
-                    _selectedSubType = _selectedSubType == s.slug ? '' : s.slug),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
+      children: rows
+          .map((row) => Padding(
+                padding: const EdgeInsets.only(bottom: 14),
+                child: Row(
                   children: [
-                    Container(
-                      width: 55, height: 55,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: _selectedSubType == s.slug
-                            ? _kBlue
-                            : Colors.white,
-                        border: Border.all(color: _kBlue, width: 1.5),
-                      ),
-                      child: Center(
-                        child: Icon(
-                          s.icon,
-                          size: 22,
-                          color: _selectedSubType == s.slug
-                              ? Colors.white
-                              : _kBlue,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                        s.label.contains(' ')
-                            ? s.label.replaceFirst(' ', '\n')
-                            : s.label,
-                        maxLines: 2,
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
-                            fontSize: 10.5,
-                            height: 1.3,
-                            fontWeight: _selectedSubType == s.slug
-                                ? FontWeight.w600
-                                : FontWeight.w400,
-                            color: _selectedSubType == s.slug
-                                ? _kBlue
-                                : Colors.black87)),
+                    ...row.map((s) => Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() => _selectedSubType =
+                                _selectedSubType == s.slug ? '' : s.slug),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 55,
+                                  height: 55,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: _selectedSubType == s.slug
+                                        ? _kBlue
+                                        : Colors.white,
+                                    border:
+                                        Border.all(color: _kBlue, width: 1.5),
+                                  ),
+                                  child: Center(
+                                    child: Icon(
+                                      s.icon,
+                                      size: 22,
+                                      color: _selectedSubType == s.slug
+                                          ? Colors.white
+                                          : _kBlue,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                    s.label.contains(' ')
+                                        ? s.label.replaceFirst(' ', '\n')
+                                        : s.label,
+                                    maxLines: 2,
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.poppins(
+                                        fontSize: 10.5,
+                                        height: 1.3,
+                                        fontWeight: _selectedSubType == s.slug
+                                            ? FontWeight.w600
+                                            : FontWeight.w400,
+                                        color: _selectedSubType == s.slug
+                                            ? _kBlue
+                                            : Colors.black87)),
+                              ],
+                            ),
+                          ),
+                        )),
+                    ...List.generate(4 - row.length,
+                        (_) => const Expanded(child: SizedBox())),
                   ],
                 ),
-              ),
-            )),
-            ...List.generate(4 - row.length, (_) => const Expanded(child: SizedBox())),
-          ],
-        ),
-      )).toList(),
+              ))
+          .toList(),
     );
   }
 
@@ -1324,7 +1497,8 @@ class _ClassifiedsCategoryScreenState extends ConsumerState<_ClassifiedsCategory
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected ? _kBlue : Colors.white,
-          border: Border.all(color: isSelected ? _kBlue : const Color(0xFFDDDDDD)),
+          border:
+              Border.all(color: isSelected ? _kBlue : const Color(0xFFDDDDDD)),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(label,
@@ -1340,15 +1514,23 @@ class _ClassifiedsCategoryScreenState extends ConsumerState<_ClassifiedsCategory
     return GestureDetector(
       onTap: () => context.push(RouteNames.sell),
       child: SizedBox(
-        width: 58, height: 58,
+        width: 58,
+        height: 58,
         child: CustomPaint(
           foregroundPainter: _SellRingPainter(),
           child: Container(
             decoration: const BoxDecoration(
-              shape: BoxShape.circle, color: Colors.white,
-              boxShadow: [BoxShadow(color: Color(0x25000000), blurRadius: 8, offset: Offset(0, 2))],
+              shape: BoxShape.circle,
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                    color: Color(0x25000000),
+                    blurRadius: 8,
+                    offset: Offset(0, 2))
+              ],
             ),
-            child: const Center(child: Icon(Icons.add, color: _kBlue, size: 28)),
+            child:
+                const Center(child: Icon(Icons.add, color: _kBlue, size: 28)),
           ),
         ),
       ),
@@ -1358,7 +1540,10 @@ class _ClassifiedsCategoryScreenState extends ConsumerState<_ClassifiedsCategory
   Widget _buildBottomNav(BuildContext context) {
     return DecoratedBox(
       decoration: const BoxDecoration(
-        boxShadow: [BoxShadow(color: Color(0x28000000), blurRadius: 12, offset: Offset(0, -4))],
+        boxShadow: [
+          BoxShadow(
+              color: Color(0x28000000), blurRadius: 12, offset: Offset(0, -4))
+        ],
       ),
       child: BottomAppBar(
         shape: const CircularNotchedRectangle(),
@@ -1368,16 +1553,28 @@ class _ClassifiedsCategoryScreenState extends ConsumerState<_ClassifiedsCategory
         child: SizedBox(
           height: 66,
           child: Row(children: [
-            Expanded(child: _navItem(Icons.home_rounded, 'HOME', () => context.go(RouteNames.home))),
-            Expanded(child: _navItem(Icons.chat_bubble_outline, 'CHATS', () => context.go(RouteNames.chats))),
-            Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+            Expanded(
+                child: _navItem(Icons.home_rounded, 'HOME',
+                    () => context.go(RouteNames.home))),
+            Expanded(
+                child: _navItem(Icons.chat_bubble_outline, 'CHATS',
+                    () => context.go(RouteNames.chats))),
+            Expanded(
+                child:
+                    Column(mainAxisAlignment: MainAxisAlignment.end, children: [
               Text('SELL',
                   style: GoogleFonts.montserrat(
-                      fontSize: 10, fontWeight: FontWeight.w600, color: Colors.black38)),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black38)),
               const SizedBox(height: 8),
             ])),
-            Expanded(child: _navItem(Icons.favorite_border, 'MY ADS', () => context.go(RouteNames.myAds))),
-            Expanded(child: _navItem(Icons.person_outline, 'ACCOUNT', () => context.go(RouteNames.account))),
+            Expanded(
+                child: _navItem(Icons.favorite_border, 'MY ADS',
+                    () => context.push(RouteNames.myAds))),
+            Expanded(
+                child: _navItem(Icons.person_outline, 'ACCOUNT',
+                    () => context.go(RouteNames.account))),
           ]),
         ),
       ),
@@ -1395,7 +1592,9 @@ class _ClassifiedsCategoryScreenState extends ConsumerState<_ClassifiedsCategory
           const SizedBox(height: 7),
           Text(label,
               style: GoogleFonts.montserrat(
-                  fontSize: 10, fontWeight: FontWeight.w700, color: Colors.black38)),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black38)),
           const SizedBox(height: 8),
         ]),
       ),
@@ -1417,8 +1616,10 @@ class _SellRingPainter extends CustomPainter {
       ..strokeCap = StrokeCap.butt;
     const third = 2 * pi / 3;
     canvas.drawArc(rect, -pi / 2, third, false, arc(const Color(0xFF1D57A7)));
-    canvas.drawArc(rect, -pi / 2 + third, third, false, arc(const Color(0xFF000000)));
-    canvas.drawArc(rect, -pi / 2 + 2 * third, third, false, arc(const Color(0xFF3B77FE)));
+    canvas.drawArc(
+        rect, -pi / 2 + third, third, false, arc(const Color(0xFF000000)));
+    canvas.drawArc(
+        rect, -pi / 2 + 2 * third, third, false, arc(const Color(0xFF3B77FE)));
   }
 
   @override

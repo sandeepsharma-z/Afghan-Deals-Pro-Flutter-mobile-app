@@ -7,12 +7,76 @@ import '../providers/mobile_listings_provider.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
+class AppliedMobileFilters {
+  final Set<String> brands;
+  final Set<String> models;
+  final Set<String> conditions;
+  final Set<String> sellerTypes;
+  final Set<String> ages;
+  final Set<String> warranties;
+  final Set<String> screenSizes;
+  final Set<String> damages;
+  final Set<String> batteries;
+  final Set<String> versions;
+  final Set<String> storages;
+  final Set<String> colors;
+  final Set<String> regions;
+  final double minPrice;
+  final double maxPrice;
+
+  const AppliedMobileFilters({
+    this.brands = const {},
+    this.models = const {},
+    this.conditions = const {},
+    this.sellerTypes = const {},
+    this.ages = const {},
+    this.warranties = const {},
+    this.screenSizes = const {},
+    this.damages = const {},
+    this.batteries = const {},
+    this.versions = const {},
+    this.storages = const {},
+    this.colors = const {},
+    this.regions = const {},
+    this.minPrice = 0,
+    this.maxPrice = 150000,
+  });
+
+  bool get isEmpty =>
+      brands.isEmpty &&
+      models.isEmpty &&
+      conditions.isEmpty &&
+      sellerTypes.isEmpty &&
+      ages.isEmpty &&
+      warranties.isEmpty &&
+      screenSizes.isEmpty &&
+      damages.isEmpty &&
+      batteries.isEmpty &&
+      versions.isEmpty &&
+      storages.isEmpty &&
+      colors.isEmpty &&
+      regions.isEmpty &&
+      minPrice == 0 &&
+      maxPrice == 150000;
+}
+
 // ── Static data ────────────────────────────────────────────────────────────────
 
 const _kFallbackBrands = [
-  'iPhone', 'Samsung', 'Vivo', 'Oppo', 'OnePlus',
-  'Google Pixel', 'Realme', 'Xiaomi', 'Huawei', 'Sony',
-  'Nokia', 'Motorola', 'LG', 'HTC',
+  'iPhone',
+  'Samsung',
+  'Vivo',
+  'Oppo',
+  'OnePlus',
+  'Google Pixel',
+  'Realme',
+  'Xiaomi',
+  'Huawei',
+  'Sony',
+  'Nokia',
+  'Motorola',
+  'LG',
+  'HTC',
 ];
 
 const _kFallbackSellerTypes = ['Any', 'Individual', 'Dealer', 'Brand'];
@@ -22,85 +86,148 @@ const _kFallbackAges = ['0-3 months', '3-6 months', '6-12 months', '1+ year'];
 const _kFallbackWarranties = ['Yes', 'No', 'Does not apply'];
 
 const _kFallbackScreenSizes = [
-  'Under 5"', '5" - 5.5"', '5.5" - 6"', '6" - 6.5"', 'Above 6.5"',
+  'Under 5"',
+  '5" - 5.5"',
+  '5.5" - 6"',
+  '6" - 6.5"',
+  'Above 6.5"',
 ];
 
 const _kFallbackDamageDetails = [
-  'No Damage', 'Cracked Screen', 'Dented Body',
-  'Scratches', 'Water Damage', 'Other',
+  'No Damage',
+  'Cracked Screen',
+  'Dented Body',
+  'Scratches',
+  'Water Damage',
+  'Other',
 ];
 
 const _kFallbackBatteryHealths = [
-  '100%', '90%+', '80%+', '70%+', 'Below 70%', 'Unknown',
+  '100%',
+  '90%+',
+  '80%+',
+  '70%+',
+  'Below 70%',
+  'Unknown',
 ];
 
 const _kFallbackVersions = [
-  'International', 'GCC', 'US', 'Korean', 'Japanese', 'Chinese',
+  'International',
+  'GCC',
+  'US',
+  'Korean',
+  'Japanese',
+  'Chinese',
 ];
 
 const _kFallbackStorages = [
-  '16GB', '32GB', '64GB', '128GB', '256GB', '512GB', '1TB',
+  '16GB',
+  '32GB',
+  '64GB',
+  '128GB',
+  '256GB',
+  '512GB',
+  '1TB',
 ];
 
 const _kColorMap = <String, Color>{
-  'White':    Color(0xFFFFFFFF),
-  'Black':    Color(0xFF111111),
-  'Silver':   Color(0xFFC0C0C0),
-  'Gold':     Color(0xFFB8860B),
-  'Blue':     Color(0xFF1565C0),
-  'Red':      Color(0xFFE53935),
-  'Green':    Color(0xFF2E7D32),
-  'Purple':   Color(0xFF7B1FA2),
-  'Pink':     Color(0xFFE91E8C),
-  'Yellow':   Color(0xFFFFD600),
-  'Orange':   Color(0xFFFF6D00),
-  'Grey':     Color(0xFF808080),
+  'White': Color(0xFFFFFFFF),
+  'Black': Color(0xFF111111),
+  'Silver': Color(0xFFC0C0C0),
+  'Gold': Color(0xFFB8860B),
+  'Blue': Color(0xFF1565C0),
+  'Red': Color(0xFFE53935),
+  'Green': Color(0xFF2E7D32),
+  'Purple': Color(0xFF7B1FA2),
+  'Pink': Color(0xFFE91E8C),
+  'Yellow': Color(0xFFFFD600),
+  'Orange': Color(0xFFFF6D00),
+  'Grey': Color(0xFF808080),
 };
 
 // ── Filter categories ──────────────────────────────────────────────────────────
 
 enum _Cat {
-  brand, model, condition, priceRange, sellerType,
-  age, warranty, screenSize, damageDetails,
-  batteryHealth, version, storage, color, region,
+  brand,
+  model,
+  condition,
+  priceRange,
+  sellerType,
+  age,
+  warranty,
+  screenSize,
+  damageDetails,
+  batteryHealth,
+  version,
+  storage,
+  color,
+  region,
 }
 
 extension _CatLabel on _Cat {
   String get label {
     switch (this) {
-      case _Cat.brand:         return 'Brand';
-      case _Cat.model:         return 'Model';
-      case _Cat.condition:     return 'Condition';
-      case _Cat.priceRange:    return 'Price Range';
-      case _Cat.sellerType:    return 'Seller Type';
-      case _Cat.age:           return 'Age';
-      case _Cat.warranty:      return 'Warranty';
-      case _Cat.screenSize:    return 'Screen Size';
-      case _Cat.damageDetails: return 'Damage Details';
-      case _Cat.batteryHealth: return 'Battery Health';
-      case _Cat.version:       return 'Version';
-      case _Cat.storage:       return 'Storage Capacity';
-      case _Cat.color:         return 'Color';
-      case _Cat.region:        return 'Region';
+      case _Cat.brand:
+        return 'Brand';
+      case _Cat.model:
+        return 'Model';
+      case _Cat.condition:
+        return 'Condition';
+      case _Cat.priceRange:
+        return 'Price Range';
+      case _Cat.sellerType:
+        return 'Seller Type';
+      case _Cat.age:
+        return 'Age';
+      case _Cat.warranty:
+        return 'Warranty';
+      case _Cat.screenSize:
+        return 'Screen Size';
+      case _Cat.damageDetails:
+        return 'Damage Details';
+      case _Cat.batteryHealth:
+        return 'Battery Health';
+      case _Cat.version:
+        return 'Version';
+      case _Cat.storage:
+        return 'Storage Capacity';
+      case _Cat.color:
+        return 'Color';
+      case _Cat.region:
+        return 'Region';
     }
   }
 
   String get svgAsset {
     switch (this) {
-      case _Cat.brand:         return 'assets/icons/mobile_filter/brand.svg';
-      case _Cat.model:         return 'assets/icons/mobile_filter/model.svg';
-      case _Cat.condition:     return 'assets/icons/mobile_filter/condition.svg';
-      case _Cat.priceRange:    return 'assets/icons/mobile_filter/price rande.svg';
-      case _Cat.sellerType:    return 'assets/icons/mobile_filter/seller typer.svg';
-      case _Cat.age:           return 'assets/icons/mobile_filter/age.svg';
-      case _Cat.warranty:      return 'assets/icons/mobile_filter/warranty.svg';
-      case _Cat.screenSize:    return 'assets/icons/mobile_filter/screen size.svg';
-      case _Cat.damageDetails: return 'assets/icons/mobile_filter/damage details.svg';
-      case _Cat.batteryHealth: return 'assets/icons/mobile_filter/battery health.svg';
-      case _Cat.version:       return 'assets/icons/mobile_filter/version.svg';
-      case _Cat.storage:       return 'assets/icons/mobile_filter/storage capacity.svg';
-      case _Cat.color:         return 'assets/icons/mobile_filter/color.svg';
-      case _Cat.region:        return 'assets/icons/mobile_filter/region.svg';
+      case _Cat.brand:
+        return 'assets/icons/mobile_filter/brand.svg';
+      case _Cat.model:
+        return 'assets/icons/mobile_filter/model.svg';
+      case _Cat.condition:
+        return 'assets/icons/mobile_filter/condition.svg';
+      case _Cat.priceRange:
+        return 'assets/icons/mobile_filter/price_range.svg';
+      case _Cat.sellerType:
+        return 'assets/icons/mobile_filter/seller_type.svg';
+      case _Cat.age:
+        return 'assets/icons/mobile_filter/age.svg';
+      case _Cat.warranty:
+        return 'assets/icons/mobile_filter/warranty.svg';
+      case _Cat.screenSize:
+        return 'assets/icons/mobile_filter/screen_size.svg';
+      case _Cat.damageDetails:
+        return 'assets/icons/mobile_filter/damage_details.svg';
+      case _Cat.batteryHealth:
+        return 'assets/icons/mobile_filter/battery_health.svg';
+      case _Cat.version:
+        return 'assets/icons/mobile_filter/version.svg';
+      case _Cat.storage:
+        return 'assets/icons/mobile_filter/storage_capacity.svg';
+      case _Cat.color:
+        return 'assets/icons/mobile_filter/color.svg';
+      case _Cat.region:
+        return 'assets/icons/mobile_filter/region.svg';
     }
   }
 }
@@ -109,7 +236,9 @@ extension _CatLabel on _Cat {
 
 class MobileFilterScreen extends StatefulWidget {
   final List<String> cities;
-  const MobileFilterScreen({super.key, required this.cities});
+  final AppliedMobileFilters? initialFilters;
+  const MobileFilterScreen(
+      {super.key, required this.cities, this.initialFilters});
 
   @override
   State<MobileFilterScreen> createState() => _MobileFilterScreenState();
@@ -119,32 +248,56 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
   _Cat _active = _Cat.brand;
 
   // Selections
-  final Set<String> _brands      = {};
-  final Set<String> _models      = {};
-  final Set<String> _conditions  = {};
+  final Set<String> _brands = {};
+  final Set<String> _models = {};
+  final Set<String> _conditions = {};
   final Set<String> _sellerTypes = {};
-  final Set<String> _ages        = {};
-  final Set<String> _warranties  = {};
+  final Set<String> _ages = {};
+  final Set<String> _warranties = {};
   final Set<String> _screenSizes = {};
-  final Set<String> _damages     = {};
-  final Set<String> _batteries   = {};
-  final Set<String> _versions    = {};
-  final Set<String> _storages    = {};
-  final Set<String> _colors      = {};
-  final Set<String> _regions     = {};
+  final Set<String> _damages = {};
+  final Set<String> _batteries = {};
+  final Set<String> _versions = {};
+  final Set<String> _storages = {};
+  final Set<String> _colors = {};
+  final Set<String> _regions = {};
 
   double _maxPrice = 150000;
   double _minPrice = 0;
   final _maxCtrl = TextEditingController(text: '150000');
   final _minCtrl = TextEditingController(text: '');
 
-  String _brandSearch  = '';
-  String _modelSearch  = '';
+  String _brandSearch = '';
+  String _modelSearch = '';
   String _regionSearch = '';
 
   // Model dropdown
-  String _modelBrand    = '';
-  bool   _modelDropOpen = false;
+  String _modelBrand = '';
+  bool _modelDropOpen = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initialFilters;
+    if (initial == null) return;
+    _brands.addAll(initial.brands);
+    _models.addAll(initial.models);
+    _conditions.addAll(initial.conditions);
+    _sellerTypes.addAll(initial.sellerTypes);
+    _ages.addAll(initial.ages);
+    _warranties.addAll(initial.warranties);
+    _screenSizes.addAll(initial.screenSizes);
+    _damages.addAll(initial.damages);
+    _batteries.addAll(initial.batteries);
+    _versions.addAll(initial.versions);
+    _storages.addAll(initial.storages);
+    _colors.addAll(initial.colors);
+    _regions.addAll(initial.regions);
+    _minPrice = initial.minPrice;
+    _maxPrice = initial.maxPrice;
+    _minCtrl.text = _minPrice == 0 ? '' : _minPrice.toInt().toString();
+    _maxCtrl.text = _maxPrice.toInt().toString();
+  }
 
   @override
   void dispose() {
@@ -154,33 +307,61 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
   }
 
   void _clearAll() => setState(() {
-    _brands.clear(); _models.clear(); _conditions.clear();
-    _sellerTypes.clear(); _warranties.clear(); _screenSizes.clear();
-    _ages.clear(); _damages.clear(); _batteries.clear(); _versions.clear();
-    _storages.clear(); _colors.clear(); _regions.clear();
-    _maxPrice = 150000; _maxCtrl.text = '150000';
-    _minPrice = 0; _minCtrl.clear();
-    _brandSearch = ''; _modelSearch = ''; _regionSearch = '';
-    _modelBrand = ''; _modelDropOpen = false;
-    _active = _Cat.brand;
-  });
+        _brands.clear();
+        _models.clear();
+        _conditions.clear();
+        _sellerTypes.clear();
+        _warranties.clear();
+        _screenSizes.clear();
+        _ages.clear();
+        _damages.clear();
+        _batteries.clear();
+        _versions.clear();
+        _storages.clear();
+        _colors.clear();
+        _regions.clear();
+        _maxPrice = 150000;
+        _maxCtrl.text = '150000';
+        _minPrice = 0;
+        _minCtrl.clear();
+        _brandSearch = '';
+        _modelSearch = '';
+        _regionSearch = '';
+        _modelBrand = '';
+        _modelDropOpen = false;
+        _active = _Cat.brand;
+      });
 
   bool _hasVal(_Cat cat) {
     switch (cat) {
-      case _Cat.brand:         return _brands.isNotEmpty;
-      case _Cat.model:         return _models.isNotEmpty;
-      case _Cat.condition:     return _conditions.isNotEmpty;
-      case _Cat.priceRange:    return _maxPrice != 150000 || _minPrice != 0;
-      case _Cat.sellerType:    return _sellerTypes.isNotEmpty;
-      case _Cat.age:           return _ages.isNotEmpty;
-      case _Cat.warranty:      return _warranties.isNotEmpty;
-      case _Cat.screenSize:    return _screenSizes.isNotEmpty;
-      case _Cat.damageDetails: return _damages.isNotEmpty;
-      case _Cat.batteryHealth: return _batteries.isNotEmpty;
-      case _Cat.version:       return _versions.isNotEmpty;
-      case _Cat.storage:       return _storages.isNotEmpty;
-      case _Cat.color:         return _colors.isNotEmpty;
-      case _Cat.region:        return _regions.isNotEmpty;
+      case _Cat.brand:
+        return _brands.isNotEmpty;
+      case _Cat.model:
+        return _models.isNotEmpty;
+      case _Cat.condition:
+        return _conditions.isNotEmpty;
+      case _Cat.priceRange:
+        return _maxPrice != 150000 || _minPrice != 0;
+      case _Cat.sellerType:
+        return _sellerTypes.isNotEmpty;
+      case _Cat.age:
+        return _ages.isNotEmpty;
+      case _Cat.warranty:
+        return _warranties.isNotEmpty;
+      case _Cat.screenSize:
+        return _screenSizes.isNotEmpty;
+      case _Cat.damageDetails:
+        return _damages.isNotEmpty;
+      case _Cat.batteryHealth:
+        return _batteries.isNotEmpty;
+      case _Cat.version:
+        return _versions.isNotEmpty;
+      case _Cat.storage:
+        return _storages.isNotEmpty;
+      case _Cat.color:
+        return _colors.isNotEmpty;
+      case _Cat.region:
+        return _regions.isNotEmpty;
     }
   }
 
@@ -209,9 +390,7 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
             onPressed: _clearAll,
             child: Text('Clear All',
                 style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: _kBlue)),
+                    fontSize: 12, fontWeight: FontWeight.w400, color: _kBlue)),
           ),
         ],
         scrolledUnderElevation: 0,
@@ -224,7 +403,8 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
       body: Builder(builder: (context) {
         final panelH = (MediaQuery.of(context).size.height -
                 MediaQuery.of(context).padding.top -
-                MediaQuery.of(context).padding.bottom - 210)
+                MediaQuery.of(context).padding.bottom -
+                210)
             .clamp(200.0, double.infinity);
         return Padding(
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
@@ -239,7 +419,8 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFF3F4F6),
                     borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: const Color(0xFFD0D0D0), width: 1),
+                    border:
+                        Border.all(color: const Color(0xFFD0D0D0), width: 1),
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: SingleChildScrollView(
@@ -317,7 +498,8 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
             ),
             if (hasValue) ...[
               const SizedBox(width: 4),
-              const Icon(Icons.check_circle, color: Color(0xFF00BA00), size: 21),
+              const Icon(Icons.check_circle,
+                  color: Color(0xFF00BA00), size: 21),
             ],
           ],
         ),
@@ -338,16 +520,22 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
             return async.when(
               loading: () => const Padding(
                 padding: EdgeInsets.all(20),
-                child: Center(child: CircularProgressIndicator(color: _kBlue, strokeWidth: 2)),
+                child: Center(
+                    child: CircularProgressIndicator(
+                        color: _kBlue, strokeWidth: 2)),
               ),
               error: (e, _) => Padding(
                 padding: const EdgeInsets.all(14),
-                child: Text('Error loading conditions', style: GoogleFonts.poppins(fontSize: 12, color: Colors.red)),
+                child: Text('Error loading conditions',
+                    style:
+                        GoogleFonts.poppins(fontSize: 12, color: Colors.red)),
               ),
               data: (items) => items.isEmpty
                   ? Padding(
                       padding: const EdgeInsets.all(14),
-                      child: Text('No conditions found', style: GoogleFonts.poppins(fontSize: 12, color: Colors.black45)),
+                      child: Text('No conditions found',
+                          style: GoogleFonts.poppins(
+                              fontSize: 12, color: Colors.black45)),
                     )
                   : _buildCheckList(items, _conditions),
             );
@@ -363,7 +551,8 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
               loading: () => const Padding(
                 padding: EdgeInsets.all(20),
                 child: Center(
-                  child: CircularProgressIndicator(color: _kBlue, strokeWidth: 2),
+                  child:
+                      CircularProgressIndicator(color: _kBlue, strokeWidth: 2),
                 ),
               ),
               error: (e, _) => Padding(
@@ -388,7 +577,8 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
               loading: () => const Padding(
                 padding: EdgeInsets.all(20),
                 child: Center(
-                  child: CircularProgressIndicator(color: _kBlue, strokeWidth: 2),
+                  child:
+                      CircularProgressIndicator(color: _kBlue, strokeWidth: 2),
                 ),
               ),
               error: (e, _) => Padding(
@@ -413,7 +603,8 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
               loading: () => const Padding(
                 padding: EdgeInsets.all(20),
                 child: Center(
-                  child: CircularProgressIndicator(color: _kBlue, strokeWidth: 2),
+                  child:
+                      CircularProgressIndicator(color: _kBlue, strokeWidth: 2),
                 ),
               ),
               error: (e, _) => Padding(
@@ -438,7 +629,8 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
               loading: () => const Padding(
                 padding: EdgeInsets.all(20),
                 child: Center(
-                  child: CircularProgressIndicator(color: _kBlue, strokeWidth: 2),
+                  child:
+                      CircularProgressIndicator(color: _kBlue, strokeWidth: 2),
                 ),
               ),
               error: (e, _) => Padding(
@@ -463,7 +655,8 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
               loading: () => const Padding(
                 padding: EdgeInsets.all(20),
                 child: Center(
-                  child: CircularProgressIndicator(color: _kBlue, strokeWidth: 2),
+                  child:
+                      CircularProgressIndicator(color: _kBlue, strokeWidth: 2),
                 ),
               ),
               error: (e, _) => Padding(
@@ -488,7 +681,8 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
               loading: () => const Padding(
                 padding: EdgeInsets.all(20),
                 child: Center(
-                  child: CircularProgressIndicator(color: _kBlue, strokeWidth: 2),
+                  child:
+                      CircularProgressIndicator(color: _kBlue, strokeWidth: 2),
                 ),
               ),
               error: (e, _) => Padding(
@@ -499,7 +693,8 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
                 ),
               ),
               data: (items) {
-                final options = items.isEmpty ? _kFallbackBatteryHealths : items;
+                final options =
+                    items.isEmpty ? _kFallbackBatteryHealths : items;
                 return _buildCheckList(options, _batteries);
               },
             );
@@ -513,7 +708,8 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
               loading: () => const Padding(
                 padding: EdgeInsets.all(20),
                 child: Center(
-                  child: CircularProgressIndicator(color: _kBlue, strokeWidth: 2),
+                  child:
+                      CircularProgressIndicator(color: _kBlue, strokeWidth: 2),
                 ),
               ),
               error: (e, _) => Padding(
@@ -538,7 +734,8 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
               loading: () => const Padding(
                 padding: EdgeInsets.all(20),
                 child: Center(
-                  child: CircularProgressIndicator(color: _kBlue, strokeWidth: 2),
+                  child:
+                      CircularProgressIndicator(color: _kBlue, strokeWidth: 2),
                 ),
               ),
               error: (e, _) => Padding(
@@ -585,7 +782,8 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
           data: (items) {
             final brands = items.isEmpty ? _kFallbackBrands : items;
             final filtered = brands
-                .where((b) => b.toLowerCase().contains(_brandSearch.toLowerCase()))
+                .where(
+                    (b) => b.toLowerCase().contains(_brandSearch.toLowerCase()))
                 .toList();
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -602,7 +800,9 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
                     label: b,
                     selected: _brands.contains(b),
                     onTap: () => setState(
-                      () => _brands.contains(b) ? _brands.remove(b) : _brands.add(b),
+                      () => _brands.contains(b)
+                          ? _brands.remove(b)
+                          : _brands.add(b),
                     ),
                   ),
                 ),
@@ -621,7 +821,8 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
         final brands = asyncBrands.valueOrNull;
         final brandOptions =
             (brands == null || brands.isEmpty) ? _kFallbackBrands : brands;
-        final activeBrand = _modelBrand.isEmpty ? brandOptions.first : _modelBrand;
+        final activeBrand =
+            _modelBrand.isEmpty ? brandOptions.first : _modelBrand;
         final asyncModels = ref.watch(mobileModelsByBrandProvider(activeBrand));
 
         return Column(
@@ -630,7 +831,8 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
             // ── Search (above dropdown) ─────────────────────────
             Padding(
               padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
-              child: _searchBox('Search model', (v) => setState(() => _modelSearch = v)),
+              child: _searchBox(
+                  'Search model', (v) => setState(() => _modelSearch = v)),
             ),
             // ── Brand dropdown ──────────────────────────────────
             Padding(
@@ -638,7 +840,8 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
               child: GestureDetector(
                 onTap: () => setState(() => _modelDropOpen = !_modelDropOpen),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
                   decoration: BoxDecoration(
                     border: Border.all(color: const Color(0xFFD9D9D9)),
                     borderRadius: BorderRadius.circular(8),
@@ -648,11 +851,14 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
                       Expanded(
                         child: Text(
                           activeBrand,
-                          style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.black87),
+                          style: GoogleFonts.poppins(
+                              fontSize: 12.5, color: Colors.black87),
                         ),
                       ),
                       Icon(
-                        _modelDropOpen ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                        _modelDropOpen
+                            ? Icons.keyboard_arrow_up
+                            : Icons.keyboard_arrow_down,
                         size: 18,
                         color: Colors.black54,
                       ),
@@ -670,23 +876,30 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Column(
-                    children: brandOptions.map((b) => InkWell(
-                      onTap: () => setState(() {
-                        _modelBrand = b;
-                        _modelDropOpen = false;
-                        _modelSearch = '';
-                      }),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-                        child: Row(
-                          children: [
-                            Expanded(child: Text(b, style: GoogleFonts.poppins(fontSize: 12.5))),
-                            if (activeBrand == b)
-                              const Icon(Icons.check, size: 14, color: _kBlue),
-                          ],
-                        ),
-                      ),
-                    )).toList(),
+                    children: brandOptions
+                        .map((b) => InkWell(
+                              onTap: () => setState(() {
+                                _modelBrand = b;
+                                _modelDropOpen = false;
+                                _modelSearch = '';
+                              }),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 9),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                        child: Text(b,
+                                            style: GoogleFonts.poppins(
+                                                fontSize: 12.5))),
+                                    if (activeBrand == b)
+                                      const Icon(Icons.check,
+                                          size: 14, color: _kBlue),
+                                  ],
+                                ),
+                              ),
+                            ))
+                        .toList(),
                   ),
                 ),
               ),
@@ -694,32 +907,41 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
             asyncModels.when(
               loading: () => const Padding(
                 padding: EdgeInsets.all(20),
-                child: Center(child: CircularProgressIndicator(color: _kBlue, strokeWidth: 2)),
+                child: Center(
+                    child: CircularProgressIndicator(
+                        color: _kBlue, strokeWidth: 2)),
               ),
               error: (e, _) => Padding(
                 padding: const EdgeInsets.all(14),
-                child: Text('Error loading models', style: GoogleFonts.poppins(fontSize: 12, color: Colors.red)),
+                child: Text('Error loading models',
+                    style:
+                        GoogleFonts.poppins(fontSize: 12, color: Colors.red)),
               ),
               data: (allModels) {
                 final filtered = allModels
-                    .where((m) => m.toLowerCase().contains(_modelSearch.toLowerCase()))
+                    .where((m) =>
+                        m.toLowerCase().contains(_modelSearch.toLowerCase()))
                     .toList();
                 if (filtered.isEmpty) {
                   return Padding(
                     padding: const EdgeInsets.all(14),
                     child: Text(
                       'No models found',
-                      style: GoogleFonts.poppins(fontSize: 12, color: Colors.black45),
+                      style: GoogleFonts.poppins(
+                          fontSize: 12, color: Colors.black45),
                     ),
                   );
                 }
                 return Column(
-                  children: filtered.map((m) => _CheckRow(
-                    label: m,
-                    selected: _models.contains(m),
-                    onTap: () => setState(() =>
-                        _models.contains(m) ? _models.remove(m) : _models.add(m)),
-                  )).toList(),
+                  children: filtered
+                      .map((m) => _CheckRow(
+                            label: m,
+                            selected: _models.contains(m),
+                            onTap: () => setState(() => _models.contains(m)
+                                ? _models.remove(m)
+                                : _models.add(m)),
+                          ))
+                      .toList(),
                 );
               },
             ),
@@ -948,9 +1170,10 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
                                   ? Icon(
                                       Icons.check,
                                       size: 16,
-                                      color: swatchColor.computeLuminance() > 0.5
-                                          ? Colors.black
-                                          : Colors.white,
+                                      color:
+                                          swatchColor.computeLuminance() > 0.5
+                                              ? Colors.black
+                                              : Colors.white,
                                     )
                                   : null,
                             ),
@@ -977,23 +1200,22 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
   Widget _buildRegion() {
     final locations = widget.cities;
     final filtered = locations
-        .where((c) =>
-            c.toLowerCase().contains(_regionSearch.toLowerCase()))
+        .where((c) => c.toLowerCase().contains(_regionSearch.toLowerCase()))
         .toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.all(10),
-          child: _searchBox('Search location',
-              (v) => setState(() => _regionSearch = v)),
+          child: _searchBox(
+              'Search location', (v) => setState(() => _regionSearch = v)),
         ),
         if (filtered.isEmpty)
           Padding(
             padding: const EdgeInsets.all(14),
             child: Text('No locations available',
-                style: GoogleFonts.poppins(
-                    fontSize: 12, color: Colors.black45)),
+                style:
+                    GoogleFonts.poppins(fontSize: 12, color: Colors.black45)),
           )
         else
           ...filtered.map((c) => _CheckRow(
@@ -1022,7 +1244,6 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
     );
   }
 
-
   Widget _searchBox(String hint, ValueChanged<String> onChanged) {
     return Container(
       height: 46,
@@ -1040,7 +1261,10 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
             child: TextField(
               onChanged: onChanged,
               style: GoogleFonts.poppins(
-                  fontSize: 11, height: 18 / 11, letterSpacing: 0, color: Colors.black),
+                  fontSize: 11,
+                  height: 18 / 11,
+                  letterSpacing: 0,
+                  color: Colors.black),
               decoration: InputDecoration(
                 hintText: hint,
                 hintStyle: GoogleFonts.poppins(
@@ -1069,7 +1293,25 @@ class _MobileFilterScreenState extends State<MobileFilterScreen> {
             width: double.infinity,
             height: 50,
             child: ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(context).pop(
+                AppliedMobileFilters(
+                  brands: Set<String>.from(_brands),
+                  models: Set<String>.from(_models),
+                  conditions: Set<String>.from(_conditions),
+                  sellerTypes: Set<String>.from(_sellerTypes),
+                  ages: Set<String>.from(_ages),
+                  warranties: Set<String>.from(_warranties),
+                  screenSizes: Set<String>.from(_screenSizes),
+                  damages: Set<String>.from(_damages),
+                  batteries: Set<String>.from(_batteries),
+                  versions: Set<String>.from(_versions),
+                  storages: Set<String>.from(_storages),
+                  colors: Set<String>.from(_colors),
+                  regions: Set<String>.from(_regions),
+                  minPrice: _minPrice,
+                  maxPrice: _maxPrice,
+                ),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _kBlue,
                 shape: RoundedRectangleBorder(
@@ -1109,8 +1351,8 @@ class _CheckRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: const BoxDecoration(
           color: Colors.white,
-          border: Border(
-              bottom: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
+          border:
+              Border(bottom: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
         ),
         child: Row(
           children: [
@@ -1126,7 +1368,8 @@ class _CheckRow extends StatelessWidget {
                 borderRadius: BorderRadius.circular(3),
               ),
               child: selected
-                  ? const Center(child: Icon(Icons.check, size: 12, color: Colors.white))
+                  ? const Center(
+                      child: Icon(Icons.check, size: 12, color: Colors.white))
                   : null,
             ),
             const SizedBox(width: 12),
@@ -1152,8 +1395,7 @@ class _CheckRow extends StatelessWidget {
 
 class _WhiteThumbShape extends SliderComponentShape {
   @override
-  Size getPreferredSize(bool isEnabled, bool isDiscrete) =>
-      const Size(18, 18);
+  Size getPreferredSize(bool isEnabled, bool isDiscrete) => const Size(18, 18);
 
   @override
   void paint(

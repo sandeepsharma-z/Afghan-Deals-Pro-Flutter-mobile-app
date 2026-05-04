@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../data/models/chat_message_model.dart';
 import '../../data/models/chat_thread_model.dart';
 import '../providers/chat_provider.dart';
+import 'chat_user_profile_screen.dart';
 
 class ChatDetailScreen extends ConsumerStatefulWidget {
   final String chatId;
@@ -50,6 +51,13 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
           chatId: widget.chatId,
           amIBuyer: thread.amIBuyer,
         );
+  }
+
+  void _jumpToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollCtrl.hasClients) return;
+      _scrollCtrl.jumpTo(_scrollCtrl.position.maxScrollExtent);
+    });
   }
 
   bool _alreadyInServer(ChatMessageModel opt, List<ChatMessageModel> server) {
@@ -197,20 +205,34 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         titleSpacing: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title,
-                style: GoogleFonts.poppins(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87)),
-            Text(subtitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style:
-                    GoogleFonts.poppins(fontSize: 11, color: Colors.black54)),
-          ],
+        title: InkWell(
+          onTap: thread == null
+              ? null
+              : () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ChatUserProfileScreen(thread: thread),
+                    ),
+                  ),
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87)),
+                Text(subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                        fontSize: 11, color: Colors.black54)),
+              ],
+            ),
+          ),
         ),
       ),
       body: Column(
@@ -254,6 +276,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                     !recipientLastReadAt
                         .toUtc()
                         .isBefore(myLastMsg.createdAt.toUtc());
+                _jumpToBottom();
 
                 return ListView.builder(
                   controller: _scrollCtrl,
@@ -287,6 +310,8 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
 
   Widget _buildInputBar() {
     final isBanned = ref.watch(isChatBannedProvider).valueOrNull ?? false;
+    final isBlocked =
+        ref.watch(isChatBlockedProvider(widget.chatId)).valueOrNull ?? false;
 
     if (isBanned) {
       return SafeArea(
@@ -309,6 +334,38 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                 Expanded(
                   child: Text(
                     'Your account has been restricted from sending messages.',
+                    style: GoogleFonts.poppins(
+                        fontSize: 12, color: const Color(0xFFC92325)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (isBlocked) {
+      return SafeArea(
+        top: false,
+        child: Container(
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFEEBEB),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                  color: const Color(0xFFC92325).withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.block, size: 18, color: Color(0xFFC92325)),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'This user is blocked. Unblock from user profile to continue chat.',
                     style: GoogleFonts.poppins(
                         fontSize: 12, color: const Color(0xFFC92325)),
                   ),

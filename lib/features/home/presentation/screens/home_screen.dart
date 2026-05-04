@@ -164,15 +164,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   static const _slugAssets = {
-    'cars':        'assets/images/categories/car.png',
-    'properties':  'assets/images/categories/home.png',
-    'mobiles':     'assets/images/categories/mobile.png',
+    'cars': 'assets/images/categories/car.png',
+    'properties': 'assets/images/categories/home.png',
+    'mobiles': 'assets/images/categories/mobile.png',
     'spare-parts': 'assets/images/categories/spare_parts.png',
     'spare_parts': 'assets/images/categories/spare_parts.png',
     'electronics': 'assets/images/categories/appliance.png',
-    'furniture':   'assets/images/categories/furniture.png',
+    'furniture': 'assets/images/categories/furniture.png',
     'classifieds': 'assets/images/categories/classifieds.png',
-    'jobs':        'assets/images/categories/jobs.png',
+    'jobs': 'assets/images/categories/jobs.png',
   };
 
   List<_CategoryTile> _mapRemoteCategories(List<HomeCategoryModel> items) {
@@ -321,9 +321,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             ChatsScreen(
               onExploreListings: () => setState(() => _activeIndex = 0),
+              onBackToHome: () => setState(() => _activeIndex = 0),
             ),
-            const MyAdsScreen(),
-            const AccountScreen(),
+            MyAdsScreen(
+              onBackToHome: () => setState(() => _activeIndex = 0),
+            ),
+            const AccountScreen(embedded: true),
           ],
         ),
       ),
@@ -350,8 +353,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _flagImageFor(ref.watch(selectedCountryProvider)) != null
-                      ? Image.asset(_flagImageFor(ref.watch(selectedCountryProvider))!,
-                          width: 22, height: 22, fit: BoxFit.cover)
+                      ? Image.asset(
+                          _flagImageFor(ref.watch(selectedCountryProvider))!,
+                          width: 22,
+                          height: 22,
+                          fit: BoxFit.cover)
                       : Text(_flagFor(ref.watch(selectedCountryProvider)),
                           style: const TextStyle(fontSize: 15)),
                   const SizedBox(width: 5),
@@ -499,8 +505,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         fit: BoxFit.contain,
         width: double.infinity,
         errorBuilder: (_, __, ___) => cat.assetPath != null
-            ? Image.asset(cat.assetPath!, fit: BoxFit.contain, width: double.infinity)
-            : Center(child: Icon(cat.icon, size: 52, color: Colors.grey.shade400)),
+            ? Image.asset(cat.assetPath!,
+                fit: BoxFit.contain, width: double.infinity)
+            : Center(
+                child: Icon(cat.icon, size: 52, color: Colors.grey.shade400)),
       );
     }
 
@@ -601,7 +609,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return GestureDetector(
       onTap: () {
         final isGuest = Supabase.instance.client.auth.currentUser == null;
-        final requiresAuth = index == 1; // CHATS tab
+        final requiresAuth = index == 1 || index == 4; // CHATS / ACCOUNT tabs
         if (isGuest && requiresAuth) {
           context.push(RouteNames.onboarding);
           return;

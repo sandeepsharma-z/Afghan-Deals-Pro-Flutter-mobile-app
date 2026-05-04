@@ -5,6 +5,7 @@ class CarSaleModel {
   final String price;
   final String currency;
   final String location;
+  final String region;
   final String createdAt;
   final bool isFeatured;
   final List<String> images;
@@ -19,8 +20,12 @@ class CarSaleModel {
   final String bodyType;
   final String condition;
   final String color;
+  final String driveline;
+  final String cylinders;
+  final String interiorColor;
   final String description;
   final String sellerName;
+  final String sellerType;
 
   const CarSaleModel({
     required this.id,
@@ -29,6 +34,7 @@ class CarSaleModel {
     required this.price,
     required this.currency,
     required this.location,
+    this.region = '',
     required this.createdAt,
     required this.isFeatured,
     required this.images,
@@ -36,6 +42,7 @@ class CarSaleModel {
     required this.model,
     this.description = '',
     this.sellerName = 'Private Seller',
+    this.sellerType = '',
     required this.year,
     required this.mileage,
     required this.transmission,
@@ -43,6 +50,9 @@ class CarSaleModel {
     required this.bodyType,
     required this.condition,
     required this.color,
+    this.driveline = '',
+    this.cylinders = '',
+    this.interiorColor = '',
   });
 
   String get imageUrl => images.isNotEmpty ? images.first : '';
@@ -71,10 +81,9 @@ class CarSaleModel {
 
   factory CarSaleModel.fromMap(Map<String, dynamic> map) {
     final cd = (map['category_data'] as Map<String, dynamic>?) ?? {};
-    final imgs = (map['images'] as List<dynamic>?)
-            ?.map((e) => e.toString())
-            .toList() ??
-        [];
+    final imgs =
+        (map['images'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
+            [];
     final rawPrice = map['price'];
     return CarSaleModel(
       id: map['id']?.toString() ?? '',
@@ -83,6 +92,7 @@ class CarSaleModel {
       price: rawPrice?.toString() ?? '0',
       currency: map['currency']?.toString() ?? 'AFN',
       location: map['city']?.toString() ?? '',
+      region: map['region']?.toString() ?? cd['region']?.toString() ?? '',
       createdAt: map['created_at']?.toString() ?? '',
       isFeatured: map['is_featured'] as bool? ?? false,
       images: imgs,
@@ -90,6 +100,7 @@ class CarSaleModel {
       model: cd['model']?.toString() ?? '',
       description: map['description']?.toString() ?? '',
       sellerName: map['seller_name']?.toString() ?? 'Private Seller',
+      sellerType: cd['seller_type']?.toString() ?? '',
       year: cd['year']?.toString() ?? '',
       mileage: cd['mileage']?.toString() ?? '',
       transmission: cd['transmission']?.toString() ?? '',
@@ -97,6 +108,9 @@ class CarSaleModel {
       bodyType: cd['body_type']?.toString() ?? '',
       condition: cd['condition']?.toString() ?? '',
       color: cd['color']?.toString() ?? '',
+      driveline: cd['driveline']?.toString() ?? '',
+      cylinders: cd['cylinders']?.toString() ?? '',
+      interiorColor: cd['interior_color']?.toString() ?? '',
     );
   }
 }

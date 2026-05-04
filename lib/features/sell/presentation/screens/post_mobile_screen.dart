@@ -9,36 +9,102 @@ import '../providers/sell_subcategories_provider.dart';
 // ── Static options ─────────────────────────────────────────────────────────────
 
 const _kBrands = [
-  'iPhone', 'Samsung', 'Vivo', 'Oppo', 'OnePlus', 'Google Pixel',
-  'Realme', 'Xiaomi', 'Huawei', 'Sony', 'Nokia', 'Motorola', 'LG', 'HTC',
+  'iPhone',
+  'Samsung',
+  'Vivo',
+  'Oppo',
+  'OnePlus',
+  'Google Pixel',
+  'Realme',
+  'Xiaomi',
+  'Huawei',
+  'Sony',
+  'Nokia',
+  'Motorola',
+  'LG',
+  'HTC',
   'Other',
 ];
 
 const _kConditions = ['New', 'Used', 'Refurbished', 'For Parts'];
 
-const _kStorages = ['16 GB', '32 GB', '64 GB', '128 GB', '256 GB', '512 GB', '1 TB'];
+const _kStorages = [
+  '16 GB',
+  '32 GB',
+  '64 GB',
+  '128 GB',
+  '256 GB',
+  '512 GB',
+  '1 TB'
+];
 
 const _kRams = ['2 GB', '3 GB', '4 GB', '6 GB', '8 GB', '12 GB', '16 GB'];
 
 const _kScreenSizes = [
-  'Under 5"', '5" - 5.5"', '5.5" - 6"', '6" - 6.5"', 'Above 6.5"',
+  'Under 5"',
+  '5" - 5.5"',
+  '5.5" - 6"',
+  '6" - 6.5"',
+  'Above 6.5"',
 ];
 
 const _kWarranties = [
-  'No Warranty', 'Under Warranty', '1 Month', '3 Months', '6 Months', '1 Year',
+  'No Warranty',
+  'Under Warranty',
+  '1 Month',
+  '3 Months',
+  '6 Months',
+  '1 Year',
 ];
 
-const _kCurrencies = ['AFN', 'USD', 'AED', 'OMR', 'QAR', 'SAR', 'SYP', 'EUR', 'GBP', 'PKR'];
+const _kCurrencies = [
+  'AFN',
+  'USD',
+  'AED',
+  'OMR',
+  'QAR',
+  'SAR',
+  'SYP',
+  'EUR',
+  'GBP',
+  'PKR'
+];
 
 const _kSellerTypes = ['Individual', 'Dealer', 'Brand'];
 
 const _kColors = [
-  'Black', 'White', 'Gold', 'Silver', 'Blue', 'Red', 'Green',
-  'Purple', 'Pink', 'Yellow', 'Orange', 'Grey', 'Other',
+  'Black',
+  'White',
+  'Gold',
+  'Silver',
+  'Blue',
+  'Red',
+  'Green',
+  'Purple',
+  'Pink',
+  'Yellow',
+  'Orange',
+  'Grey',
+  'Other',
 ];
 
-const _kAges = ['Brand New', '1 Month', '3 Months', '6 Months', '1 Year', '2+ Years'];
+const _kAges = [
+  'Brand New',
+  '1 Month',
+  '3 Months',
+  '6 Months',
+  '1 Year',
+  '2+ Years'
+];
 const _kBatteryHealth = ['100%', '95%+', '90%+', '85%+', '80%+', 'Below 80%'];
+
+String _slugForMobileBrand(String value) {
+  return value
+      .trim()
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+      .replaceAll(RegExp(r'^-+|-+$'), '');
+}
 
 class _Country {
   final String name;
@@ -70,28 +136,28 @@ class _PostMobileScreenState extends ConsumerState<PostMobileScreen> {
   final _formKey = GlobalKey<FormState>();
 
   // Controllers
-  final _titleCtrl      = TextEditingController();
-  final _modelCtrl      = TextEditingController();
-  final _priceCtrl      = TextEditingController();
-  final _descCtrl       = TextEditingController();
-  final _damageCtrl     = TextEditingController();
+  final _titleCtrl = TextEditingController();
+  final _modelCtrl = TextEditingController();
+  final _priceCtrl = TextEditingController();
+  final _descCtrl = TextEditingController();
+  final _damageCtrl = TextEditingController();
   final _screenSizeCtrl = TextEditingController();
-  final _cityCtrl       = TextEditingController();
-  final _versionCtrl    = TextEditingController();
+  final _cityCtrl = TextEditingController();
+  final _versionCtrl = TextEditingController();
 
   // Selections
-  String _brand      = '';
-  String _condition  = '';
-  String _storage    = '';
-  String _ram        = '';
+  String _brand = '';
+  String _condition = '';
+  String _storage = '';
+  String _ram = '';
   String _screenSize = '';
-  String _color      = '';
-  String _warranty   = '';
+  String _color = '';
+  String _warranty = '';
   String _sellerType = 'Individual';
-  String _currency   = 'AFN';
-  _Country _country  = _kCountries.first;
-  String _age        = '';
-  String _battery    = '';
+  String _currency = 'AFN';
+  _Country _country = _kCountries.first;
+  String _age = '';
+  String _battery = '';
   String _selectedSubcategory = '';
 
   @override
@@ -120,6 +186,12 @@ class _PostMobileScreenState extends ConsumerState<PostMobileScreen> {
       return;
     }
 
+    final brand = _brand.trim();
+    final brandSlug = _slugForMobileBrand(brand);
+    final selectedSubcategory = _selectedSubcategory.isNotEmpty
+        ? _selectedSubcategory
+        : (brandSlug.isNotEmpty ? brandSlug : 'mobile-phones');
+
     await ref.read(sellProvider.notifier).createListing(
       category: 'mobiles',
       baseData: {
@@ -129,12 +201,12 @@ class _PostMobileScreenState extends ConsumerState<PostMobileScreen> {
         'currency': _currency,
         'city': _cityCtrl.text.trim(),
         'country': _country.name,
-        'subcategory': _selectedSubcategory.isNotEmpty
-            ? _selectedSubcategory
-            : 'mobile-phones',
+        'subcategory': selectedSubcategory,
       },
       categoryData: {
-        'brand': _brand,
+        'subcategory': selectedSubcategory,
+        'brand': brand,
+        'brand_slug': brandSlug,
         'model': _modelCtrl.text.trim(),
         'condition': _condition,
         'storage': _storage,
@@ -147,6 +219,8 @@ class _PostMobileScreenState extends ConsumerState<PostMobileScreen> {
         'version': _versionCtrl.text.trim(),
         'damage_details': _damageCtrl.text.trim(),
         'seller_type': _sellerType,
+        'country': _country.name,
+        'city': _cityCtrl.text.trim(),
       },
     );
   }
@@ -164,7 +238,8 @@ class _PostMobileScreenState extends ConsumerState<PostMobileScreen> {
     _showPicker('Currency', _kCurrencies, (v) => setState(() => _currency = v));
   }
 
-  Widget _buildSubcategorySection(AsyncValue<List<SellSubcategory>> asyncSubcategories) {
+  Widget _buildSubcategorySection(
+      AsyncValue<List<SellSubcategory>> asyncSubcategories) {
     return asyncSubcategories.when(
       loading: () => const Padding(
         padding: EdgeInsets.symmetric(vertical: 8),
@@ -178,7 +253,12 @@ class _PostMobileScreenState extends ConsumerState<PostMobileScreen> {
         if (_selectedSubcategory.isEmpty && subcategories.isNotEmpty) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted && _selectedSubcategory.isEmpty) {
-              setState(() => _selectedSubcategory = subcategories.first.slug);
+              setState(() {
+                _selectedSubcategory = subcategories.first.slug;
+                if (_brand.isEmpty) {
+                  _brand = subcategories.first.name;
+                }
+              });
             }
           });
         }
@@ -196,7 +276,10 @@ class _PostMobileScreenState extends ConsumerState<PostMobileScreen> {
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: GestureDetector(
-                onTap: () => setState(() => _selectedSubcategory = sub.slug),
+                onTap: () => setState(() {
+                  _selectedSubcategory = sub.slug;
+                  _brand = sub.name;
+                }),
                 child: Container(
                   width: double.infinity,
                   height: 50,
@@ -246,7 +329,8 @@ class _PostMobileScreenState extends ConsumerState<PostMobileScreen> {
     ref.listen(sellProvider, (_, next) {
       if (next.success) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Ad submitted. It will be visible after admin approval.',
+          content: Text(
+              'Ad submitted. It will be visible after admin approval.',
               style: GoogleFonts.poppins(color: Colors.white)),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
@@ -268,12 +352,15 @@ class _PostMobileScreenState extends ConsumerState<PostMobileScreen> {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: Colors.black87),
+          icon: const Icon(Icons.arrow_back_ios_new,
+              size: 18, color: Colors.black87),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text('Post Mobile Ad',
             style: GoogleFonts.poppins(
-                fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87)),
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87)),
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(1),
           child: Divider(height: 1, color: Color(0xFFEEEEEE)),
@@ -310,18 +397,21 @@ class _PostMobileScreenState extends ConsumerState<PostMobileScreen> {
                     child: _textInput(
                       controller: _titleCtrl,
                       hint: 'e.g. iPhone 15 Pro Max 256GB',
-                      validator: (v) =>
-                          v == null || v.trim().isEmpty ? 'Title is required' : null,
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? 'Title is required'
+                          : null,
                     ),
                   ),
                   _Field(
                     label: 'Description *',
                     child: _textInput(
                       controller: _descCtrl,
-                      hint: 'Describe the condition, accessories included, reason for selling...',
+                      hint:
+                          'Describe the condition, accessories included, reason for selling...',
                       maxLines: 4,
-                      validator: (v) =>
-                          v == null || v.trim().isEmpty ? 'Description is required' : null,
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? 'Description is required'
+                          : null,
                     ),
                   ),
                 ],
@@ -336,7 +426,14 @@ class _PostMobileScreenState extends ConsumerState<PostMobileScreen> {
                     label: 'Brand',
                     child: _DropdownTile(
                       value: _brand.isEmpty ? 'Select brand' : _brand,
-                      onTap: () => _showPicker('Brand', _kBrands, (v) => setState(() => _brand = v)),
+                      onTap: () => _showPicker(
+                        'Brand',
+                        _kBrands,
+                        (v) => setState(() {
+                          _brand = v;
+                          _selectedSubcategory = _slugForMobileBrand(v);
+                        }),
+                      ),
                     ),
                   ),
                   _Field(
@@ -358,27 +455,32 @@ class _PostMobileScreenState extends ConsumerState<PostMobileScreen> {
                     label: 'Storage',
                     child: _DropdownTile(
                       value: _storage.isEmpty ? 'Select storage' : _storage,
-                      onTap: () => _showPicker('Storage', _kStorages, (v) => setState(() => _storage = v)),
+                      onTap: () => _showPicker('Storage', _kStorages,
+                          (v) => setState(() => _storage = v)),
                     ),
                   ),
                   _Field(
                     label: 'RAM',
                     child: _DropdownTile(
                       value: _ram.isEmpty ? 'Select RAM' : _ram,
-                      onTap: () => _showPicker('RAM', _kRams, (v) => setState(() => _ram = v)),
+                      onTap: () => _showPicker(
+                          'RAM', _kRams, (v) => setState(() => _ram = v)),
                     ),
                   ),
                   _Field(
                     label: 'Age',
                     child: _DropdownTile(
                       value: _age.isEmpty ? 'Select age' : _age,
-                      onTap: () => _showPicker('Age', _kAges, (v) => setState(() => _age = v)),
+                      onTap: () => _showPicker(
+                          'Age', _kAges, (v) => setState(() => _age = v)),
                     ),
                   ),
                   _Field(
                     label: 'Screen Size',
                     child: _DropdownTile(
-                      value: _screenSize.isEmpty ? 'Select screen size' : _screenSize,
+                      value: _screenSize.isEmpty
+                          ? 'Select screen size'
+                          : _screenSize,
                       onTap: () => _showPicker('Screen Size', _kScreenSizes,
                           (v) => setState(() => _screenSize = v)),
                     ),
@@ -387,7 +489,8 @@ class _PostMobileScreenState extends ConsumerState<PostMobileScreen> {
                     label: 'Color',
                     child: _DropdownTile(
                       value: _color.isEmpty ? 'Select color' : _color,
-                      onTap: () => _showPicker('Color', _kColors, (v) => setState(() => _color = v)),
+                      onTap: () => _showPicker(
+                          'Color', _kColors, (v) => setState(() => _color = v)),
                     ),
                   ),
                   _Field(
@@ -401,7 +504,8 @@ class _PostMobileScreenState extends ConsumerState<PostMobileScreen> {
                   _Field(
                     label: 'Battery Health',
                     child: _DropdownTile(
-                      value: _battery.isEmpty ? 'Select battery health' : _battery,
+                      value:
+                          _battery.isEmpty ? 'Select battery health' : _battery,
                       onTap: () => _showPicker(
                         'Battery Health',
                         _kBatteryHealth,
@@ -474,8 +578,9 @@ class _PostMobileScreenState extends ConsumerState<PostMobileScreen> {
                             controller: _priceCtrl,
                             hint: '0',
                             keyboardType: TextInputType.number,
-                            validator: (v) =>
-                                v == null || v.trim().isEmpty ? 'Price is required' : null,
+                            validator: (v) => v == null || v.trim().isEmpty
+                                ? 'Price is required'
+                                : null,
                           ),
                         ),
                       ],
@@ -540,8 +645,9 @@ class _PostMobileScreenState extends ConsumerState<PostMobileScreen> {
                     child: _textInput(
                       controller: _cityCtrl,
                       hint: 'e.g. Kabul, Dubai',
-                      validator: (v) =>
-                          v == null || v.trim().isEmpty ? 'City is required' : null,
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? 'City is required'
+                          : null,
                     ),
                   ),
                 ],
@@ -563,7 +669,8 @@ class _PostMobileScreenState extends ConsumerState<PostMobileScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: _kBlue,
               disabledBackgroundColor: _kBlue.withValues(alpha: 0.6),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
               elevation: 0,
             ),
             child: sell.isSubmitting
@@ -585,7 +692,8 @@ class _PostMobileScreenState extends ConsumerState<PostMobileScreen> {
 
   // ── Picker bottom sheet ─────────────────────────────────────────────────────
 
-  void _showPicker(String title, List<String> options, ValueChanged<String> onSelect) {
+  void _showPicker(
+      String title, List<String> options, ValueChanged<String> onSelect) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -596,13 +704,15 @@ class _PostMobileScreenState extends ConsumerState<PostMobileScreen> {
         children: [
           const SizedBox(height: 8),
           Container(
-              width: 36, height: 4,
+              width: 36,
+              height: 4,
               decoration: BoxDecoration(
                   color: const Color(0xFFDDDDDD),
                   borderRadius: BorderRadius.circular(2))),
           const SizedBox(height: 12),
           Text(title,
-              style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600)),
+              style: GoogleFonts.poppins(
+                  fontSize: 15, fontWeight: FontWeight.w600)),
           const Divider(height: 16),
           ConstrainedBox(
             constraints: BoxConstraints(
@@ -616,9 +726,11 @@ class _PostMobileScreenState extends ConsumerState<PostMobileScreen> {
                   Navigator.pop(context);
                 },
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                   child: Text(options[i],
-                      style: GoogleFonts.poppins(fontSize: 14, color: Colors.black87)),
+                      style: GoogleFonts.poppins(
+                          fontSize: 14, color: Colors.black87)),
                 ),
               ),
             ),
@@ -649,7 +761,8 @@ class _PostMobileScreenState extends ConsumerState<PostMobileScreen> {
         hintStyle: GoogleFonts.poppins(fontSize: 13, color: Colors.black38),
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
@@ -696,8 +809,8 @@ class _PhotoSection extends ConsumerWidget {
                       fontSize: 14, fontWeight: FontWeight.w600)),
               const SizedBox(width: 8),
               Text('${images.length}/10',
-                  style: GoogleFonts.poppins(
-                      fontSize: 12, color: Colors.black45)),
+                  style:
+                      GoogleFonts.poppins(fontSize: 12, color: Colors.black45)),
               const Spacer(),
               if (remaining > 0)
                 Text('$remaining more',
@@ -829,7 +942,8 @@ class _PhotoSection extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(Icons.photo_library_outlined, color: _kBlue),
+                leading:
+                    const Icon(Icons.photo_library_outlined, color: _kBlue),
                 title: Text('Choose from Gallery',
                     style: GoogleFonts.poppins(fontSize: 14)),
                 onTap: () {
@@ -871,7 +985,9 @@ class _Section extends StatelessWidget {
         children: [
           Text(title,
               style: GoogleFonts.poppins(
-                  fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87)),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87)),
           const SizedBox(height: 14),
           ...children,
         ],

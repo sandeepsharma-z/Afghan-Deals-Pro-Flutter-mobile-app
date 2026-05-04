@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/profile_provider.dart';
+import '../providers/profile_options_provider.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -44,10 +45,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ? meta['last_name'] as String
         : (parts.length > 1 ? parts.sublist(1).join(' ') : '');
 
-    // Load extra fields from auth metadata
-    _dobCtrl.text = meta['dob'] as String? ?? '';
-    _nationalityCtrl.text = meta['nationality'] as String? ?? '';
-    _gender = meta['gender'] as String?;
+    _dobCtrl.text = (profile?.dob as String?)?.isNotEmpty == true
+        ? profile!.dob as String
+        : (meta['dob'] as String? ?? '');
+    _nationalityCtrl.text =
+        (profile?.nationality as String?)?.isNotEmpty == true
+            ? profile!.nationality as String
+            : (meta['nationality'] as String? ?? '');
+    _gender = (profile?.gender as String?)?.isNotEmpty == true
+        ? profile!.gender as String
+        : meta['gender'] as String?;
 
     setState(() {});
   }
@@ -106,6 +113,65 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
+  void _showOptionPicker({
+    required String title,
+    required List<String> options,
+    required ValueChanged<String> onSelect,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFDDDDDD),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const Divider(height: 16),
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: options.length,
+                itemBuilder: (_, i) => ListTile(
+                  title: Text(
+                    options[i],
+                    style: GoogleFonts.montserrat(fontSize: 14),
+                  ),
+                  trailing: options[i] == _nationalityCtrl.text ||
+                          options[i] == _gender
+                      ? const Icon(Icons.check, color: AppColors.primary)
+                      : null,
+                  onTap: () {
+                    onSelect(options[i]);
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _firstNameCtrl.dispose();
@@ -132,6 +198,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     final profileAsync = ref.watch(profileProvider);
     final isSaving = ref.watch(profileNotifierProvider).isLoading;
+    final nationalities =
+        ref.watch(profileNationalitiesProvider).valueOrNull ?? const <String>[];
+    final genders = ref.watch(profileGendersProvider).valueOrNull ??
+        const ['Male', 'Female'];
 
     profileAsync.whenData((profile) => _populateFromProfile(profile));
 
@@ -221,8 +291,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       _label('Nationality'),
                     ]),
                     const SizedBox(height: 6),
-                    _inputField(
-                        controller: _nationalityCtrl, hint: 'Nationality'),
+                    _dropdownField(
+                      value: _nationalityCtrl.text.trim().isEmpty
+                          ? 'Select nationality'
+                          : _nationalityCtrl.text.trim(),
+                      onTap: () => _showOptionPicker(
+                        title: 'Nationality',
+                        options: nationalities,
+                        onSelect: (v) =>
+                            setState(() => _nationalityCtrl.text = v),
+                      ),
+                    ),
                     const SizedBox(height: 14),
                     Row(children: [
                       const Icon(Icons.person_outline,
@@ -231,11 +310,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       _label('Gender'),
                     ]),
                     const SizedBox(height: 10),
-                    Row(children: [
-                      _radioOption('Male'),
-                      const SizedBox(width: 32),
-                      _radioOption('Female'),
-                    ]),
+                    Wrap(
+                      spacing: 32,
+                      runSpacing: 10,
+                      children: genders.map(_radioOption).toList(),
+                    ),
                     const SizedBox(height: 20),
                   ],
                 ),
@@ -303,6 +382,36 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
         ),
       );
+
+  Widget _dropdownField({required String value, required VoidCallback onTap}) {
+    final isPlaceholder = value.startsWith('Select');
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 48,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: _border, width: 1),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                value,
+                style: GoogleFonts.montserrat(
+                  fontSize: 14,
+                  color: isPlaceholder ? Colors.black38 : Colors.black87,
+                ),
+              ),
+            ),
+            const Icon(Icons.keyboard_arrow_down,
+                size: 20, color: Colors.black45),
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget _radioOption(String value) => GestureDetector(
         onTap: () => setState(() => _gender = value),

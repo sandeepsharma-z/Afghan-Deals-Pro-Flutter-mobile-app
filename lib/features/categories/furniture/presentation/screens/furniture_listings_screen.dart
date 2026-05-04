@@ -3,8 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../../core/widgets/favorite_button.dart';
 import '../providers/furniture_provider.dart';
 import '../../../../../features/listings/data/models/furniture_listing_model.dart';
 import 'furniture_detail_screen.dart';
@@ -22,13 +25,16 @@ class FurnitureListingsScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<FurnitureListingsScreen> createState() => _FurnitureListingsScreenState();
+  ConsumerState<FurnitureListingsScreen> createState() =>
+      _FurnitureListingsScreenState();
 }
 
-class _FurnitureListingsScreenState extends ConsumerState<FurnitureListingsScreen> {
+class _FurnitureListingsScreenState
+    extends ConsumerState<FurnitureListingsScreen> {
   @override
   Widget build(BuildContext context) {
-    final listingsAsync = ref.watch(furnitureFilteredProvider(widget.subcategory));
+    final listingsAsync =
+        ref.watch(furnitureFilteredProvider(widget.subcategory));
     final filter = ref.watch(furnitureFilterProvider);
     final hasFilter = !filter.isEmpty;
 
@@ -39,52 +45,77 @@ class _FurnitureListingsScreenState extends ConsumerState<FurnitureListingsScree
         elevation: 0,
         leading: GestureDetector(
           onTap: () => Navigator.of(context).pop(),
-          child: const Icon(Icons.arrow_back_ios_new, size: 18, color: Colors.black87),
+          child: const Icon(Icons.arrow_back_ios_new,
+              size: 18, color: Colors.black87),
         ),
         title: Text(
-          widget.subcategoryLabel.isEmpty ? 'All Furniture' : widget.subcategoryLabel,
-          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black),
+          widget.subcategoryLabel.isEmpty
+              ? 'All Furniture'
+              : widget.subcategoryLabel,
+          style: GoogleFonts.poppins(
+              fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black),
         ),
         actions: [
           GestureDetector(
             onTap: () => Navigator.of(context).push(MaterialPageRoute(
-              builder: (_) => FurnitureFilterScreen(subcategory: widget.subcategory),
+              builder: (_) =>
+                  FurnitureFilterScreen(subcategory: widget.subcategory),
             )),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Stack(children: [
-                SvgPicture.asset('assets/icons/filter.svg', width: 20, height: 20),
-                if (hasFilter)
-                  Positioned(
-                    right: 0, top: 0,
-                    child: Container(
-                      width: 8, height: 8,
-                      decoration: const BoxDecoration(color: _kBlue, shape: BoxShape.circle),
-                    ),
-                  ),
-              ]),
+            child: SizedBox(
+              width: 44,
+              height: kToolbarHeight,
+              child: Center(
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    SvgPicture.asset('assets/icons/filter.svg',
+                        width: 20, height: 20),
+                    if (hasFilter)
+                      Positioned(
+                        right: -1,
+                        top: -1,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                              color: _kBlue, shape: BoxShape.circle),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
           GestureDetector(
             onTap: () => _showSortSheet(context),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: SvgPicture.asset('assets/icons/bars_sort.svg', width: 20, height: 20),
+            child: SizedBox(
+              width: 44,
+              height: kToolbarHeight,
+              child: Center(
+                child: SvgPicture.asset('assets/icons/bars_sort.svg',
+                    width: 20, height: 20),
+              ),
             ),
           ),
+          const SizedBox(width: 4),
         ],
       ),
       body: listingsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: _kBlue)),
+        loading: () =>
+            const Center(child: CircularProgressIndicator(color: _kBlue)),
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (items) => items.isEmpty
             ? Center(
-                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  const Icon(Icons.chair_outlined, size: 64, color: Colors.black26),
-                  const SizedBox(height: 12),
-                  Text('No listings found',
-                      style: GoogleFonts.poppins(fontSize: 15, color: Colors.black45)),
-                ]),
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.chair_outlined,
+                          size: 64, color: Colors.black26),
+                      const SizedBox(height: 12),
+                      Text('No listings found',
+                          style: GoogleFonts.poppins(
+                              fontSize: 15, color: Colors.black45)),
+                    ]),
               )
             : GridView.builder(
                 padding: const EdgeInsets.all(12),
@@ -92,7 +123,7 @@ class _FurnitureListingsScreenState extends ConsumerState<FurnitureListingsScree
                   crossAxisCount: 2,
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10,
-                  mainAxisExtent: 176,
+                  mainAxisExtent: 245,
                 ),
                 itemCount: items.length,
                 itemBuilder: (_, i) => GestureDetector(
@@ -123,7 +154,8 @@ class _FurnitureListingsScreenState extends ConsumerState<FurnitureListingsScree
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 40, height: 4,
+            width: 40,
+            height: 4,
             margin: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(
               color: const Color(0xFFDDDDDD),
@@ -132,7 +164,9 @@ class _FurnitureListingsScreenState extends ConsumerState<FurnitureListingsScree
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Text('Sort', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600)),
+            child: Text('Sort',
+                style: GoogleFonts.poppins(
+                    fontSize: 16, fontWeight: FontWeight.w600)),
           ),
           ...options.map((opt) => ListTile(
                 title: Text(opt.$1, style: GoogleFonts.poppins(fontSize: 14)),
@@ -190,6 +224,26 @@ class _FurnitureResultCardState extends State<_FurnitureResultCard> {
     super.dispose();
   }
 
+  String _formatDate(String raw) {
+    final dt = DateTime.tryParse(raw);
+    if (dt == null) return '';
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    return '${dt.day} ${months[dt.month - 1]}, ${dt.year}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final item = widget.item;
@@ -197,7 +251,11 @@ class _FurnitureResultCardState extends State<_FurnitureResultCard> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(7.38),
-        boxShadow: const [BoxShadow(color: Color(0x40000000), blurRadius: 4.22, offset: Offset(0, 1.05))],
+        border: Border.all(color: const Color(0xFFD9D9D9), width: 1),
+        boxShadow: const [
+          BoxShadow(
+              color: Color(0x40000000), blurRadius: 4, offset: Offset(0, 1))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -205,12 +263,13 @@ class _FurnitureResultCardState extends State<_FurnitureResultCard> {
           Stack(children: [
             ClipRRect(
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(7.38), topRight: Radius.circular(7.38),
+                topLeft: Radius.circular(7.38),
+                topRight: Radius.circular(7.38),
               ),
               child: item.images.isEmpty
                   ? _placeholder()
                   : SizedBox(
-                      height: 101.27,
+                      height: 110,
                       width: double.infinity,
                       child: PageView.builder(
                         controller: _pageController,
@@ -226,45 +285,109 @@ class _FurnitureResultCardState extends State<_FurnitureResultCard> {
             ),
             if (item.images.isNotEmpty)
               Positioned(
-                bottom: 6, left: 8,
+                bottom: 6,
+                left: 8,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
                     color: const Color(0x63000000),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     '${_currentPage + 1}/${item.images.length}',
-                    style: GoogleFonts.poppins(fontSize: 8, fontWeight: FontWeight.w500, color: Colors.white),
+                    style: GoogleFonts.poppins(
+                        fontSize: 8,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white),
                   ),
                 ),
               ),
             Positioned(
-              top: 8, right: 8,
-              child: Container(
-                width: 28, height: 28,
-                decoration: const BoxDecoration(color: Color(0x140F172A), shape: BoxShape.circle),
-                child: const Icon(Icons.favorite_border, size: 14, color: Colors.white),
+              top: 6,
+              right: 6,
+              child: Row(
+                children: [
+                  const _CircleBtn(icon: Icons.reply_outlined),
+                  const SizedBox(width: 4),
+                  FavoriteButton(
+                    listingId: item.id,
+                    size: 24,
+                    backgroundColor: const Color(0x100F172A),
+                        showShadow: false,
+                    unselectedIconColor: Colors.white,
+                    selectedIconColor: Colors.red,
+                  ),
+                ],
               ),
             ),
           ]),
           Padding(
-            padding: const EdgeInsets.fromLTRB(8, 6, 8, 5),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(item.formattedPrice,
-                  style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, height: 1.3, color: _kBlue)),
+            padding: const EdgeInsets.fromLTRB(8, 6, 8, 0),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(item.formattedPrice,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: _kBlue)),
+                  ),
+                  Text(_formatDate(item.createdAt),
+                      style: GoogleFonts.poppins(
+                          fontSize: 7.5, color: const Color(0xFF505050))),
+                ],
+              ),
+              Text(item.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.black)),
+              Text(
+                'Furniture${item.brand.isNotEmpty ? ' / ${item.brand}' : ''}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(fontSize: 10, color: Colors.black54),
+              ),
+              if (item.condition.isNotEmpty)
+                Text('Age: ${item.condition}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                        fontSize: 10, color: Colors.black54)),
               const SizedBox(height: 4),
-              Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w400, height: 1.3, color: Colors.black87)),
-              const SizedBox(height: 5),
               Row(children: [
-                const Icon(Icons.location_on_outlined, size: 12, color: Color(0xFF505050)),
-                const SizedBox(width: 3),
+                const Icon(Icons.location_on_outlined,
+                    size: 10, color: Color(0xFF505050)),
+                const SizedBox(width: 2),
                 Expanded(
-                  child: Text(item.location, maxLines: 1, overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w400, height: 1.3, color: const Color(0xFF505050))),
+                  child: Text(item.location,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w400,
+                          color: const Color(0xFF505050))),
                 ),
               ]),
+              const SizedBox(height: 4),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Spacer(),
+                  _actionBtn(Icons.phone_outlined, () => _call(item.phone)),
+                  const SizedBox(width: 6),
+                  _waBtn(() => _whatsapp(item.phone)),
+                ],
+              ),
             ]),
           ),
         ],
@@ -273,6 +396,71 @@ class _FurnitureResultCardState extends State<_FurnitureResultCard> {
   }
 
   Widget _placeholder() => Container(
-        height: 101.27, color: const Color(0xFFF0F0F0),
-        child: const Center(child: Icon(Icons.chair_outlined, color: Color(0xFFCCCCCC), size: 40)));
+      height: 110,
+      color: const Color(0xFFF0F0F0),
+      child: const Center(
+          child:
+              Icon(Icons.chair_outlined, color: Color(0xFFCCCCCC), size: 40)));
+
+  Widget _actionBtn(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 31,
+        height: 22,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(7),
+          border: Border.all(color: const Color(0xFFD9D9D9)),
+          color: Colors.white,
+        ),
+        child: Center(child: Icon(icon, size: 14, color: _kBlue)),
+      ),
+    );
+  }
+
+  Widget _waBtn(VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 31,
+        height: 22,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(7),
+          border: Border.all(color: const Color(0xFFD9D9D9)),
+          color: Colors.white,
+        ),
+        child: const Center(
+            child: FaIcon(FontAwesomeIcons.whatsapp, size: 14, color: _kBlue)),
+      ),
+    );
+  }
+
+  void _call(String phone) {
+    final cleaned = phone.replaceAll(RegExp(r'[^0-9+]'), '');
+    launchUrl(Uri.parse('tel:${cleaned.isEmpty ? '+93700000000' : cleaned}'));
+  }
+
+  void _whatsapp(String phone) {
+    final cleaned = phone.replaceAll(RegExp(r'[^0-9]'), '');
+    launchUrl(
+      Uri.parse('https://wa.me/${cleaned.isEmpty ? '93700000000' : cleaned}'),
+      mode: LaunchMode.externalApplication,
+    );
+  }
+}
+
+class _CircleBtn extends StatelessWidget {
+  final IconData icon;
+  const _CircleBtn({required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 28,
+      height: 28,
+      decoration:
+          const BoxDecoration(color: Color(0x100F172A), shape: BoxShape.circle),
+      child: Icon(icon, size: 14, color: Colors.white),
+    );
+  }
 }

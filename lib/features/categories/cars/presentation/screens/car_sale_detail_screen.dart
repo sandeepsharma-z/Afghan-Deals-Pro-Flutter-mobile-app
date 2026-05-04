@@ -8,8 +8,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../../core/router/route_names.dart';
+import '../../../../../core/widgets/favorite_button.dart';
 import '../../../../chat/presentation/providers/chat_provider.dart';
-import '../../../../chat/presentation/screens/chat_detail_screen.dart';
 import '../../../../../features/listings/data/models/car_sale_model.dart';
 
 class CarSaleDetailScreen extends ConsumerStatefulWidget {
@@ -25,7 +25,6 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
   late final PageController _pageController;
   Timer? _timer;
   int _currentPage = 0;
-  bool _isFavorited = false;
 
   @override
   void initState() {
@@ -174,11 +173,7 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
                           children: [
                             _circleButton(icon: Icons.reply_outlined, onTap: _shareItem),
                             const SizedBox(width: 10),
-                            _circleButton(
-                              icon: _isFavorited ? Icons.favorite : Icons.favorite_border,
-                              onTap: () => setState(() => _isFavorited = !_isFavorited),
-                              color: _isFavorited ? Colors.red : Colors.black87,
-                            ),
+                            FavoriteButton(listingId: car.id, size: 36),
                           ],
                         ),
                       ),
@@ -434,9 +429,7 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
                 sellerId: widget.car.sellerId,
               );
       if (!mounted) return;
-      Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => ChatDetailScreen(chatId: chatId),
-      ));
+      context.push('/chat/$chatId');
     } catch (e) {
       if (!mounted) return;
       final message = e.toString().replaceAll('Exception: ', '');

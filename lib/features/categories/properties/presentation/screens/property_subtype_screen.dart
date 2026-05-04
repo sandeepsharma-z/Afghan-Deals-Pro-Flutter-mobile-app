@@ -12,14 +12,16 @@ class _Subtype {
   final String name;
   final String? iconUrl;
   final IconData fallbackIcon;
-  const _Subtype(this.name, {this.iconUrl, this.fallbackIcon = Icons.home_work_outlined});
+  const _Subtype(this.name,
+      {this.iconUrl, this.fallbackIcon = Icons.home_work_outlined});
 }
 
 const _residentialTypes = [
   _Subtype('Apartment', iconUrl: '$_kBaseUrl/apartment.svg'),
   _Subtype('Hotel Apartments', iconUrl: '$_kBaseUrl/hotel%20apartment.svg'),
   _Subtype('Penthouse', iconUrl: '$_kBaseUrl/pent%20house.svg'),
-  _Subtype('Residential Building', iconUrl: '$_kBaseUrl/residential%20building.svg'),
+  _Subtype('Residential Building',
+      iconUrl: '$_kBaseUrl/residential%20building.svg'),
   _Subtype('Townhouse', iconUrl: '$_kBaseUrl/townhouse.svg'),
   _Subtype('Villa', iconUrl: '$_kBaseUrl/villa.svg'),
 ];
@@ -108,8 +110,7 @@ class _PropertySubtypeScreenState extends State<PropertySubtypeScreen> {
     final filteredSubtypes = _search.isEmpty
         ? subtypes
         : subtypes
-            .where((s) =>
-                s.name.toLowerCase().contains(_search.toLowerCase()))
+            .where((s) => s.name.toLowerCase().contains(_search.toLowerCase()))
             .toList();
 
     // Build slot list: allLabel + filtered subtypes + 'More' + empty padding
@@ -124,9 +125,8 @@ class _PropertySubtypeScreenState extends State<PropertySubtypeScreen> {
     }
 
     // Heading label: "Select Type" or "Select Type: Apartment"
-    final headingLabel = _selectedType != null
-        ? 'Select Type: $_selectedType'
-        : 'Select Type';
+    final headingLabel =
+        _selectedType != null ? 'Select Type: $_selectedType' : 'Select Type';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -141,9 +141,7 @@ class _PropertySubtypeScreenState extends State<PropertySubtypeScreen> {
         title: Text(
           widget.subcategoryName,
           style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87),
+              fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
         ),
         centerTitle: true,
         bottom: const PreferredSize(
@@ -177,8 +175,7 @@ class _PropertySubtypeScreenState extends State<PropertySubtypeScreen> {
             const SizedBox(height: 16),
             // ── Grid ──────────────────────────────────────────────────────
             ...rows.map((row) => Padding(
-                  padding:
-                      const EdgeInsets.only(bottom: 20, left: 4, right: 4),
+                  padding: const EdgeInsets.only(bottom: 20, left: 4, right: 4),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: row.map((name) {
@@ -241,9 +238,7 @@ class _PropertySubtypeScreenState extends State<PropertySubtypeScreen> {
                                   fontWeight: isSelected
                                       ? FontWeight.w600
                                       : FontWeight.w400,
-                                  color: isSelected
-                                      ? _kBlue
-                                      : Colors.black87,
+                                  color: isSelected ? _kBlue : Colors.black87,
                                 ),
                               ),
                             ],
@@ -266,9 +261,13 @@ class _PropertySubtypeScreenState extends State<PropertySubtypeScreen> {
     required bool isSelected,
   }) {
     final color = isSelected ? _kBlue : const Color(0xFF6B8FC7);
-    if (isAll || subtype == null || (subtype.iconUrl == null || subtype.iconUrl!.isEmpty)) {
+    if (isAll ||
+        subtype == null ||
+        (subtype.iconUrl == null || subtype.iconUrl!.isEmpty)) {
       return Icon(
-        isAll ? Icons.home_work_outlined : subtype?.fallbackIcon ?? Icons.home_work_outlined,
+        isAll
+            ? Icons.home_work_outlined
+            : subtype?.fallbackIcon ?? Icons.home_work_outlined,
         color: color,
         size: 22,
       );
@@ -279,7 +278,8 @@ class _PropertySubtypeScreenState extends State<PropertySubtypeScreen> {
       height: 22,
       fit: BoxFit.contain,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-      placeholderBuilder: (_) => Icon(subtype.fallbackIcon, color: color, size: 22),
+      placeholderBuilder: (_) =>
+          Icon(subtype.fallbackIcon, color: color, size: 22),
     );
   }
 
@@ -309,6 +309,10 @@ class _PropertySubtypeScreenState extends State<PropertySubtypeScreen> {
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
+                    disabledBorder: InputBorder.none,
+                    errorBorder: InputBorder.none,
+                    focusedErrorBorder: InputBorder.none,
+                    isCollapsed: true,
                     isDense: true,
                     contentPadding: EdgeInsets.zero,
                   ),
@@ -333,7 +337,8 @@ class _PropertySubtypeScreenState extends State<PropertySubtypeScreen> {
   }
 
   Widget _buildApplyButton() {
-    final label = _selectedType != null ? 'Show $_selectedType' : 'Apply For All';
+    final label =
+        _selectedType != null ? 'Show $_selectedType' : 'Apply For All';
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),

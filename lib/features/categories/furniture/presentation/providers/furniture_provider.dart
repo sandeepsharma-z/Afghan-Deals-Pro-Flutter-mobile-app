@@ -4,6 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../features/listings/data/models/furniture_listing_model.dart';
 import '../../../../admin/presentation/providers/admin_dynamic_provider.dart';
 
+const _unset = Object();
+
 // ── Subcategory model ──────────────────────────────────────────────────────
 class FurnitureSubcategory {
   final String name;
@@ -28,6 +30,21 @@ class FurnitureSubcategory {
   }
 }
 
+const _defaultFurnitureSubcategories = [
+  FurnitureSubcategory(name: 'Sofas', slug: 'sofas', sortOrder: 1),
+  FurnitureSubcategory(name: 'Dining', slug: 'dining', sortOrder: 2),
+  FurnitureSubcategory(
+      name: 'Kids Furniture', slug: 'kids-furniture', sortOrder: 3),
+  FurnitureSubcategory(name: 'Wardrobes', slug: 'wardrobes', sortOrder: 4),
+  FurnitureSubcategory(
+      name: 'Home Decor & Garden', slug: 'home-decor-garden', sortOrder: 5),
+  FurnitureSubcategory(name: 'Beds', slug: 'beds', sortOrder: 6),
+  FurnitureSubcategory(
+      name: 'Other Household Items',
+      slug: 'other-household-items',
+      sortOrder: 7),
+];
+
 final furnitureSubcategoriesProvider =
     FutureProvider.autoDispose<List<FurnitureSubcategory>>((ref) async {
   final response = await Supabase.instance.client
@@ -39,21 +56,22 @@ final furnitureSubcategoriesProvider =
       .order('name', ascending: true);
 
   final rows = (response as List<dynamic>)
-      .map((e) => FurnitureSubcategory.fromMap(Map<String, dynamic>.from(e as Map)))
+      .map((e) =>
+          FurnitureSubcategory.fromMap(Map<String, dynamic>.from(e as Map)))
       .where((s) => s.name.isNotEmpty && s.slug.isNotEmpty)
       .toList();
 
-  if (rows.isNotEmpty) return rows;
+  final bySlug = {
+    for (final item in _defaultFurnitureSubcategories) item.slug: item,
+    for (final item in rows) item.slug: item,
+  };
 
-  return const [
-    FurnitureSubcategory(name: 'Sofas',                  slug: 'sofas',                  sortOrder: 1),
-    FurnitureSubcategory(name: 'Dining',                 slug: 'dining',                 sortOrder: 2),
-    FurnitureSubcategory(name: 'Kids Furniture',         slug: 'kids-furniture',         sortOrder: 3),
-    FurnitureSubcategory(name: 'Wardrobes',              slug: 'wardrobes',              sortOrder: 4),
-    FurnitureSubcategory(name: 'Home Decor & Garden',    slug: 'home-decor-garden',      sortOrder: 5),
-    FurnitureSubcategory(name: 'Beds',                   slug: 'beds',                   sortOrder: 6),
-    FurnitureSubcategory(name: 'Other Household Items',  slug: 'other-household-items',  sortOrder: 7),
-  ];
+  return bySlug.values.toList()
+    ..sort((a, b) {
+      final byOrder = a.sortOrder.compareTo(b.sortOrder);
+      if (byOrder != 0) return byOrder;
+      return a.name.compareTo(b.name);
+    });
 });
 
 // ── Filter model ───────────────────────────────────────────────────────────
@@ -110,8 +128,8 @@ class FurnitureFilter {
     List<String>? types,
     List<String>? materials,
     List<String>? sellerTypes,
-    double? minPrice,
-    double? maxPrice,
+    Object? minPrice = _unset,
+    Object? maxPrice = _unset,
     String? region,
     String? sortBy,
   }) =>
@@ -129,8 +147,10 @@ class FurnitureFilter {
         types: types ?? this.types,
         materials: materials ?? this.materials,
         sellerTypes: sellerTypes ?? this.sellerTypes,
-        minPrice: minPrice ?? this.minPrice,
-        maxPrice: maxPrice ?? this.maxPrice,
+        minPrice:
+            identical(minPrice, _unset) ? this.minPrice : minPrice as double?,
+        maxPrice:
+            identical(maxPrice, _unset) ? this.maxPrice : maxPrice as double?,
         region: region ?? this.region,
         sortBy: sortBy ?? this.sortBy,
       );
@@ -154,11 +174,12 @@ class FurnitureFilter {
       region.isEmpty;
 }
 
-final furnitureFilterProvider =
-    StateProvider.autoDispose<FurnitureFilter>((ref) => const FurnitureFilter());
+final furnitureFilterProvider = StateProvider.autoDispose<FurnitureFilter>(
+    (ref) => const FurnitureFilter());
 
 // ── Listings providers ─────────────────────────────────────────────────────
-Future<List<FurnitureListingModel>> _fetchFurniture({String subcategory = ''}) async {
+Future<List<FurnitureListingModel>> _fetchFurniture(
+    {String subcategory = ''}) async {
   var query = Supabase.instance.client
       .from('listings')
       .select()
@@ -178,29 +199,34 @@ final furnitureListingsProvider =
   return _fetchFurniture();
 });
 
-final furnitureBySubcategoryProvider =
-    FutureProvider.autoDispose.family<List<FurnitureListingModel>, String>(
-        (ref, subcategory) async {
+final furnitureBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<FurnitureListingModel>, String>((ref, subcategory) async {
   return _fetchFurniture(subcategory: subcategory);
 });
 
-final furnitureFilteredProvider =
-    FutureProvider.autoDispose.family<List<FurnitureListingModel>, String>(
-        (ref, subcategory) async {
+final furnitureFilteredProvider = FutureProvider.autoDispose
+    .family<List<FurnitureListingModel>, String>((ref, subcategory) async {
   final filter = ref.watch(furnitureFilterProvider);
-  final all = await ref.watch(furnitureBySubcategoryProvider(subcategory).future);
+  final all =
+      await ref.watch(furnitureBySubcategoryProvider(subcategory).future);
 
   var result = all.where((item) {
     if (filter.subcategories.isNotEmpty &&
-        !filter.subcategories.any((s) => s.toLowerCase() == item.subcategory.toLowerCase())) {
+        !filter.subcategories.any((s) {
+          final value = s.toLowerCase();
+          return value == item.subcategory.toLowerCase() ||
+              value == item.subcategoryLabel.toLowerCase();
+        })) {
       return false;
     }
     if (filter.brands.isNotEmpty &&
-        !filter.brands.any((b) => b.toLowerCase() == item.brand.toLowerCase())) {
+        !filter.brands
+            .any((b) => b.toLowerCase() == item.brand.toLowerCase())) {
       return false;
     }
     if (filter.conditions.isNotEmpty &&
-        !filter.conditions.any((c) => c.toLowerCase() == item.condition.toLowerCase())) {
+        !filter.conditions
+            .any((c) => c.toLowerCase() == item.condition.toLowerCase())) {
       return false;
     }
     if (filter.ages.isNotEmpty &&
@@ -208,27 +234,33 @@ final furnitureFilteredProvider =
       return false;
     }
     if (filter.usages.isNotEmpty &&
-        !filter.usages.any((u) => u.toLowerCase() == item.usage.toLowerCase())) {
+        !filter.usages
+            .any((u) => u.toLowerCase() == item.usage.toLowerCase())) {
       return false;
     }
     if (filter.roomTypes.isNotEmpty &&
-        !filter.roomTypes.any((r) => r.toLowerCase() == item.roomType.toLowerCase())) {
+        !filter.roomTypes
+            .any((r) => r.toLowerCase() == item.roomType.toLowerCase())) {
       return false;
     }
     if (filter.itemShapes.isNotEmpty &&
-        !filter.itemShapes.any((s) => s.toLowerCase() == item.itemShape.toLowerCase())) {
+        !filter.itemShapes
+            .any((s) => s.toLowerCase() == item.itemShape.toLowerCase())) {
       return false;
     }
     if (filter.fillMaterials.isNotEmpty &&
-        !filter.fillMaterials.any((f) => f.toLowerCase() == item.fillMaterial.toLowerCase())) {
+        !filter.fillMaterials
+            .any((f) => f.toLowerCase() == item.fillMaterial.toLowerCase())) {
       return false;
     }
     if (filter.colors.isNotEmpty &&
-        !filter.colors.any((c) => c.toLowerCase() == item.color.toLowerCase())) {
+        !filter.colors
+            .any((c) => c.toLowerCase() == item.color.toLowerCase())) {
       return false;
     }
     if (filter.shapes.isNotEmpty &&
-        !filter.shapes.any((s) => s.toLowerCase() == item.shape.toLowerCase())) {
+        !filter.shapes
+            .any((s) => s.toLowerCase() == item.shape.toLowerCase())) {
       return false;
     }
     if (filter.types.isNotEmpty &&
@@ -236,16 +268,22 @@ final furnitureFilteredProvider =
       return false;
     }
     if (filter.materials.isNotEmpty &&
-        !filter.materials.any((m) => m.toLowerCase() == item.material.toLowerCase())) {
+        !filter.materials
+            .any((m) => m.toLowerCase() == item.material.toLowerCase())) {
       return false;
     }
     if (filter.sellerTypes.isNotEmpty &&
-        !filter.sellerTypes.any((s) => s.toLowerCase() == item.sellerType.toLowerCase())) {
+        !filter.sellerTypes
+            .any((s) => s.toLowerCase() == item.sellerType.toLowerCase())) {
       return false;
     }
     final price = double.tryParse(item.price) ?? 0;
-    if (filter.minPrice != null && price < filter.minPrice!) { return false; }
-    if (filter.maxPrice != null && price > filter.maxPrice!) { return false; }
+    if (filter.minPrice != null && price < filter.minPrice!) {
+      return false;
+    }
+    if (filter.maxPrice != null && price > filter.maxPrice!) {
+      return false;
+    }
     if (filter.region.isNotEmpty &&
         !item.city.toLowerCase().contains(filter.region.toLowerCase())) {
       return false;
@@ -255,11 +293,11 @@ final furnitureFilteredProvider =
 
   switch (filter.sortBy) {
     case 'price_high':
-      result.sort((a, b) =>
-          (double.tryParse(b.price) ?? 0).compareTo(double.tryParse(a.price) ?? 0));
+      result.sort((a, b) => (double.tryParse(b.price) ?? 0)
+          .compareTo(double.tryParse(a.price) ?? 0));
     case 'price_low':
-      result.sort((a, b) =>
-          (double.tryParse(a.price) ?? 0).compareTo(double.tryParse(b.price) ?? 0));
+      result.sort((a, b) => (double.tryParse(a.price) ?? 0)
+          .compareTo(double.tryParse(b.price) ?? 0));
     case 'oldest':
       result.sort((a, b) => a.createdAt.compareTo(b.createdAt));
     default:
@@ -270,17 +308,22 @@ final furnitureFilteredProvider =
 });
 
 // ── Dynamic filter option providers ───────────────────────────────────────
-Future<List<String>> _distinctFurnitureField(String field, {String subcategory = ''}) async {
+Future<List<String>> _distinctFurnitureField(String field,
+    {String subcategory = ''}) async {
   var query = Supabase.instance.client
       .from('listings')
       .select('category_data')
       .eq('category', 'furniture')
       .eq('is_active', true);
-  if (subcategory.isNotEmpty) { query = query.eq('subcategory', subcategory); }
+  if (subcategory.isNotEmpty) {
+    query = query.eq('subcategory', subcategory);
+  }
   final response = await query;
   return (response as List<dynamic>)
       .map((e) {
-        final cd = (e as Map<String, dynamic>)['category_data'] as Map<String, dynamic>? ?? {};
+        final cd = (e as Map<String, dynamic>)['category_data']
+                as Map<String, dynamic>? ??
+            {};
         return cd[field]?.toString().trim() ?? '';
       })
       .where((v) => v.isNotEmpty)
@@ -289,8 +332,11 @@ Future<List<String>> _distinctFurnitureField(String field, {String subcategory =
     ..sort();
 }
 
-final furnitureBrandsProvider =
-    FutureProvider.autoDispose<List<String>>((ref) => _distinctFurnitureField('brand'));
+final furnitureBrandsProvider = FutureProvider.autoDispose<List<String>>(
+    (ref) => _distinctFurnitureField('brand'));
+final furnitureBrandsBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, subcategory) =>
+        _distinctFurnitureField('brand', subcategory: subcategory));
 
 final furnitureConditionsProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
@@ -300,6 +346,13 @@ final furnitureConditionsProvider =
   if (fromListings.isNotEmpty) return fromListings;
   return const ['Flawless', 'Excellent', 'Good', 'Average', 'Poor'];
 });
+final furnitureConditionsBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, subcategory) async {
+  final fromListings =
+      await _distinctFurnitureField('condition', subcategory: subcategory);
+  if (fromListings.isNotEmpty) return fromListings;
+  return ref.watch(furnitureConditionsProvider.future);
+});
 
 final furnitureAgesProvider =
     FutureProvider.autoDispose<List<String>>((ref) async {
@@ -308,9 +361,22 @@ final furnitureAgesProvider =
   final fromListings = await _distinctFurnitureField('age');
   if (fromListings.isNotEmpty) return fromListings;
   return const [
-    'Brand New', '0-1 month', '1-6 months', '6-12 months',
-    '1-2 years', '2-5 years', '5-10 years', '10+ years',
+    'Brand New',
+    '0-1 month',
+    '1-6 months',
+    '6-12 months',
+    '1-2 years',
+    '2-5 years',
+    '5-10 years',
+    '10+ years',
   ];
+});
+final furnitureAgesBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, subcategory) async {
+  final fromListings =
+      await _distinctFurnitureField('age', subcategory: subcategory);
+  if (fromListings.isNotEmpty) return fromListings;
+  return ref.watch(furnitureAgesProvider.future);
 });
 
 final furnitureUsagesProvider =
@@ -319,7 +385,20 @@ final furnitureUsagesProvider =
   if (admin.isNotEmpty) return admin;
   final fromListings = await _distinctFurnitureField('usage');
   if (fromListings.isNotEmpty) return fromListings;
-  return const ['Never Used', 'Used Once', 'Light Usage', 'Normal Usage', 'Heavy Usage'];
+  return const [
+    'Never Used',
+    'Used Once',
+    'Light Usage',
+    'Normal Usage',
+    'Heavy Usage'
+  ];
+});
+final furnitureUsagesBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, subcategory) async {
+  final fromListings =
+      await _distinctFurnitureField('usage', subcategory: subcategory);
+  if (fromListings.isNotEmpty) return fromListings;
+  return ref.watch(furnitureUsagesProvider.future);
 });
 
 final furnitureRoomTypesProvider =
@@ -328,7 +407,23 @@ final furnitureRoomTypesProvider =
   if (admin.isNotEmpty) return admin;
   final fromListings = await _distinctFurnitureField('room_type');
   if (fromListings.isNotEmpty) return fromListings;
-  return const ['Living Room', 'Bedroom', 'Dining Room', 'Kids Room', 'Office', 'Outdoor', 'Private Room', 'Bed Space'];
+  return const [
+    'Living Room',
+    'Bedroom',
+    'Dining Room',
+    'Kids Room',
+    'Office',
+    'Outdoor',
+    'Private Room',
+    'Bed Space'
+  ];
+});
+final furnitureRoomTypesBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, subcategory) async {
+  final fromListings =
+      await _distinctFurnitureField('room_type', subcategory: subcategory);
+  if (fromListings.isNotEmpty) return fromListings;
+  return ref.watch(furnitureRoomTypesProvider.future);
 });
 
 final furnitureItemShapesProvider =
@@ -338,10 +433,26 @@ final furnitureItemShapesProvider =
   final fromListings = await _distinctFurnitureField('item_shape');
   if (fromListings.isNotEmpty) return fromListings;
   return const [
-    'A-Shape', 'Conical', 'Cubical', 'Diamond', 'Hexagonal',
-    'L-Shape', 'Oblong', 'Octagonal', 'Other', 'Oval',
-    'Pentagonal', 'Quarter Round',
+    'A-Shape',
+    'Conical',
+    'Cubical',
+    'Diamond',
+    'Hexagonal',
+    'L-Shape',
+    'Oblong',
+    'Octagonal',
+    'Other',
+    'Oval',
+    'Pentagonal',
+    'Quarter Round',
   ];
+});
+final furnitureItemShapesBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, subcategory) async {
+  final fromListings =
+      await _distinctFurnitureField('item_shape', subcategory: subcategory);
+  if (fromListings.isNotEmpty) return fromListings;
+  return ref.watch(furnitureItemShapesProvider.future);
 });
 
 final furnitureFillMaterialsProvider =
@@ -351,9 +462,23 @@ final furnitureFillMaterialsProvider =
   final fromListings = await _distinctFurnitureField('fill_material');
   if (fromListings.isNotEmpty) return fromListings;
   return const [
-    'Cotton', 'Feather', 'Fibre', 'Foam', 'High Density Foam',
-    'Memory Foam', 'Polyester', 'Polyurethane Foam', 'Others',
+    'Cotton',
+    'Feather',
+    'Fibre',
+    'Foam',
+    'High Density Foam',
+    'Memory Foam',
+    'Polyester',
+    'Polyurethane Foam',
+    'Others',
   ];
+});
+final furnitureFillMaterialsBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, subcategory) async {
+  final fromListings =
+      await _distinctFurnitureField('fill_material', subcategory: subcategory);
+  if (fromListings.isNotEmpty) return fromListings;
+  return ref.watch(furnitureFillMaterialsProvider.future);
 });
 
 final furnitureColorsProvider =
@@ -363,10 +488,29 @@ final furnitureColorsProvider =
   final fromListings = await _distinctFurnitureField('color');
   if (fromListings.isNotEmpty) return fromListings;
   return const [
-    'White', 'Silver', 'Grey', 'Black', 'Red', 'Gold',
-    'Orange', 'Blue', 'Beige', 'Yellow', 'Purple', 'Cement',
-    'Burgundy', 'Green', 'Brown',
+    'White',
+    'Silver',
+    'Grey',
+    'Black',
+    'Red',
+    'Gold',
+    'Orange',
+    'Blue',
+    'Beige',
+    'Yellow',
+    'Purple',
+    'Cement',
+    'Burgundy',
+    'Green',
+    'Brown',
   ];
+});
+final furnitureColorsBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, subcategory) async {
+  final fromListings =
+      await _distinctFurnitureField('color', subcategory: subcategory);
+  if (fromListings.isNotEmpty) return fromListings;
+  return ref.watch(furnitureColorsProvider.future);
 });
 
 final furnitureShapesProvider =
@@ -375,7 +519,23 @@ final furnitureShapesProvider =
   if (admin.isNotEmpty) return admin;
   final fromListings = await _distinctFurnitureField('shape');
   if (fromListings.isNotEmpty) return fromListings;
-  return const ['Corner', 'Free Shape', 'L-Shape', 'Modular', 'Square', 'Standard', 'U-Shape', 'Others'];
+  return const [
+    'Corner',
+    'Free Shape',
+    'L-Shape',
+    'Modular',
+    'Square',
+    'Standard',
+    'U-Shape',
+    'Others'
+  ];
+});
+final furnitureShapesBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, subcategory) async {
+  final fromListings =
+      await _distinctFurnitureField('shape', subcategory: subcategory);
+  if (fromListings.isNotEmpty) return fromListings;
+  return ref.watch(furnitureShapesProvider.future);
 });
 
 final furnitureTypesProvider =
@@ -385,9 +545,23 @@ final furnitureTypesProvider =
   final fromListings = await _distinctFurnitureField('type');
   if (fromListings.isNotEmpty) return fromListings;
   return const [
-    'Convertible', 'Futon', 'Loveseat', 'Sectional',
-    'Sleeper', 'Sofa Bed', 'Sofa Chaise', 'Standard', 'Others',
+    'Convertible',
+    'Futon',
+    'Loveseat',
+    'Sectional',
+    'Sleeper',
+    'Sofa Bed',
+    'Sofa Chaise',
+    'Standard',
+    'Others',
   ];
+});
+final furnitureTypesBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, subcategory) async {
+  final fromListings =
+      await _distinctFurnitureField('type', subcategory: subcategory);
+  if (fromListings.isNotEmpty) return fromListings;
+  return ref.watch(furnitureTypesProvider.future);
 });
 
 final furnitureMaterialsProvider =
@@ -396,7 +570,23 @@ final furnitureMaterialsProvider =
   if (admin.isNotEmpty) return admin;
   final fromListings = await _distinctFurnitureField('material');
   if (fromListings.isNotEmpty) return fromListings;
-  return const ['Coated Fabric', 'Fabric', 'Leather', 'Metal', 'Plastic', 'Rattan', 'Solid Wood', 'Others'];
+  return const [
+    'Coated Fabric',
+    'Fabric',
+    'Leather',
+    'Metal',
+    'Plastic',
+    'Rattan',
+    'Solid Wood',
+    'Others'
+  ];
+});
+final furnitureMaterialsBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, subcategory) async {
+  final fromListings =
+      await _distinctFurnitureField('material', subcategory: subcategory);
+  if (fromListings.isNotEmpty) return fromListings;
+  return ref.watch(furnitureMaterialsProvider.future);
 });
 
 final furnitureSellerTypesProvider =
@@ -406,4 +596,31 @@ final furnitureSellerTypesProvider =
   final fromListings = await _distinctFurnitureField('seller_type');
   if (fromListings.isNotEmpty) return fromListings;
   return const ['All Sellers', 'Individuals', 'Businesses'];
+});
+final furnitureSellerTypesBySubcategoryProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, subcategory) async {
+  final fromListings =
+      await _distinctFurnitureField('seller_type', subcategory: subcategory);
+  if (fromListings.isNotEmpty) return fromListings;
+  return ref.watch(furnitureSellerTypesProvider.future);
+});
+
+final furnitureMaxPriceBySubcategoryProvider =
+    FutureProvider.autoDispose.family<double, String>((ref, subcategory) async {
+  var query = Supabase.instance.client
+      .from('listings')
+      .select('price')
+      .eq('category', 'furniture')
+      .eq('is_active', true);
+  if (subcategory.isNotEmpty) query = query.eq('subcategory', subcategory);
+  final response = await query;
+  final prices = (response as List<dynamic>)
+      .map((e) => double.tryParse(
+          ((e as Map<String, dynamic>)['price'] ?? '').toString()))
+      .whereType<double>()
+      .where((price) => price > 0)
+      .toList();
+  if (prices.isEmpty) return 100000;
+  final maxPrice = prices.reduce((a, b) => a > b ? a : b);
+  return ((maxPrice / 10000).ceil() * 10000).toDouble();
 });

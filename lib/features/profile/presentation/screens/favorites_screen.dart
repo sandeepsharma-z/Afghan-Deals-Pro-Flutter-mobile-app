@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../home/presentation/screens/home_screen.dart';
+
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
 
@@ -11,34 +13,53 @@ class FavoritesScreen extends StatelessWidget {
     _AdItem('Rs 450,000', 'Suzuki Jimmy GL MT', '2022  72,377 km', 8),
   ];
 
+  void _goHome(BuildContext context) {
+    debugPrint('Favorites back tapped -> Home');
+    Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leadingWidth: 48,
+        leading: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => _goHome(context),
+          child: const SizedBox(
+            width: 48,
+            height: kToolbarHeight,
+            child: Center(
+              child: Icon(Icons.arrow_back_ios_new,
+                  size: 18, color: Colors.black87),
+            ),
+          ),
+        ),
+        title: Text(
+          'Favorites',
+          style: GoogleFonts.montserrat(
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            color: Colors.black87,
+          ),
+        ),
+        centerTitle: true,
+        actions: const [SizedBox(width: 48)],
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(height: 1, thickness: 1, color: Color(0xFFE8E8E8)),
+        ),
+      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Header ──────────────────────────────────────────
-          Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(
-                bottom: BorderSide(color: Color(0xFFE8E8E8), width: 1),
-              ),
-            ),
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-            child: Center(
-              child: Text(
-                'Favorites',
-                style: GoogleFonts.montserrat(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black87,
-                ),
-              ),
-            ),
-          ),
-
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(14),
@@ -83,7 +104,8 @@ class FavoritesScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 3),
-                            const Icon(Icons.arrow_forward, size: 14, color: Colors.black87),
+                            const Icon(Icons.arrow_forward,
+                                size: 14, color: Colors.black87),
                           ],
                         ),
                       ),
@@ -93,15 +115,19 @@ class FavoritesScreen extends StatelessWidget {
 
                   // Ad cards
                   Row(
-                    children: _savedAds.asMap().entries.map((e) => Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          right: e.key == 0 ? 6 : 0,
-                          left:  e.key == 1 ? 6 : 0,
-                        ),
-                        child: _AdCard(ad: e.value),
-                      ),
-                    )).toList(),
+                    children: _savedAds
+                        .asMap()
+                        .entries
+                        .map((e) => Expanded(
+                              child: Padding(
+                                padding: EdgeInsets.only(
+                                  right: e.key == 0 ? 6 : 0,
+                                  left: e.key == 1 ? 6 : 0,
+                                ),
+                                child: _AdCard(ad: e.value),
+                              ),
+                            ))
+                        .toList(),
                   ),
 
                   const SizedBox(height: 32),
@@ -120,7 +146,8 @@ class FavoritesScreen extends StatelessWidget {
                   // Inner card
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 16),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 36, horizontal: 16),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(10),
@@ -168,7 +195,8 @@ class FavoritesScreen extends StatelessWidget {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 10),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 28, vertical: 10),
                           ),
                           child: Text(
                             'Make A List',

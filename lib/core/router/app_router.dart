@@ -15,10 +15,10 @@ import '../../features/chat/presentation/screens/chat_detail_screen.dart';
 import '../../features/chat/data/models/chat_thread_model.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/account_screen.dart';
-import '../../features/profile/presentation/screens/favorites_screen.dart';
 import '../../features/profile/presentation/screens/notifications_screen.dart';
 import '../../features/categories/cars/presentation/screens/cars_screen.dart';
 import '../../features/categories/cars/presentation/screens/brand_results_screen.dart';
+import '../../features/categories/cars/presentation/screens/car_results_screen.dart';
 import '../../features/categories/properties/presentation/screens/properties_screen.dart';
 import '../../features/categories/mobiles/presentation/screens/mobiles_screen.dart';
 import '../../features/categories/spare_parts/presentation/screens/spare_parts_screen.dart';
@@ -38,14 +38,15 @@ import '../../features/admin/presentation/screens/admin_filter_options_screen.da
 import '../../features/admin/presentation/screens/admin_regions_screen.dart';
 import '../../features/admin/presentation/screens/admin_price_settings_screen.dart';
 import '../../features/profile/presentation/screens/my_ads_screen.dart';
+import '../../features/listings/presentation/screens/listing_detail_screen.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
-import '../../features/listings/presentation/screens/search_results_screen.dart';
 import 'route_names.dart';
 
 final appNavigatorKey = GlobalKey<NavigatorState>();
 
 // Create a notifier to track auth state changes and refresh the router
-final _routerRefreshProvider = StateNotifierProvider<_RouterRefreshNotifier, void>((ref) {
+final _routerRefreshProvider =
+    StateNotifierProvider<_RouterRefreshNotifier, void>((ref) {
   ref.listen(authStateProvider, (prev, next) {
     // Any auth state change triggers a refresh
   });
@@ -182,7 +183,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: RouteNames.favorites,
-        builder: (context, state) => const FavoritesScreen(),
+        builder: (context, state) => const MyAdsScreen(),
       ),
       GoRoute(
         path: RouteNames.notifications,
@@ -191,6 +192,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.cars,
         builder: (context, state) => const CarsScreen(),
+      ),
+      GoRoute(
+        path: '/car-results',
+        builder: (context, state) {
+          final subcategory =
+              state.uri.queryParameters['subcategory'] ?? 'rental-cars';
+          final duration = state.uri.queryParameters['duration'] ?? 'all';
+          return CarResultsScreen(
+            subcategory: subcategory,
+            rentalDuration: duration,
+          );
+        },
       ),
       GoRoute(
         path: RouteNames.properties,
@@ -280,8 +293,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final brand = state.pathParameters['brand'] ?? '';
           final model = state.pathParameters['model'];
-          final fromYear = int.tryParse(state.pathParameters['fromYear'] ?? '0') ?? 0;
-          final toYear = int.tryParse(state.pathParameters['toYear'] ?? '2027') ?? 2027;
+          final fromYear =
+              int.tryParse(state.pathParameters['fromYear'] ?? '0') ?? 0;
+          final toYear =
+              int.tryParse(state.pathParameters['toYear'] ?? '2027') ?? 2027;
           final subcategory = state.uri.queryParameters['subcategory'] ?? 'all';
           return BrandResultsScreen(
             subcategory: subcategory,
@@ -293,10 +308,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
-        path: '/search/:query',
+        path: RouteNames.listingDetail,
         builder: (context, state) {
-          final query = Uri.decodeComponent(state.pathParameters['query'] ?? '');
-          return SearchResultsScreen(query: query);
+          final id = state.pathParameters['id'] ?? '';
+          final category = state.uri.queryParameters['category'];
+          return ListingDetailScreen(
+            listingId: id,
+            category: category,
+          );
         },
       ),
     ],

@@ -4,19 +4,35 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../features/listings/data/models/mobile_listing_model.dart';
 import '../../../../admin/presentation/providers/admin_dynamic_provider.dart';
 
+String _slugForMobileBrand(String value) {
+  return value
+      .trim()
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+      .replaceAll(RegExp(r'^-+|-+$'), '');
+}
+
+bool _matchesMobileBrand(MobileListingModel listing, String brand) {
+  final brandKey = brand.trim().toLowerCase();
+  final brandSlug = _slugForMobileBrand(brand);
+  if (brandKey.isEmpty || brandKey == 'all') return true;
+
+  return listing.brand.toLowerCase() == brandKey ||
+      listing.subcategory.toLowerCase() == brandSlug;
+}
+
 Future<List<String>> _distinctMobileCategoryDataValues(String key) async {
   final response = await Supabase.instance.client
       .from('listings')
       .select('category_data')
       .eq('category', 'mobiles')
-      .eq('subcategory', 'mobile-phones')
       .eq('is_active', true);
 
   final values = (response as List<dynamic>)
       .map((e) {
-        final cd =
-            (e as Map<String, dynamic>)['category_data'] as Map<String, dynamic>? ??
-                {};
+        final cd = (e as Map<String, dynamic>)['category_data']
+                as Map<String, dynamic>? ??
+            {};
         return cd[key]?.toString().trim() ?? '';
       })
       .where((v) => v.isNotEmpty)
@@ -34,7 +50,6 @@ final mobileListingsProvider =
       .from('listings')
       .select()
       .eq('category', 'mobiles')
-      .eq('subcategory', 'mobile-phones')
       .eq('is_active', true)
       .order('created_at', ascending: false);
 
@@ -44,14 +59,12 @@ final mobileListingsProvider =
 });
 
 /// Mobile listings filtered by brand
-final mobileListingsByBrandProvider =
-    FutureProvider.autoDispose.family<List<MobileListingModel>, String>(
-        (ref, brand) async {
+final mobileListingsByBrandProvider = FutureProvider.autoDispose
+    .family<List<MobileListingModel>, String>((ref, brand) async {
   final response = await Supabase.instance.client
       .from('listings')
       .select()
       .eq('category', 'mobiles')
-      .eq('subcategory', 'mobile-phones')
       .eq('is_active', true)
       .order('created_at', ascending: false);
 
@@ -60,9 +73,7 @@ final mobileListingsByBrandProvider =
       .toList();
 
   if (brand.isEmpty || brand == 'All') return all;
-  return all
-      .where((m) => m.brand.toLowerCase() == brand.toLowerCase())
-      .toList();
+  return all.where((m) => _matchesMobileBrand(m, brand)).toList();
 });
 
 /// Distinct models for a given brand from mobile listings
@@ -72,18 +83,20 @@ final mobileModelsByBrandProvider =
       .from('listings')
       .select('category_data')
       .eq('category', 'mobiles')
-      .eq('subcategory', 'mobile-phones')
       .eq('is_active', true);
 
   final models = (response as List<dynamic>)
       .map((e) {
-        final cd = (e as Map<String, dynamic>)['category_data'] as Map<String, dynamic>? ?? {};
+        final cd = (e as Map<String, dynamic>)['category_data']
+                as Map<String, dynamic>? ??
+            {};
         return (
           brand: cd['brand']?.toString().trim() ?? '',
           model: cd['model']?.toString().trim() ?? '',
         );
       })
-      .where((r) => r.brand.toLowerCase() == brand.toLowerCase() && r.model.isNotEmpty)
+      .where((r) =>
+          r.brand.toLowerCase() == brand.toLowerCase() && r.model.isNotEmpty)
       .map((r) => r.model)
       .toSet()
       .toList()
@@ -125,8 +138,14 @@ final mobileAgesProvider =
   final fromListings = await _distinctMobileCategoryDataValues('age');
   if (fromListings.isNotEmpty) return fromListings;
   return const [
-    'Brand New', '0-1 month', '1-6 months', '6-12 months',
-    '1-2 years', '2-5 years', '5-10 years', '10+ years',
+    'Brand New',
+    '0-1 month',
+    '1-6 months',
+    '6-12 months',
+    '1-2 years',
+    '2-5 years',
+    '5-10 years',
+    '10+ years',
   ];
 });
 
@@ -197,7 +216,6 @@ final mobileCitiesProvider =
       .from('listings')
       .select('city')
       .eq('category', 'mobiles')
-      .eq('subcategory', 'mobile-phones')
       .eq('is_active', true);
 
   final cities = (response as List<dynamic>)

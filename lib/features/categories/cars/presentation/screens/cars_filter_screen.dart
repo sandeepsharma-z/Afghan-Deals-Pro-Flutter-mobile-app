@@ -44,9 +44,50 @@ class CarFilters {
   });
 }
 
+class CarFilterOptions {
+  final List<String> makes;
+  final List<String> models;
+  final List<String> subModels;
+  final List<String> specs;
+  final List<String> dealTypes;
+  final List<String> transmission;
+  final List<String> fuelType;
+  final List<String> extColors;
+  final List<String> driveLines;
+  final List<String> cylinders;
+  final List<String> intColors;
+  final List<String> regions;
+  final List<String> cities;
+  final int minYear;
+  final int maxYear;
+  final double minPrice;
+  final double maxPrice;
+
+  const CarFilterOptions({
+    this.makes = const [],
+    this.models = const [],
+    this.subModels = const [],
+    this.specs = const [],
+    this.dealTypes = const [],
+    this.transmission = const [],
+    this.fuelType = const [],
+    this.extColors = const [],
+    this.driveLines = const [],
+    this.cylinders = const [],
+    this.intColors = const [],
+    this.regions = const [],
+    this.cities = const [],
+    this.minYear = 1990,
+    this.maxYear = 2027,
+    this.minPrice = 0,
+    this.maxPrice = 150000,
+  });
+}
+
 class CarsFilterScreen extends ConsumerStatefulWidget {
   final CarFilters? initialFilters;
-  const CarsFilterScreen({super.key, this.initialFilters});
+  final CarFilterOptions? options;
+  const CarsFilterScreen({super.key, this.initialFilters, this.options});
 
   @override
   ConsumerState<CarsFilterScreen> createState() => _CarsFilterScreenState();
@@ -64,6 +105,13 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
   late List<String> _availableIntColors;
   late List<String> _availableRegions;
   late List<String> _availableCities;
+  late List<String> _availableSubModels;
+  late List<String> _availableSpecs;
+  late List<String> _availableDealTypes;
+  late int _availableMinYear;
+  late int _availableMaxYear;
+  late double _availableMinPrice;
+  late double _availableMaxPrice;
 
   static const _kSections = [
     ('Makes', Icons.directions_car_outlined),
@@ -101,6 +149,14 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
   late double _minPrice;
   late double _maxPrice;
 
+  List<int> get _visibleSections {
+    final sections = <int>[];
+    for (var i = 0; i < _kSections.length; i++) {
+      if (_sectionHasOptions(i)) sections.add(i);
+    }
+    return sections;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -109,16 +165,106 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
   }
 
   void _setDefaultValues() {
-    _availableMakes = ['Toyota', 'Honda', 'BMW', 'Mercedes-Benz', 'Audi', 'Volkswagen', 'Ford', 'Chevrolet', 'Hyundai', 'Kia', 'Nissan', 'Mazda'];
-    _availableModels = ['Civic', 'Accord', 'CR-V', 'Pilot', 'Camry', 'Corolla', 'Land Cruiser', '3 Series', '5 Series', '7 Series', 'X5', 'X3'];
-    _availableTransmissions = ['Manual', 'Automatic', 'CVT'];
-    _availableFuelTypes = ['Petrol', 'Diesel', 'CNG', 'Hybrid', 'Electric'];
-    _availableColors = ['White', 'Silver', 'Grey', 'Black', 'Red', 'Gold', 'Orange', 'Blue', 'Beige', 'Yellow', 'Purple', 'Brown', 'Green'];
-    _availableDriveLines = ['FWD', 'RWD', 'AWD', '4WD'];
-    _availableCylinders = ['3', '4', '6', '8', '10', '12'];
-    _availableIntColors = ['Beige', 'Black', 'Red', 'Silver', 'Burgundy', 'Grey', 'White', 'Brown'];
-    _availableRegions = ['Kabul', 'Kandahar', 'Herat', 'Balkh', 'Nangarhar', 'Kunduz'];
-    _availableCities = ['Kabul', 'Kandahar', 'Herat', 'Mazar-e Sharif', 'Jalalabad'];
+    final options = widget.options;
+    _availableMakes = _withFallback(options?.makes, [
+      'Toyota',
+      'Honda',
+      'BMW',
+      'Mercedes-Benz',
+      'Audi',
+      'Volkswagen',
+      'Ford',
+      'Chevrolet',
+      'Hyundai',
+      'Kia',
+      'Nissan',
+      'Mazda'
+    ]);
+    _availableModels = _withFallback(options?.models, [
+      'Civic',
+      'Accord',
+      'CR-V',
+      'Pilot',
+      'Camry',
+      'Corolla',
+      'Land Cruiser',
+      '3 Series',
+      '5 Series',
+      '7 Series',
+      'X5',
+      'X3'
+    ]);
+    _availableSubModels = _withFallback(options?.subModels, [
+      'Standard',
+      'Sport',
+      'Luxury',
+      'SE',
+      'EX',
+      'GL',
+      'GT',
+      'LX',
+      'DX',
+      'GLE',
+      'GLX',
+      'S-Line',
+      'RS'
+    ]);
+    _availableSpecs =
+        _withFallback(options?.specs, ['Used', 'New', 'Export', 'Rental']);
+    _availableDealTypes =
+        _withFallback(options?.dealTypes, ['Owner', 'Dealer', 'Agent']);
+    _availableTransmissions =
+        _withFallback(options?.transmission, ['Manual', 'Automatic', 'CVT']);
+    _availableFuelTypes = _withFallback(
+        options?.fuelType, ['Petrol', 'Diesel', 'CNG', 'Hybrid', 'Electric']);
+    _availableColors = _withFallback(options?.extColors, [
+      'White',
+      'Silver',
+      'Grey',
+      'Black',
+      'Red',
+      'Gold',
+      'Orange',
+      'Blue',
+      'Beige',
+      'Yellow',
+      'Purple',
+      'Brown',
+      'Green'
+    ]);
+    _availableDriveLines =
+        _withFallback(options?.driveLines, ['FWD', 'RWD', 'AWD', '4WD']);
+    _availableCylinders =
+        _withFallback(options?.cylinders, ['3', '4', '6', '8', '10', '12']);
+    _availableIntColors = _withFallback(options?.intColors, [
+      'Beige',
+      'Black',
+      'Red',
+      'Silver',
+      'Burgundy',
+      'Grey',
+      'White',
+      'Brown'
+    ]);
+    _availableRegions = _withFallback(options?.regions,
+        ['Kabul', 'Kandahar', 'Herat', 'Balkh', 'Nangarhar', 'Kunduz']);
+    _availableCities = _withFallback(options?.cities,
+        ['Kabul', 'Kandahar', 'Herat', 'Mazar-e Sharif', 'Jalalabad']);
+    _availableMinYear = options?.minYear ?? 1990;
+    _availableMaxYear = options?.maxYear ?? 2027;
+    _availableMinPrice = options?.minPrice ?? 0;
+    _availableMaxPrice = options?.maxPrice ?? 150000;
+  }
+
+  List<String> _withFallback(List<String>? values, List<String> fallback) {
+    final clean = (values ?? [])
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    if (widget.options != null) return clean;
+    return clean.isEmpty ? fallback : clean;
   }
 
   void _initFromPrevious() {
@@ -157,28 +303,82 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
       _fromYear = 2000;
       _toYear = 2027;
       _minPrice = 0;
-      _maxPrice = 150000;
+      _maxPrice = widget.options?.maxPrice ?? 150000;
     }
   }
 
   bool _sectionHasValue(int i) {
     switch (i) {
-      case 0:  return _makes.isNotEmpty;
-      case 1:  return _models.isNotEmpty;
-      case 2:  return _subModels.isNotEmpty;
-      case 3:  return _fromYear != 2000 || _toYear != 2027;
-      case 4:  return _specs.isNotEmpty;
-      case 5:  return _dealTypes.isNotEmpty;
-      case 6:  return _transmission.isNotEmpty;
-      case 7:  return _fuelTypes.isNotEmpty;
-      case 8:  return _extColors.isNotEmpty;
-      case 9:  return _driveLines.isNotEmpty;
-      case 10: return _cylinders.isNotEmpty;
-      case 11: return _intColors.isNotEmpty;
-      case 12: return _regions.isNotEmpty;
-      case 13: return _cities.isNotEmpty;
-      case 14: return _minPrice != 0 || _maxPrice != 150000;
-      default: return false;
+      case 0:
+        return _makes.isNotEmpty;
+      case 1:
+        return _models.isNotEmpty;
+      case 2:
+        return _subModels.isNotEmpty;
+      case 3:
+        return _fromYear != 2000 || _toYear != 2027;
+      case 4:
+        return _specs.isNotEmpty;
+      case 5:
+        return _dealTypes.isNotEmpty;
+      case 6:
+        return _transmission.isNotEmpty;
+      case 7:
+        return _fuelTypes.isNotEmpty;
+      case 8:
+        return _extColors.isNotEmpty;
+      case 9:
+        return _driveLines.isNotEmpty;
+      case 10:
+        return _cylinders.isNotEmpty;
+      case 11:
+        return _intColors.isNotEmpty;
+      case 12:
+        return _regions.isNotEmpty;
+      case 13:
+        return _cities.isNotEmpty;
+      case 14:
+        return _minPrice != _availableMinPrice ||
+            _maxPrice != _availableMaxPrice;
+      default:
+        return false;
+    }
+  }
+
+  bool _sectionHasOptions(int i) {
+    switch (i) {
+      case 0:
+        return _availableMakes.isNotEmpty;
+      case 1:
+        return _availableModels.isNotEmpty;
+      case 2:
+        return _availableSubModels.isNotEmpty;
+      case 3:
+        return _availableMinYear <= _availableMaxYear;
+      case 4:
+        return _availableSpecs.isNotEmpty;
+      case 5:
+        return _availableDealTypes.isNotEmpty;
+      case 6:
+        return _availableTransmissions.isNotEmpty;
+      case 7:
+        return _availableFuelTypes.isNotEmpty;
+      case 8:
+        return _availableColors.isNotEmpty;
+      case 9:
+        return _availableDriveLines.isNotEmpty;
+      case 10:
+        return _availableCylinders.isNotEmpty;
+      case 11:
+        return _availableIntColors.isNotEmpty;
+      case 12:
+        return _availableRegions.isNotEmpty;
+      case 13:
+        return _availableCities.isNotEmpty;
+      case 14:
+        return _availableMaxPrice >= _availableMinPrice;
+      default:
+        return false;
     }
   }
 
@@ -197,8 +397,8 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
       _intColors.clear();
       _regions.clear();
       _cities.clear();
-      _minPrice = 0;
-      _maxPrice = 150000;
+      _minPrice = _availableMinPrice;
+      _maxPrice = _availableMaxPrice;
       // Keep original year range from navigation, don't reset it
     });
   }
@@ -223,11 +423,17 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
       minPrice: _minPrice,
       maxPrice: _maxPrice,
     );
+
     Navigator.pop(context, filters);
   }
 
   @override
   Widget build(BuildContext context) {
+    final visibleSections = _visibleSections;
+    if (!visibleSections.contains(_selectedSection)) {
+      _selectedSection = visibleSections.isEmpty ? 0 : visibleSections.first;
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -235,11 +441,15 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black87),
+          icon: const Icon(Icons.arrow_back_ios_new,
+              size: 16, color: Colors.black87),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text('Filter',
-            style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87)),
+            style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87)),
         scrolledUnderElevation: 0,
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(1),
@@ -250,7 +460,8 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
       body: Builder(builder: (context) {
         final panelH = (MediaQuery.of(context).size.height -
                 MediaQuery.of(context).padding.top -
-                MediaQuery.of(context).padding.bottom - 170)
+                MediaQuery.of(context).padding.bottom -
+                170)
             .clamp(200.0, double.infinity);
         return Padding(
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
@@ -264,13 +475,14 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFF3F4F6),
                     borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: const Color(0xFFD0D0D0), width: 1),
+                    border:
+                        Border.all(color: const Color(0xFFD0D0D0), width: 1),
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: SingleChildScrollView(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: List.generate(_kSections.length, _buildLeftItem),
+                      children: visibleSections.map(_buildLeftItem).toList(),
                     ),
                   ),
                 ),
@@ -308,11 +520,13 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
         decoration: const BoxDecoration(
           color: Colors.transparent,
-          border: Border(bottom: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
+          border:
+              Border(bottom: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
         ),
         child: Row(
           children: [
-            Icon(_kSections[i].$2, size: 14, color: isActive ? _kBlue : const Color(0xFF7C7D88)),
+            Icon(_kSections[i].$2,
+                size: 14, color: isActive ? _kBlue : const Color(0xFF7C7D88)),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -327,7 +541,9 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
                 ),
               ),
             ),
-            if (hasValue) const Icon(Icons.check_circle, color: Color(0xFF00BA00), size: 21),
+            if (hasValue)
+              const Icon(Icons.check_circle,
+                  color: Color(0xFF00BA00), size: 21),
           ],
         ),
       ),
@@ -347,7 +563,10 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
                 child: OutlinedButton(
                   onPressed: _reset,
                   child: Text('Reset',
-                      style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: _kBlue)),
+                      style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: _kBlue)),
                 ),
               ),
               const SizedBox(width: 10),
@@ -356,10 +575,14 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
                   onPressed: _apply,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _kBlue,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
                   ),
                   child: Text('Apply',
-                      style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
+                      style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white)),
                 ),
               ),
             ],
@@ -371,30 +594,98 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
 
   Widget _buildSectionContent() {
     switch (_selectedSection) {
-      case 0:  return _checklistSection(items: _availableMakes, selected: _makes, onToggle: (v) => setState(() => _makes = _toggle(_makes, v)));
-      case 1:  return _checklistSection(items: _availableModels, selected: _models, onToggle: (v) => setState(() => _models = _toggle(_models, v)));
-      case 2:  return _checklistSection(items: const ['Standard', 'Sport', 'Luxury', 'SE', 'EX', 'GL', 'GT', 'LX', 'DX', 'GLE', 'GLX', 'S-Line', 'RS'], selected: _subModels, onToggle: (v) => setState(() => _subModels = _toggle(_subModels, v)));
-      case 3:  return _yearRangeSection();
-      case 4:  return _checklistSection(items: const ['Used', 'New', 'Export', 'Rental'], selected: _specs, onToggle: (v) => setState(() => _specs = _toggle(_specs, v)));
-      case 5:  return _checklistSection(items: const ['Owner', 'Dealer', 'Agent'], selected: _dealTypes, onToggle: (v) => setState(() => _dealTypes = _toggle(_dealTypes, v)));
-      case 6:  return _checklistSection(items: _availableTransmissions, selected: _transmission, onToggle: (v) => setState(() => _transmission = _toggle(_transmission, v)));
-      case 7:  return _checklistSection(items: _availableFuelTypes, selected: _fuelTypes, onToggle: (v) => setState(() => _fuelTypes = _toggle(_fuelTypes, v)));
-      case 8:  return _checklistSection(items: _availableColors, selected: _extColors, onToggle: (v) => setState(() => _extColors = _toggle(_extColors, v)));
-      case 9:  return _checklistSection(items: _availableDriveLines, selected: _driveLines, onToggle: (v) => setState(() => _driveLines = _toggle(_driveLines, v)));
-      case 10: return _checklistSection(items: _availableCylinders, selected: _cylinders, onToggle: (v) => setState(() => _cylinders = _toggle(_cylinders, v)));
-      case 11: return _checklistSection(items: _availableIntColors, selected: _intColors, onToggle: (v) => setState(() => _intColors = _toggle(_intColors, v)));
-      case 12: return _checklistSection(items: _availableRegions, selected: _regions, onToggle: (v) => setState(() => _regions = _toggle(_regions, v)));
-      case 13: return _checklistSection(items: _availableCities, selected: _cities, onToggle: (v) => setState(() => _cities = _toggle(_cities, v)));
-      case 14: return _priceRangeSection();
-      default: return const SizedBox();
+      case 0:
+        return _checklistSection(
+            items: _availableMakes,
+            selected: _makes,
+            onToggle: (v) => setState(() => _makes = _toggle(_makes, v)));
+      case 1:
+        return _checklistSection(
+            items: _availableModels,
+            selected: _models,
+            onToggle: (v) => setState(() => _models = _toggle(_models, v)));
+      case 2:
+        return _checklistSection(
+            items: _availableSubModels,
+            selected: _subModels,
+            onToggle: (v) =>
+                setState(() => _subModels = _toggle(_subModels, v)));
+      case 3:
+        return _yearRangeSection();
+      case 4:
+        return _checklistSection(
+            items: _availableSpecs,
+            selected: _specs,
+            onToggle: (v) => setState(() => _specs = _toggle(_specs, v)));
+      case 5:
+        return _checklistSection(
+            items: _availableDealTypes,
+            selected: _dealTypes,
+            onToggle: (v) =>
+                setState(() => _dealTypes = _toggle(_dealTypes, v)));
+      case 6:
+        return _checklistSection(
+            items: _availableTransmissions,
+            selected: _transmission,
+            onToggle: (v) =>
+                setState(() => _transmission = _toggle(_transmission, v)));
+      case 7:
+        return _checklistSection(
+            items: _availableFuelTypes,
+            selected: _fuelTypes,
+            onToggle: (v) =>
+                setState(() => _fuelTypes = _toggle(_fuelTypes, v)));
+      case 8:
+        return _checklistSection(
+            items: _availableColors,
+            selected: _extColors,
+            onToggle: (v) =>
+                setState(() => _extColors = _toggle(_extColors, v)));
+      case 9:
+        return _checklistSection(
+            items: _availableDriveLines,
+            selected: _driveLines,
+            onToggle: (v) =>
+                setState(() => _driveLines = _toggle(_driveLines, v)));
+      case 10:
+        return _checklistSection(
+            items: _availableCylinders,
+            selected: _cylinders,
+            onToggle: (v) =>
+                setState(() => _cylinders = _toggle(_cylinders, v)));
+      case 11:
+        return _checklistSection(
+            items: _availableIntColors,
+            selected: _intColors,
+            onToggle: (v) =>
+                setState(() => _intColors = _toggle(_intColors, v)));
+      case 12:
+        return _checklistSection(
+            items: _availableRegions,
+            selected: _regions,
+            onToggle: (v) => setState(() => _regions = _toggle(_regions, v)));
+      case 13:
+        return _checklistSection(
+            items: _availableCities,
+            selected: _cities,
+            onToggle: (v) => setState(() => _cities = _toggle(_cities, v)));
+      case 14:
+        return _priceRangeSection();
+      default:
+        return const SizedBox();
     }
   }
 
-  Widget _checklistSection({required List<String> items, required Set<String> selected, required Function(String) onToggle}) {
+  Widget _checklistSection(
+      {required List<String> items,
+      required Set<String> selected,
+      required Function(String) onToggle}) {
     return Column(
       children: items.map((item) {
-        final isChecked = selected.any((s) => s.toLowerCase() == item.toLowerCase());
-        return _CheckRow(label: item, selected: isChecked, onTap: () => onToggle(item));
+        final isChecked =
+            selected.any((s) => s.toLowerCase() == item.toLowerCase());
+        return _CheckRow(
+            label: item, selected: isChecked, onTap: () => onToggle(item));
       }).toList(),
     );
   }
@@ -404,57 +695,184 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          Text('From', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w500)),
+          Text('From',
+              style: GoogleFonts.poppins(
+                  fontSize: 12, fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
-          _yearDropdown(_fromYear, 1990, 2027, (v) => setState(() => _fromYear = v)),
+          _yearDropdown(_fromYear, _availableMinYear, _availableMaxYear,
+              (v) => setState(() => _fromYear = v)),
           const SizedBox(height: 16),
-          Text('To', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w500)),
+          Text('To',
+              style: GoogleFonts.poppins(
+                  fontSize: 12, fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
-          _yearDropdown(_toYear, 1990, 2027, (v) => setState(() => _toYear = v)),
+          _yearDropdown(_toYear, _availableMinYear, _availableMaxYear,
+              (v) => setState(() => _toYear = v)),
         ],
       ),
     );
   }
 
   Widget _priceRangeSection() {
+    final sliderMin = _availableMinPrice;
+    final sliderMax = _availableMaxPrice <= sliderMin
+        ? sliderMin + 150000
+        : _availableMaxPrice;
+    final minValue = _minPrice.clamp(sliderMin, sliderMax).toDouble();
+    final maxValue = _maxPrice.clamp(sliderMin, sliderMax).toDouble();
+    final values = RangeValues(
+      minValue <= maxValue ? minValue : maxValue,
+      maxValue >= minValue ? maxValue : minValue,
+    );
+    final marks = [
+      sliderMax,
+      sliderMax * 0.75,
+      sliderMax * 0.5,
+      sliderMax * 0.25,
+      sliderMin,
+    ];
+
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(8, 10, 8, 16),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Min Price', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w500)),
-          const SizedBox(height: 8),
-          _priceDropdown(_minPrice.toInt(), 0, 150000, (v) => setState(() => _minPrice = v.toDouble())),
-          const SizedBox(height: 16),
-          Text('Max Price', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w500)),
-          const SizedBox(height: 8),
-          _priceDropdown(_maxPrice.toInt(), 0, 150000, (v) => setState(() => _maxPrice = v.toDouble())),
+          SizedBox(
+            height: 360,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 58,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: marks.map((v) {
+                      final isSelected = (v - values.start).abs() < 1 ||
+                          (v - values.end).abs() < 1;
+                      return Text(
+                        _priceLabel(v, plus: v == sliderMax),
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: isSelected ? _kBlue : Colors.black87,
+                          fontWeight:
+                              isSelected ? FontWeight.w500 : FontWeight.w400,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: RotatedBox(
+                    quarterTurns: 3,
+                    child: SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        activeTrackColor: _kBlue,
+                        inactiveTrackColor: const Color(0xFFD0D0D0),
+                        thumbColor: Colors.white,
+                        overlayColor: _kBlue.withValues(alpha: 0.12),
+                        trackHeight: 3,
+                        rangeThumbShape: const RoundRangeSliderThumbShape(
+                            enabledThumbRadius: 5),
+                      ),
+                      child: RangeSlider(
+                        values: values,
+                        min: sliderMin,
+                        max: sliderMax,
+                        divisions: ((sliderMax - sliderMin) / 5000)
+                            .round()
+                            .clamp(1, 200),
+                        labels: RangeLabels(
+                          _priceLabel(values.start),
+                          _priceLabel(values.end),
+                        ),
+                        onChanged: (next) {
+                          setState(() {
+                            _minPrice = next.start;
+                            _maxPrice = next.end;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          _priceInput(
+            label: 'Max price AED',
+            value: _maxPrice,
+            onChanged: (v) => setState(() {
+              _maxPrice = v.clamp(_minPrice, sliderMax).toDouble();
+            }),
+          ),
+          const SizedBox(height: 14),
+          _priceInput(
+            label: 'Min price AED',
+            value: _minPrice,
+            onChanged: (v) => setState(() {
+              _minPrice = v.clamp(sliderMin, _maxPrice).toDouble();
+            }),
+          ),
         ],
       ),
     );
   }
 
-  Widget _yearDropdown(int value, int min, int max, ValueChanged<int> onChanged) {
-    return Container(
-      height: 42,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFFC4C4C4)),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<int>(
-          value: value,
-          isExpanded: true,
-          items: List.generate(max - min + 1, (i) => min + i)
-              .map((e) => DropdownMenuItem<int>(value: e, child: Text(e.toString())))
-              .toList(),
-          onChanged: (v) => v != null ? onChanged(v) : null,
+  String _priceLabel(double value, {bool plus = false}) {
+    final rounded = value.round();
+    if (rounded >= 1000) {
+      return '${(rounded / 1000).round()}K${plus ? '+' : ''}';
+    }
+    return rounded.toString();
+  }
+
+  Widget _priceInput({
+    required String label,
+    required double value,
+    required ValueChanged<double> onChanged,
+  }) {
+    return TextFormField(
+      key: ValueKey('$label-${value.round()}'),
+      initialValue: value.round().toString(),
+      keyboardType: TextInputType.number,
+      style: GoogleFonts.poppins(fontSize: 16, color: Colors.black),
+      decoration: InputDecoration(
+        labelText: label,
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        labelStyle: GoogleFonts.poppins(
+          fontSize: 11,
+          color: const Color(0xFF8A8A8A),
+        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Color(0xFFC4C4C4), width: 1.2),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: _kBlue, width: 1.3),
         ),
       ),
+      onFieldSubmitted: (raw) {
+        final parsed = double.tryParse(raw.trim());
+        if (parsed != null) onChanged(parsed);
+      },
     );
   }
 
-  Widget _priceDropdown(int value, int min, int max, ValueChanged<int> onChanged) {
+  Widget _yearDropdown(
+      int value, int min, int max, ValueChanged<int> onChanged) {
+    final safeMin = min <= max ? min : value;
+    final safeMax = max >= safeMin ? max : value;
+    final values = <int>{value};
+    for (int current = safeMin; current <= safeMax; current++) {
+      values.add(current);
+    }
+    final items = values.toList()..sort();
     return Container(
       height: 42,
       padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -466,8 +884,9 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
         child: DropdownButton<int>(
           value: value,
           isExpanded: true,
-          items: List.generate((max - min) ~/ 5000 + 1, (i) => min + (i * 5000))
-              .map((e) => DropdownMenuItem<int>(value: e, child: Text('${(e / 1000).toStringAsFixed(0)}K')))
+          items: items
+              .map((e) =>
+                  DropdownMenuItem<int>(value: e, child: Text(e.toString())))
               .toList(),
           onChanged: (v) => v != null ? onChanged(v) : null,
         ),
@@ -489,7 +908,8 @@ class _CheckRow extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
-  const _CheckRow({required this.label, required this.selected, required this.onTap});
+  const _CheckRow(
+      {required this.label, required this.selected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -498,7 +918,8 @@ class _CheckRow extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
+          border:
+              Border(bottom: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
         ),
         child: Row(
           children: [
@@ -507,10 +928,15 @@ class _CheckRow extends StatelessWidget {
               height: 18,
               decoration: BoxDecoration(
                 color: selected ? _kBlue : Colors.white,
-                border: Border.all(color: selected ? _kBlue : const Color(0xFFBBBBBB), width: 1.5),
+                border: Border.all(
+                    color: selected ? _kBlue : const Color(0xFFBBBBBB),
+                    width: 1.5),
                 borderRadius: BorderRadius.circular(3),
               ),
-              child: selected ? const Center(child: Icon(Icons.check, size: 12, color: Colors.white)) : null,
+              child: selected
+                  ? const Center(
+                      child: Icon(Icons.check, size: 12, color: Colors.white))
+                  : null,
             ),
             const SizedBox(width: 12),
             Expanded(

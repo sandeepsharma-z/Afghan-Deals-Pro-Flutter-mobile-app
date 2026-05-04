@@ -7,9 +7,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/router/route_names.dart';
+import '../../../../../core/widgets/favorite_button.dart';
 import '../../../../chat/presentation/providers/chat_provider.dart';
 import '../../../../../features/listings/data/models/rental_car_model.dart';
-import '../../../../profile/presentation/providers/favorites_provider.dart';
 import '../providers/rental_cars_provider.dart';
 
 class CarResultsScreen extends ConsumerStatefulWidget {
@@ -28,6 +28,8 @@ class CarResultsScreen extends ConsumerStatefulWidget {
 
 class _CarResultsScreenState extends ConsumerState<CarResultsScreen> {
   String _selectedSort = 'Popular';
+  late final TextEditingController _searchCtrl;
+  String _searchQuery = '';
   Set<String> _selectedSeats = {};
   Set<String> _selectedColors = {};
   Set<String> _selectedYears = {};
@@ -51,8 +53,39 @@ class _CarResultsScreenState extends ConsumerState<CarResultsScreen> {
     'Price Lowest to Highest',
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _searchCtrl = TextEditingController();
+    _searchCtrl.addListener(() {
+      setState(() => _searchQuery = _searchCtrl.text.toLowerCase().trim());
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
   List<RentalCarModel> _filterCars(List<RentalCarModel> cars) {
     return cars.where((car) {
+      if (_searchQuery.isNotEmpty) {
+        final query = _searchQuery;
+        final values = [
+          car.name,
+          car.subtitle,
+          car.carModel,
+          car.year,
+          car.location,
+          car.trim,
+          car.horsepower,
+          car.rentalDuration,
+          car.sellerName,
+        ].join(' ').toLowerCase();
+        if (!values.contains(query)) return false;
+      }
+
       // Filter by rental duration (from category selection)
       if (widget.rentalDuration != 'all') {
         if (car.rentalDuration != widget.rentalDuration) return false;
@@ -93,17 +126,40 @@ class _CarResultsScreenState extends ConsumerState<CarResultsScreen> {
       if (_selectedTrim.isNotEmpty && !_selectedTrim.contains('All')) {
         if (!_selectedTrim.contains(car.trim)) return false;
       }
-      if (_selectedHorsepower.isNotEmpty && !_selectedHorsepower.contains('All')) {
+      if (_selectedHorsepower.isNotEmpty &&
+          !_selectedHorsepower.contains('All')) {
         if (!_selectedHorsepower.contains(car.horsepower)) return false;
       }
       if (_selectedLocation.isNotEmpty && !_selectedLocation.contains('All')) {
         if (!_selectedLocation.contains(car.location)) return false;
       }
-      if (_selectedRentalDuration.isNotEmpty && !_selectedRentalDuration.contains('All')) {
+      if (_selectedRentalDuration.isNotEmpty &&
+          !_selectedRentalDuration.contains('All')) {
         if (!_selectedRentalDuration.contains(car.rentalDuration)) return false;
       }
       return true;
     }).toList();
+  }
+
+  List<RentalCarModel> _sortCars(List<RentalCarModel> cars) {
+    final sorted = List<RentalCarModel>.from(cars);
+    switch (_selectedSort) {
+      case 'Price Highest to Lowest':
+        sorted.sort((a, b) => b.dailyRent.compareTo(a.dailyRent));
+        break;
+      case 'Price Lowest to Highest':
+        sorted.sort((a, b) => a.dailyRent.compareTo(b.dailyRent));
+        break;
+      case 'Oldest to Newest':
+        sorted.sort((a, b) => a.name.compareTo(b.name));
+        break;
+      case 'Newest to Oldest':
+      case 'Popular':
+      case 'Verified':
+      default:
+        break;
+    }
+    return sorted;
   }
 
   void _openSortSheet() {
@@ -226,7 +282,8 @@ class _CarResultsScreenState extends ConsumerState<CarResultsScreen> {
           selectedHorsepower: _selectedHorsepower,
           selectedLocation: _selectedLocation,
           selectedRentalDuration: _selectedRentalDuration,
-          onApply: (seats, colors, years, insurance, models, doors, luggage, dailyRental, trim, horsepower, location, rentalDuration) {
+          onApply: (seats, colors, years, insurance, models, doors, luggage,
+              dailyRental, trim, horsepower, location, rentalDuration) {
             setState(() {
               _selectedSeats = seats;
               _selectedColors = colors;
@@ -250,7 +307,7 @@ class _CarResultsScreenState extends ConsumerState<CarResultsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F2F2),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -273,14 +330,16 @@ class _CarResultsScreenState extends ConsumerState<CarResultsScreen> {
             onTap: _openFilterSheet,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: SvgPicture.asset('assets/icons/filter.svg', width: 20, height: 20),
+              child: SvgPicture.asset('assets/icons/filter.svg',
+                  width: 20, height: 20),
             ),
           ),
           GestureDetector(
             onTap: _openSortSheet,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: SvgPicture.asset('assets/icons/bars_sort.svg', width: 20, height: 20),
+              child: SvgPicture.asset('assets/icons/bars_sort.svg',
+                  width: 20, height: 20),
             ),
           ),
         ],
@@ -294,10 +353,10 @@ class _CarResultsScreenState extends ConsumerState<CarResultsScreen> {
             error: (e, _) => Center(child: Text('Error: $e')),
             data: (cars) {
               _allCars = cars;
-              final filtered = _filterCars(cars);
+              final filtered = _sortCars(_filterCars(cars));
               return RefreshIndicator(
-                onRefresh: () =>
-                    ref.refresh(rentalCarsProvider(widget.rentalDuration).future),
+                onRefresh: () => ref
+                    .refresh(rentalCarsProvider(widget.rentalDuration).future),
                 child: filtered.isEmpty
                     ? const SingleChildScrollView(
                         physics: AlwaysScrollableScrollPhysics(),
@@ -313,27 +372,55 @@ class _CarResultsScreenState extends ConsumerState<CarResultsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
                               child: Container(
                                 height: 40,
                                 decoration: BoxDecoration(
-                                  border: Border.all(color: const Color(0xFFC2C2C2)),
+                                  border: Border.all(
+                                      color: const Color(0xFFC2C2C2)),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: const Row(
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    SizedBox(width: 12),
-                                    Icon(Icons.search, size: 16, color: Colors.black87),
-                                    SizedBox(width: 8),
+                                    const SizedBox(width: 12),
+                                    const Icon(Icons.search,
+                                        size: 16, color: Colors.black87),
+                                    const SizedBox(width: 8),
                                     Expanded(
-                                      child: Text('Search',
-                                          style: TextStyle(
-                                              fontSize: 11,
+                                      child: SizedBox(
+                                        height: 40,
+                                        child: TextField(
+                                          controller: _searchCtrl,
+                                          textAlignVertical:
+                                              TextAlignVertical.center,
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w400,
+                                            height: 1,
+                                            color: Colors.black87,
+                                          ),
+                                          decoration: InputDecoration(
+                                            isDense: true,
+                                            contentPadding:
+                                                const EdgeInsets.only(
+                                                    top: 12, bottom: 12),
+                                            border: InputBorder.none,
+                                            enabledBorder: InputBorder.none,
+                                            focusedBorder: InputBorder.none,
+                                            hintText: 'Search rental cars...',
+                                            hintStyle: GoogleFonts.poppins(
+                                              fontSize: 13,
                                               fontWeight: FontWeight.w400,
-                                              height: 18 / 11,
-                                              color: Colors.black87)),
+                                              height: 1,
+                                              color: const Color(0xFF8A8A8A),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                    SizedBox(width: 12),
+                                    const SizedBox(width: 12),
                                   ],
                                 ),
                               ),
@@ -459,14 +546,21 @@ class _CarCardState extends ConsumerState<_CarCard> {
                             ),
                           ),
                   ),
-                  const Positioned(
+                  Positioned(
                     top: 8,
                     right: 8,
                     child: Row(
                       children: [
-                        _TopCircleButton(icon: Icons.reply_outlined),
-                        SizedBox(width: 5),
-                        _TopCircleButton(icon: Icons.favorite_border),
+                        const _TopCircleButton(icon: Icons.reply_outlined),
+                        const SizedBox(width: 5),
+                        FavoriteButton(
+                          listingId: car.id,
+                          size: 24,
+                          backgroundColor: const Color(0x100F172A),
+                          showShadow: false,
+                          unselectedIconColor: Colors.white,
+                          selectedIconColor: Colors.red,
+                        ),
                       ],
                     ),
                   ),
@@ -708,8 +802,6 @@ class _RentalCarDetailScreenState
   @override
   Widget build(BuildContext context) {
     final car = widget.car;
-    final favorites = ref.watch(favoritesProvider);
-    final isFavorite = favorites.contains(car.id);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFFFFF),
@@ -835,15 +927,7 @@ class _RentalCarDetailScreenState
                               onTap: _shareItem,
                             ),
                             const SizedBox(width: 10),
-                            _DetailTopCircleButton(
-                              icon: isFavorite
-                                  ? Icons.favorite
-                                  : Icons.favorite_border,
-                              onTap: _toggleFavorite,
-                              iconColor: isFavorite
-                                  ? const Color(0xFFE53935)
-                                  : const Color(0xFF222222),
-                            ),
+                            FavoriteButton(listingId: car.id, size: 24),
                           ],
                         ),
                       ),
@@ -950,8 +1034,7 @@ class _RentalCarDetailScreenState
                         Expanded(child: _whatsAppAction(onTap: _openChat)),
                         const SizedBox(width: 8),
                         Expanded(
-                            child: _detailAction(
-                                Icons.chat_bubble_outline, 'SMS',
+                            child: _detailAction(Icons.message_outlined, 'Chat',
                                 onTap: _openChat)),
                       ],
                     )
@@ -1107,7 +1190,8 @@ class _RentalCarDetailScreenState
                 ),
                 onTap: () {
                   Clipboard.setData(
-                    ClipboardData(text: 'afghan-deals-pro://car/${widget.car.id}'),
+                    ClipboardData(
+                        text: 'afghan-deals-pro://car/${widget.car.id}'),
                   );
                   context.pop();
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -1123,25 +1207,6 @@ class _RentalCarDetailScreenState
         ),
       ),
     );
-  }
-
-  void _toggleFavorite() {
-    final favorites = ref.read(favoritesProvider.notifier);
-    final wasFavorite = ref.read(favoritesProvider).contains(widget.car.id);
-
-    favorites.toggleFavorite(widget.car.id);
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            wasFavorite ? 'Removed from My Ads' : 'Added to My Ads',
-          ),
-          duration: const Duration(seconds: 2),
-          backgroundColor: wasFavorite ? Colors.red : Colors.green,
-        ),
-      );
-    }
   }
 
   Widget _detailAction(IconData icon, String? label, {VoidCallback? onTap}) {
@@ -1204,8 +1269,7 @@ class _RentalCarDetailScreenState
 class _DetailTopCircleButton extends StatelessWidget {
   final IconData icon;
   final Function()? onTap;
-  final Color? iconColor;
-  const _DetailTopCircleButton({required this.icon, this.onTap, this.iconColor});
+  const _DetailTopCircleButton({required this.icon, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -1226,7 +1290,7 @@ class _DetailTopCircleButton extends StatelessWidget {
             ),
           ],
         ),
-        child: Icon(icon, color: iconColor ?? const Color(0xFF222222), size: 14),
+        child: Icon(icon, color: const Color(0xFF222222), size: 14),
       ),
     );
   }
@@ -1374,7 +1438,7 @@ class _TopCircleButton extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(color: const Color(0x99FFFFFF)),
-        color: const Color(0x140F172A),
+        color: const Color(0x100F172A),
       ),
       child: Icon(icon, color: Colors.white, size: 12),
     );
@@ -1506,7 +1570,19 @@ class _RentalFilterScreen extends StatefulWidget {
   final Set<String> selectedHorsepower;
   final Set<String> selectedLocation;
   final Set<String> selectedRentalDuration;
-  final Function(Set<String>, Set<String>, Set<String>, Set<String>, Set<String>, Set<String>, Set<String>, Set<String>, Set<String>, Set<String>, Set<String>, Set<String>) onApply;
+  final Function(
+      Set<String>,
+      Set<String>,
+      Set<String>,
+      Set<String>,
+      Set<String>,
+      Set<String>,
+      Set<String>,
+      Set<String>,
+      Set<String>,
+      Set<String>,
+      Set<String>,
+      Set<String>) onApply;
 
   const _RentalFilterScreen({
     required this.allCars,
@@ -1572,33 +1648,85 @@ class _RentalFilterScreenState extends State<_RentalFilterScreen> {
     _rentalDuration = Set.from(widget.selectedRentalDuration);
 
     // Extract unique values from cars
-    _seatList = ['All', ...widget.allCars.map((c) => c.seats.toString()).toSet().toList()..sort()];
-    _colorList = ['All', ...widget.allCars.where((c) => c.interiorColor.isNotEmpty).map((c) => c.interiorColor).toSet().toList()..sort()];
-    _yearList = ['All', ...widget.allCars.map((c) => c.year).toSet().toList()..sort((a, b) => b.compareTo(a))];
-    _modelList = ['All', ...widget.allCars.where((c) => c.carModel.isNotEmpty).map((c) => c.carModel).toSet().toList()..sort()];
-    _doorList = ['All', ...widget.allCars.map((c) => c.doors.toString()).toSet().toList()..sort()];
-    _luggageList = ['All', ...widget.allCars.map((c) => c.luggage.toString()).toSet().toList()..sort()];
-    _trimList = ['All', ...widget.allCars.where((c) => c.trim.isNotEmpty).map((c) => c.trim).toSet().toList()..sort()];
-    _horsepowerList = ['All', ...widget.allCars.where((c) => c.horsepower.isNotEmpty).map((c) => c.horsepower).toSet().toList()..sort()];
-    _locationList = ['All', ...widget.allCars.map((c) => c.location).toSet().toList()..sort()];
-    _rentalDurationList = ['All', ...widget.allCars.map((c) => c.rentalDuration).toSet().toList()..sort()];
+    _seatList = [
+      'All',
+      ...widget.allCars.map((c) => c.seats.toString()).toSet().toList()..sort()
+    ];
+    _colorList = [
+      'All',
+      ...widget.allCars
+          .where((c) => c.interiorColor.isNotEmpty)
+          .map((c) => c.interiorColor)
+          .toSet()
+          .toList()
+        ..sort()
+    ];
+    _yearList = [
+      'All',
+      ...widget.allCars.map((c) => c.year).toSet().toList()
+        ..sort((a, b) => b.compareTo(a))
+    ];
+    _modelList = [
+      'All',
+      ...widget.allCars
+          .where((c) => c.carModel.isNotEmpty)
+          .map((c) => c.carModel)
+          .toSet()
+          .toList()
+        ..sort()
+    ];
+    _doorList = [
+      'All',
+      ...widget.allCars.map((c) => c.doors.toString()).toSet().toList()..sort()
+    ];
+    _luggageList = [
+      'All',
+      ...widget.allCars.map((c) => c.luggage.toString()).toSet().toList()
+        ..sort()
+    ];
+    _trimList = [
+      'All',
+      ...widget.allCars
+          .where((c) => c.trim.isNotEmpty)
+          .map((c) => c.trim)
+          .toSet()
+          .toList()
+        ..sort()
+    ];
+    _horsepowerList = [
+      'All',
+      ...widget.allCars
+          .where((c) => c.horsepower.isNotEmpty)
+          .map((c) => c.horsepower)
+          .toSet()
+          .toList()
+        ..sort()
+    ];
+    _locationList = [
+      'All',
+      ...widget.allCars.map((c) => c.location).toSet().toList()..sort()
+    ];
+    _rentalDurationList = [
+      'All',
+      ...widget.allCars.map((c) => c.rentalDuration).toSet().toList()..sort()
+    ];
   }
 
   void _clearAll() => setState(() {
-    _seats.clear();
-    _colors.clear();
-    _years.clear();
-    _insurance.clear();
-    _models.clear();
-    _doors.clear();
-    _luggage.clear();
-    _dailyRental.clear();
-    _trim.clear();
-    _horsepower.clear();
-    _location.clear();
-    _rentalDuration.clear();
-    _activeFilter = 'seats';
-  });
+        _seats.clear();
+        _colors.clear();
+        _years.clear();
+        _insurance.clear();
+        _models.clear();
+        _doors.clear();
+        _luggage.clear();
+        _dailyRental.clear();
+        _trim.clear();
+        _horsepower.clear();
+        _location.clear();
+        _rentalDuration.clear();
+        _activeFilter = 'seats';
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -1609,14 +1737,21 @@ class _RentalFilterScreenState extends State<_RentalFilterScreen> {
         elevation: 0,
         centerTitle: false,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black87),
+          icon: const Icon(Icons.arrow_back_ios_new,
+              size: 16, color: Colors.black87),
           onPressed: () => context.pop(),
         ),
-        title: Text('Filter', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600)),
+        title: Text('Filter',
+            style:
+                GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600)),
         actions: [
           TextButton(
             onPressed: _clearAll,
-            child: Text('Clear All', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w400, color: const Color(0xFF2258A8))),
+            child: Text('Clear All',
+                style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                    color: const Color(0xFF2258A8))),
           ),
         ],
         bottom: const PreferredSize(
@@ -1631,15 +1766,32 @@ class _RentalFilterScreenState extends State<_RentalFilterScreen> {
           height: 44,
           child: ElevatedButton(
             onPressed: () {
-              widget.onApply(_seats, _colors, _years, _insurance, _models, _doors, _luggage, _dailyRental, _trim, _horsepower, _location, _rentalDuration);
+              widget.onApply(
+                  _seats,
+                  _colors,
+                  _years,
+                  _insurance,
+                  _models,
+                  _doors,
+                  _luggage,
+                  _dailyRental,
+                  _trim,
+                  _horsepower,
+                  _location,
+                  _rentalDuration);
               context.pop();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF2258A8),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
               elevation: 0,
             ),
-            child: Text('Apply', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white)),
+            child: Text('Apply',
+                style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white)),
           ),
         ),
       ),
@@ -1661,7 +1813,8 @@ class _RentalFilterScreenState extends State<_RentalFilterScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildLeftItem('rentalDuration', 'Rental Duration', Icons.access_time),
+                    _buildLeftItem(
+                        'rentalDuration', 'Rental Duration', Icons.access_time),
                     _buildLeftItem('seats', 'Seats', Icons.event_seat),
                     _buildLeftItem('model', 'Car Model', Icons.directions_car),
                     _buildLeftItem('year', 'Year', Icons.calendar_today),
@@ -1719,11 +1872,15 @@ class _RentalFilterScreenState extends State<_RentalFilterScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
         decoration: const BoxDecoration(
           color: Colors.transparent,
-          border: Border(bottom: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
+          border:
+              Border(bottom: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
         ),
         child: Row(
           children: [
-            Icon(icon, size: 14, color: active ? const Color(0xFF2258A8) : const Color(0xFF7C7D88)),
+            Icon(icon,
+                size: 14,
+                color:
+                    active ? const Color(0xFF2258A8) : const Color(0xFF7C7D88)),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -1738,7 +1895,9 @@ class _RentalFilterScreenState extends State<_RentalFilterScreen> {
                 ),
               ),
             ),
-            if (hasVal) const Icon(Icons.check_circle, color: Color(0xFF00BA00), size: 21),
+            if (hasVal)
+              const Icon(Icons.check_circle,
+                  color: Color(0xFF00BA00), size: 21),
           ],
         ),
       ),
@@ -1747,23 +1906,102 @@ class _RentalFilterScreenState extends State<_RentalFilterScreen> {
 
   Widget _buildRightPanel() {
     return switch (_activeFilter) {
-      'rentalDuration' => ListView(children: _rentalDurationList.map((duration) => _buildCheckRow(duration, _rentalDuration, (v) => _rentalDuration.contains(v) ? _rentalDuration.remove(v) : _rentalDuration.add(v))).toList()),
-      'seats' => ListView(children: _seatList.map((seat) => _buildCheckRow(seat, _seats, (v) => _seats.contains(v) ? _seats.remove(v) : _seats.add(v))).toList()),
-      'model' => ListView(children: _modelList.map((model) => _buildCheckRow(model, _models, (v) => _models.contains(v) ? _models.remove(v) : _models.add(v))).toList()),
-      'year' => ListView(children: _yearList.map((year) => _buildCheckRow(year, _years, (v) => _years.contains(v) ? _years.remove(v) : _years.add(v))).toList()),
-      'color' => ListView(children: _colorList.map((color) => _buildCheckRow(color, _colors, (v) => _colors.contains(v) ? _colors.remove(v) : _colors.add(v))).toList()),
-      'doors' => ListView(children: _doorList.map((door) => _buildCheckRow(door, _doors, (v) => _doors.contains(v) ? _doors.remove(v) : _doors.add(v))).toList()),
-      'luggage' => ListView(children: _luggageList.map((luggage) => _buildCheckRow(luggage, _luggage, (v) => _luggage.contains(v) ? _luggage.remove(v) : _luggage.add(v))).toList()),
-      'dailyRental' => ListView(children: ['Yes', 'No'].map((rental) => _buildCheckRow(rental, _dailyRental, (v) => _dailyRental.contains(v) ? _dailyRental.remove(v) : _dailyRental.add(v))).toList()),
-      'trim' => ListView(children: _trimList.map((trim) => _buildCheckRow(trim, _trim, (v) => _trim.contains(v) ? _trim.remove(v) : _trim.add(v))).toList()),
-      'horsepower' => ListView(children: _horsepowerList.map((hp) => _buildCheckRow(hp, _horsepower, (v) => _horsepower.contains(v) ? _horsepower.remove(v) : _horsepower.add(v))).toList()),
-      'location' => ListView(children: _locationList.map((loc) => _buildCheckRow(loc, _location, (v) => _location.contains(v) ? _location.remove(v) : _location.add(v))).toList()),
-      'insurance' => ListView(children: ['With Insurance', 'Without Insurance'].map((ins) => _buildCheckRow(ins, _insurance, (v) => _insurance.contains(v) ? _insurance.remove(v) : _insurance.add(v))).toList()),
+      'rentalDuration' => ListView(
+          children: _rentalDurationList
+              .map((duration) => _buildCheckRow(
+                  duration,
+                  _rentalDuration,
+                  (v) => _rentalDuration.contains(v)
+                      ? _rentalDuration.remove(v)
+                      : _rentalDuration.add(v)))
+              .toList()),
+      'seats' => ListView(
+          children: _seatList
+              .map((seat) => _buildCheckRow(seat, _seats,
+                  (v) => _seats.contains(v) ? _seats.remove(v) : _seats.add(v)))
+              .toList()),
+      'model' => ListView(
+          children: _modelList
+              .map((model) => _buildCheckRow(
+                  model,
+                  _models,
+                  (v) =>
+                      _models.contains(v) ? _models.remove(v) : _models.add(v)))
+              .toList()),
+      'year' => ListView(
+          children: _yearList
+              .map((year) => _buildCheckRow(year, _years,
+                  (v) => _years.contains(v) ? _years.remove(v) : _years.add(v)))
+              .toList()),
+      'color' => ListView(
+          children: _colorList
+              .map((color) => _buildCheckRow(
+                  color,
+                  _colors,
+                  (v) =>
+                      _colors.contains(v) ? _colors.remove(v) : _colors.add(v)))
+              .toList()),
+      'doors' => ListView(
+          children: _doorList
+              .map((door) => _buildCheckRow(door, _doors,
+                  (v) => _doors.contains(v) ? _doors.remove(v) : _doors.add(v)))
+              .toList()),
+      'luggage' => ListView(
+          children: _luggageList
+              .map((luggage) => _buildCheckRow(
+                  luggage,
+                  _luggage,
+                  (v) => _luggage.contains(v)
+                      ? _luggage.remove(v)
+                      : _luggage.add(v)))
+              .toList()),
+      'dailyRental' => ListView(
+          children: ['Yes', 'No']
+              .map((rental) => _buildCheckRow(
+                  rental,
+                  _dailyRental,
+                  (v) => _dailyRental.contains(v)
+                      ? _dailyRental.remove(v)
+                      : _dailyRental.add(v)))
+              .toList()),
+      'trim' => ListView(
+          children: _trimList
+              .map((trim) => _buildCheckRow(trim, _trim,
+                  (v) => _trim.contains(v) ? _trim.remove(v) : _trim.add(v)))
+              .toList()),
+      'horsepower' => ListView(
+          children: _horsepowerList
+              .map((hp) => _buildCheckRow(
+                  hp,
+                  _horsepower,
+                  (v) => _horsepower.contains(v)
+                      ? _horsepower.remove(v)
+                      : _horsepower.add(v)))
+              .toList()),
+      'location' => ListView(
+          children: _locationList
+              .map((loc) => _buildCheckRow(
+                  loc,
+                  _location,
+                  (v) => _location.contains(v)
+                      ? _location.remove(v)
+                      : _location.add(v)))
+              .toList()),
+      'insurance' => ListView(
+          children: ['With Insurance', 'Without Insurance']
+              .map((ins) => _buildCheckRow(
+                  ins,
+                  _insurance,
+                  (v) => _insurance.contains(v)
+                      ? _insurance.remove(v)
+                      : _insurance.add(v)))
+              .toList()),
       _ => const SizedBox(),
     };
   }
 
-  Widget _buildCheckRow(String label, Set<String> selected, Function(String) onTap) {
+  Widget _buildCheckRow(
+      String label, Set<String> selected, Function(String) onTap) {
     final isSelected = selected.contains(label);
     return InkWell(
       onTap: () => setState(() => onTap(label)),
@@ -1771,7 +2009,8 @@ class _RentalFilterScreenState extends State<_RentalFilterScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: const BoxDecoration(
           color: Colors.white,
-          border: Border(bottom: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
+          border:
+              Border(bottom: BorderSide(color: Color(0xFFE8E9EB), width: 1)),
         ),
         child: Row(
           children: [
@@ -1781,12 +2020,16 @@ class _RentalFilterScreenState extends State<_RentalFilterScreen> {
               decoration: BoxDecoration(
                 color: isSelected ? const Color(0xFF2258A8) : Colors.white,
                 border: Border.all(
-                  color: isSelected ? const Color(0xFF2258A8) : const Color(0xFFBBBBBB),
+                  color: isSelected
+                      ? const Color(0xFF2258A8)
+                      : const Color(0xFFBBBBBB),
                   width: 1.5,
                 ),
                 borderRadius: BorderRadius.circular(3),
               ),
-              child: isSelected ? const Icon(Icons.check, size: 12, color: Colors.white) : null,
+              child: isSelected
+                  ? const Icon(Icons.check, size: 12, color: Colors.white)
+                  : null,
             ),
             const SizedBox(width: 12),
             Expanded(

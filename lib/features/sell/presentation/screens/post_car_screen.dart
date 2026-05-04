@@ -12,23 +12,85 @@ const _kBlue = Color(0xFF2258A8);
 const _kSubcategories = ['Used Cars', 'New Cars', 'Export Cars', 'Rental Cars'];
 
 const _kMakes = [
-  'Mercedes', 'Toyota', 'Nissan', 'Lexus', 'BMW', 'Ford', 'Kia',
-  'Hyundai', 'Land Rover', 'Chevrolet', 'Dodge', 'Mitsubishi',
-  'Honda', 'Audi', 'Porsche', 'Suzuki', 'Mazda', 'Isuzu',
-  'Jeep', 'Volkswagen', 'Volvo', 'Peugeot', 'Renault', 'Other',
+  'Mercedes',
+  'Toyota',
+  'Nissan',
+  'Lexus',
+  'BMW',
+  'Ford',
+  'Kia',
+  'Hyundai',
+  'Land Rover',
+  'Chevrolet',
+  'Dodge',
+  'Mitsubishi',
+  'Honda',
+  'Audi',
+  'Porsche',
+  'Suzuki',
+  'Mazda',
+  'Isuzu',
+  'Jeep',
+  'Volkswagen',
+  'Volvo',
+  'Peugeot',
+  'Renault',
+  'Other',
 ];
 
 const _kModelMap = <String, List<String>>{
-  'Mercedes': ['E Class', 'S Class', 'C Class', 'G Class', 'GLC', 'GLE', 'A Class', 'CLA', 'GLS', 'CLS', 'V Class', 'Other'],
-  'Toyota':   ['Camry', 'Corolla', 'Land Cruiser', 'Hilux', 'Prado', 'RAV4', 'Yaris', 'Fortuner', 'Innova', 'Other'],
-  'BMW':      ['3 Series', '5 Series', '7 Series', 'X3', 'X5', 'X7', 'M3', 'M5', 'Other'],
-  'Nissan':   ['Patrol', 'Altima', 'Sunny', 'X-Trail', 'Pathfinder', 'Navara', 'Other'],
-  'Lexus':    ['LX', 'GX', 'RX', 'ES', 'IS', 'LS', 'UX', 'Other'],
-  'Hyundai':  ['Sonata', 'Elantra', 'Tucson', 'Santa Fe', 'Accent', 'Other'],
-  'Kia':      ['Sportage', 'Sorento', 'Cerato', 'Optima', 'Carnival', 'Other'],
-  'Honda':    ['Civic', 'Accord', 'CR-V', 'HR-V', 'City', 'Other'],
-  'Ford':     ['F-150', 'Explorer', 'Escape', 'Mustang', 'Ranger', 'Other'],
-  'Audi':     ['A4', 'A6', 'A8', 'Q5', 'Q7', 'Q8', 'Other'],
+  'Mercedes': [
+    'E Class',
+    'S Class',
+    'C Class',
+    'G Class',
+    'GLC',
+    'GLE',
+    'A Class',
+    'CLA',
+    'GLS',
+    'CLS',
+    'V Class',
+    'Other'
+  ],
+  'Toyota': [
+    'Camry',
+    'Corolla',
+    'Land Cruiser',
+    'Hilux',
+    'Prado',
+    'RAV4',
+    'Yaris',
+    'Fortuner',
+    'Innova',
+    'Other'
+  ],
+  'BMW': [
+    '3 Series',
+    '5 Series',
+    '7 Series',
+    'X3',
+    'X5',
+    'X7',
+    'M3',
+    'M5',
+    'Other'
+  ],
+  'Nissan': [
+    'Patrol',
+    'Altima',
+    'Sunny',
+    'X-Trail',
+    'Pathfinder',
+    'Navara',
+    'Other'
+  ],
+  'Lexus': ['LX', 'GX', 'RX', 'ES', 'IS', 'LS', 'UX', 'Other'],
+  'Hyundai': ['Sonata', 'Elantra', 'Tucson', 'Santa Fe', 'Accent', 'Other'],
+  'Kia': ['Sportage', 'Sorento', 'Cerato', 'Optima', 'Carnival', 'Other'],
+  'Honda': ['Civic', 'Accord', 'CR-V', 'HR-V', 'City', 'Other'],
+  'Ford': ['F-150', 'Explorer', 'Escape', 'Mustang', 'Ranger', 'Other'],
+  'Audi': ['A4', 'A6', 'A8', 'Q5', 'Q7', 'Q8', 'Other'],
 };
 
 final _kYears = List.generate(
@@ -37,12 +99,50 @@ final _kYears = List.generate(
 );
 
 const _kTransmissions = ['Automatic', 'Manual', 'CVT', 'Semi-Automatic'];
-const _kFuelTypes     = ['Petrol', 'Diesel', 'Hybrid', 'Electric', 'CNG', 'LPG'];
-const _kBodyTypes     = ['Sedan', 'SUV', 'Pickup / Truck', 'Hatchback', 'Van / Minivan', 'Coupe', 'Convertible', 'Wagon', 'Crossover', 'Other'];
-const _kConditions    = ['New', 'Used', 'Certified Pre-Owned'];
-const _kSellerTypes   = ['Individual', 'Dealer', 'Showroom'];
-const _kColors        = ['White', 'Silver', 'Grey', 'Black', 'Red', 'Gold', 'Orange', 'Blue', 'Beige', 'Yellow', 'Purple', 'Green', 'Brown', 'Burgundy', 'Other'];
-const _kCurrencies    = ['AFN', 'USD', 'AED', 'OMR', 'QAR', 'SAR', 'SYP', 'EUR', 'GBP', 'PKR'];
+const _kFuelTypes = ['Petrol', 'Diesel', 'Hybrid', 'Electric', 'CNG', 'LPG'];
+const _kBodyTypes = [
+  'Sedan',
+  'SUV',
+  'Pickup / Truck',
+  'Hatchback',
+  'Van / Minivan',
+  'Coupe',
+  'Convertible',
+  'Wagon',
+  'Crossover',
+  'Other'
+];
+const _kConditions = ['New', 'Used', 'Certified Pre-Owned'];
+const _kSellerTypes = ['Individual', 'Dealer', 'Showroom'];
+const _kColors = [
+  'White',
+  'Silver',
+  'Grey',
+  'Black',
+  'Red',
+  'Gold',
+  'Orange',
+  'Blue',
+  'Beige',
+  'Yellow',
+  'Purple',
+  'Green',
+  'Brown',
+  'Burgundy',
+  'Other'
+];
+const _kCurrencies = [
+  'AFN',
+  'USD',
+  'AED',
+  'OMR',
+  'QAR',
+  'SAR',
+  'SYP',
+  'EUR',
+  'GBP',
+  'PKR'
+];
 
 // ── Country model ──────────────────────────────────────────────────────────────
 
@@ -55,26 +155,70 @@ class _Country {
 
 const _kCountries = [
   _Country('Afghanistan', 'assets/images/flags/afghanistan.png', [
-    'Kabul', 'Kandahar', 'Herat', 'Mazar-e-Sharif', 'Jalalabad', 'Kunduz',
-    'Ghazni', 'Faizabad', 'Taliqan', 'Charikar', 'Gardez', 'Khost',
-    'Bamyan', 'Lashkar Gah', 'Zaranj', 'Sheberghan', 'Maimana', 'Aybak',
+    'Kabul',
+    'Kandahar',
+    'Herat',
+    'Mazar-e-Sharif',
+    'Jalalabad',
+    'Kunduz',
+    'Ghazni',
+    'Faizabad',
+    'Taliqan',
+    'Charikar',
+    'Gardez',
+    'Khost',
+    'Bamyan',
+    'Lashkar Gah',
+    'Zaranj',
+    'Sheberghan',
+    'Maimana',
+    'Aybak',
   ]),
   _Country('UAE', 'assets/images/flags/uae.png', [
-    'Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Ras Al Khaimah',
-    'Fujairah', 'Umm Al Quwain', 'Al Ain',
+    'Dubai',
+    'Abu Dhabi',
+    'Sharjah',
+    'Ajman',
+    'Ras Al Khaimah',
+    'Fujairah',
+    'Umm Al Quwain',
+    'Al Ain',
   ]),
   _Country('Oman', 'assets/images/flags/oman.png', [
-    'Muscat', 'Salalah', 'Sohar', 'Nizwa', 'Sur', 'Ibri', 'Barka',
+    'Muscat',
+    'Salalah',
+    'Sohar',
+    'Nizwa',
+    'Sur',
+    'Ibri',
+    'Barka',
   ]),
   _Country('Qatar', 'assets/images/flags/qatar.png', [
-    'Doha', 'Al Rayyan', 'Al Wakrah', 'Al Khor', 'Lusail',
+    'Doha',
+    'Al Rayyan',
+    'Al Wakrah',
+    'Al Khor',
+    'Lusail',
   ]),
   _Country('KSA', 'assets/images/flags/ksa.png', [
-    'Riyadh', 'Jeddah', 'Mecca', 'Medina', 'Dammam', 'Khobar', 'Tabuk',
-    'Abha', 'Qassim', 'Taif',
+    'Riyadh',
+    'Jeddah',
+    'Mecca',
+    'Medina',
+    'Dammam',
+    'Khobar',
+    'Tabuk',
+    'Abha',
+    'Qassim',
+    'Taif',
   ]),
   _Country('Syria', 'assets/images/flags/syria.png', [
-    'Damascus', 'Aleppo', 'Homs', 'Latakia', 'Hama', 'Deir ez-Zor',
+    'Damascus',
+    'Aleppo',
+    'Homs',
+    'Latakia',
+    'Hama',
+    'Deir ez-Zor',
   ]),
 ];
 
@@ -90,27 +234,27 @@ class PostCarScreen extends ConsumerStatefulWidget {
 class _PostCarScreenState extends ConsumerState<PostCarScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  final _titleCtrl   = TextEditingController();
-  final _descCtrl    = TextEditingController();
+  final _titleCtrl = TextEditingController();
+  final _descCtrl = TextEditingController();
   final _mileageCtrl = TextEditingController();
-  final _priceCtrl   = TextEditingController();
-  final _modelCtrl   = TextEditingController();
-  final _cityCtrl    = TextEditingController();
+  final _priceCtrl = TextEditingController();
+  final _modelCtrl = TextEditingController();
+  final _cityCtrl = TextEditingController();
 
-  String    _subcategory     = '';
-  String    _rentalDuration = '';
-  String    _make          = '';
-  String    _model         = '';
-  String    _year          = '';
-  String    _transmission  = '';
-  String    _fuelType      = '';
-  String    _bodyType      = '';
-  String    _condition     = '';
-  String    _color         = '';
-  String    _sellerType    = 'Individual';
+  String _subcategory = '';
+  String _rentalDuration = '';
+  String _make = '';
+  String _model = '';
+  String _year = '';
+  String _transmission = '';
+  String _fuelType = '';
+  String _bodyType = '';
+  String _condition = '';
+  String _color = '';
+  String _sellerType = 'Individual';
 
-  String    _currency     = 'AFN';
-  _Country  _country      = _kCountries.first;
+  String _currency = 'AFN';
+  _Country _country = _kCountries.first;
 
   String _normalizeSubcategory(String value) {
     final v = value.trim().toLowerCase();
@@ -136,32 +280,67 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_condition.isEmpty) { _showError('Please select condition'); return; }
-    if (_subcategory.toLowerCase().contains('rental') && _rentalDuration.isEmpty) { _showError('Please select rental duration'); return; }
+    if (_subcategory.isEmpty) {
+      _showError('Please select subcategory');
+      return;
+    }
+    if (_make.isEmpty) {
+      _showError('Please select make');
+      return;
+    }
+    if (_model.isEmpty && _modelCtrl.text.trim().isEmpty) {
+      _showError('Please select or enter model');
+      return;
+    }
+    if (_year.isEmpty) {
+      _showError('Please select year');
+      return;
+    }
+    if (_condition.isEmpty) {
+      _showError('Please select condition');
+      return;
+    }
+    if (_subcategory.toLowerCase().contains('rental') &&
+        _rentalDuration.isEmpty) {
+      _showError('Please select rental duration');
+      return;
+    }
+
+    final normalizedSubcategory = _normalizeSubcategory(_subcategory);
+    final model = _model.isNotEmpty ? _model : _modelCtrl.text.trim();
+    final isRental = normalizedSubcategory == 'rental-cars';
+    final price = double.tryParse(_priceCtrl.text.trim()) ?? 0;
 
     await ref.read(sellProvider.notifier).createListing(
       category: 'cars',
       baseData: {
-        'title':       _titleCtrl.text.trim(),
+        'title': _titleCtrl.text.trim(),
         'description': _descCtrl.text.trim(),
-        'price':       double.tryParse(_priceCtrl.text.trim()) ?? 0,
-        'currency':    _currency,
-        'city':        _cityCtrl.text.trim(),
-        'country':     _country.name,
-        'subcategory': _normalizeSubcategory(_subcategory),
+        'price': price,
+        'currency': _currency,
+        'city': _cityCtrl.text.trim(),
+        'country': _country.name,
+        'subcategory': normalizedSubcategory,
       },
       categoryData: {
-        'make':              _make,
-        'model':             _model,
-        'year':              _year,
-        'mileage':           _mileageCtrl.text.trim(),
-        'transmission':      _transmission,
-        'fuel_type':         _fuelType,
-        'body_type':         _bodyType,
-        'condition':         _condition,
-        'color':             _color,
-        'seller_type':       _sellerType,
-        'rental_duration':   _rentalDuration,
+        'make': _make,
+        'model': model,
+        'car_model': model,
+        'year': _year,
+        'mileage': _mileageCtrl.text.trim(),
+        'transmission': _transmission,
+        'fuel_type': _fuelType,
+        'body_type': _bodyType,
+        'condition': _condition,
+        'color': _color,
+        'seller_type': _sellerType,
+        'rental_duration': _rentalDuration,
+        'country': _country.name,
+        'city': _cityCtrl.text.trim(),
+        if (isRental) 'daily_rent': price,
+        if (isRental)
+          'monthly_rent': _rentalDuration == 'Monthly Rentals' ? price : 0,
+        if (isRental) 'has_day_rental': _rentalDuration == 'Daily Rentals',
       },
     );
   }
@@ -177,7 +356,8 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
 
   // ── Pickers ─────────────────────────────────────────────────────────────────
 
-  void _showPicker(String title, List<String> options, ValueChanged<String> onSelect) {
+  void _showPicker(
+      String title, List<String> options, ValueChanged<String> onSelect) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -187,23 +367,34 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           const SizedBox(height: 8),
-          Container(width: 36, height: 4,
-              decoration: BoxDecoration(color: const Color(0xFFDDDDDD),
+          Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                  color: const Color(0xFFDDDDDD),
                   borderRadius: BorderRadius.circular(2))),
           const SizedBox(height: 12),
-          Text(title, style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600)),
+          Text(title,
+              style: GoogleFonts.poppins(
+                  fontSize: 15, fontWeight: FontWeight.w600)),
           const Divider(height: 16),
           ConstrainedBox(
-            constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.45),
+            constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.45),
             child: ListView.builder(
               shrinkWrap: true,
               itemCount: options.length,
               itemBuilder: (_, i) => InkWell(
-                onTap: () { onSelect(options[i]); Navigator.pop(context); },
+                onTap: () {
+                  onSelect(options[i]);
+                  Navigator.pop(context);
+                },
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                   child: Text(options[i],
-                      style: GoogleFonts.poppins(fontSize: 14, color: Colors.black87)),
+                      style: GoogleFonts.poppins(
+                          fontSize: 14, color: Colors.black87)),
                 ),
               ),
             ),
@@ -224,27 +415,38 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 12),
-            Container(width: 40, height: 4,
-                decoration: BoxDecoration(color: Colors.black12,
+            Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                    color: Colors.black12,
                     borderRadius: BorderRadius.circular(2))),
             const SizedBox(height: 12),
             Text('Select Country',
-                style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600)),
+                style: GoogleFonts.poppins(
+                    fontSize: 15, fontWeight: FontWeight.w600)),
             const Divider(height: 1),
             ..._kCountries.map((c) => ListTile(
-              leading: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: Image.asset(c.flag, width: 32, height: 22, fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Icon(Icons.flag, size: 22)),
-              ),
-              title: Text(c.name, style: GoogleFonts.poppins(fontSize: 14)),
-              selected: _country.name == c.name,
-              selectedTileColor: AppColors.primaryLight,
-              onTap: () {
-                setState(() { _country = c; _cityCtrl.clear(); });
-                Navigator.pop(context);
-              },
-            )),
+                  leading: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: Image.asset(c.flag,
+                        width: 32,
+                        height: 22,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            const Icon(Icons.flag, size: 22)),
+                  ),
+                  title: Text(c.name, style: GoogleFonts.poppins(fontSize: 14)),
+                  selected: _country.name == c.name,
+                  selectedTileColor: AppColors.primaryLight,
+                  onTap: () {
+                    setState(() {
+                      _country = c;
+                      _cityCtrl.clear();
+                    });
+                    Navigator.pop(context);
+                  },
+                )),
             const SizedBox(height: 8),
           ],
         ),
@@ -259,30 +461,44 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (_) => SafeArea(
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.55),
+          constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.55),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 12),
-              Container(width: 40, height: 4,
-                  decoration: BoxDecoration(color: Colors.black12,
+              Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                      color: Colors.black12,
                       borderRadius: BorderRadius.circular(2))),
               const SizedBox(height: 12),
               Text('Select Currency',
-                  style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600)),
+                  style: GoogleFonts.poppins(
+                      fontSize: 15, fontWeight: FontWeight.w600)),
               const Divider(height: 1),
               Flexible(
                 child: ListView(
                   shrinkWrap: true,
-                  children: _kCurrencies.map((cur) => ListTile(
-                    title: Text(cur, style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: cur == _currency ? FontWeight.w600 : FontWeight.w400)),
-                    trailing: cur == _currency
-                        ? const Icon(Icons.check_circle, color: AppColors.primary, size: 20)
-                        : null,
-                    onTap: () { setState(() => _currency = cur); Navigator.pop(context); },
-                  )).toList(),
+                  children: _kCurrencies
+                      .map((cur) => ListTile(
+                            title: Text(cur,
+                                style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    fontWeight: cur == _currency
+                                        ? FontWeight.w600
+                                        : FontWeight.w400)),
+                            trailing: cur == _currency
+                                ? const Icon(Icons.check_circle,
+                                    color: AppColors.primary, size: 20)
+                                : null,
+                            onTap: () {
+                              setState(() => _currency = cur);
+                              Navigator.pop(context);
+                            },
+                          ))
+                      .toList(),
                 ),
               ),
               const SizedBox(height: 8),
@@ -302,7 +518,8 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
     ref.listen(sellProvider, (_, next) {
       if (next.success) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Ad submitted. It will be visible after admin approval.',
+          content: Text(
+              'Ad submitted. It will be visible after admin approval.',
               style: GoogleFonts.poppins(color: Colors.white)),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
@@ -324,12 +541,15 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: Colors.black87),
+          icon: const Icon(Icons.arrow_back_ios_new,
+              size: 18, color: Colors.black87),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text('Post Car Ad',
             style: GoogleFonts.poppins(
-                fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87)),
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87)),
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(1),
           child: Divider(height: 1, color: Color(0xFFEEEEEE)),
@@ -355,7 +575,9 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
                     selected: _subcategory,
                     onSelect: (v) => setState(() {
                       _subcategory = v;
-                      if (!v.toLowerCase().contains('rental')) _rentalDuration = '';
+                      if (!v.toLowerCase().contains('rental')) {
+                        _rentalDuration = '';
+                      }
                     }),
                   ),
                 ),
@@ -363,7 +585,11 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
                   _Field(
                     label: 'Rental Duration *',
                     child: _RowChipGroup(
-                      options: const ['Daily Rentals', 'Weekly Rentals', 'Monthly Rentals'],
+                      options: const [
+                        'Daily Rentals',
+                        'Weekly Rentals',
+                        'Monthly Rentals'
+                      ],
                       selected: _rentalDuration,
                       onSelect: (v) => setState(() => _rentalDuration = v),
                     ),
@@ -378,7 +604,9 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
                   child: _textInput(
                     controller: _titleCtrl,
                     hint: 'e.g. Toyota Land Cruiser 2022 GXR',
-                    validator: (v) => v == null || v.trim().isEmpty ? 'Title is required' : null,
+                    validator: (v) => v == null || v.trim().isEmpty
+                        ? 'Title is required'
+                        : null,
                   ),
                 ),
                 _Field(
@@ -399,7 +627,10 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
                   child: _DropdownTile(
                     value: _make.isEmpty ? 'Select make' : _make,
                     onTap: () => _showPicker('Make', _kMakes, (v) {
-                      setState(() { _make = v; _model = ''; });
+                      setState(() {
+                        _make = v;
+                        _model = '';
+                      });
                     }),
                   ),
                 ),
@@ -421,8 +652,8 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
                   label: 'Year',
                   child: _DropdownTile(
                     value: _year.isEmpty ? 'Select year' : _year,
-                    onTap: () => _showPicker('Year', _kYears,
-                        (v) => setState(() => _year = v)),
+                    onTap: () => _showPicker(
+                        'Year', _kYears, (v) => setState(() => _year = v)),
                   ),
                 ),
                 _Field(
@@ -469,8 +700,8 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
                   label: 'Exterior Color',
                   child: _DropdownTile(
                     value: _color.isEmpty ? 'Select color' : _color,
-                    onTap: () => _showPicker('Color', _kColors,
-                        (v) => setState(() => _color = v)),
+                    onTap: () => _showPicker(
+                        'Color', _kColors, (v) => setState(() => _color = v)),
                   ),
                 ),
                 _Field(
@@ -526,7 +757,9 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(3),
                             child: Image.asset(_country.flag,
-                                width: 28, height: 19, fit: BoxFit.cover,
+                                width: 28,
+                                height: 19,
+                                fit: BoxFit.cover,
                                 errorBuilder: (_, __, ___) =>
                                     const Icon(Icons.flag, size: 20)),
                           ),
@@ -576,12 +809,15 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
               elevation: 0,
             ),
             child: sell.isSubmitting
-                ? const SizedBox(width: 22, height: 22,
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
                     child: CircularProgressIndicator(
                         color: Colors.white, strokeWidth: 2.5))
                 : Text('Post Ad',
                     style: GoogleFonts.poppins(
-                        fontSize: 15, fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
                         color: Colors.white)),
           ),
         ),
@@ -647,14 +883,17 @@ class _CarPhotoSection extends ConsumerWidget {
         children: [
           Row(children: [
             Text('Photos',
-                style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600)),
+                style: GoogleFonts.poppins(
+                    fontSize: 14, fontWeight: FontWeight.w600)),
             const SizedBox(width: 8),
             Text('${images.length}/10',
-                style: GoogleFonts.poppins(fontSize: 12, color: Colors.black45)),
+                style:
+                    GoogleFonts.poppins(fontSize: 12, color: Colors.black45)),
             const Spacer(),
             if (images.length < 10)
               Text('${10 - images.length} more',
-                  style: GoogleFonts.poppins(fontSize: 11, color: Colors.black38)),
+                  style:
+                      GoogleFonts.poppins(fontSize: 11, color: Colors.black38)),
           ]),
           const SizedBox(height: 12),
           SizedBox(
@@ -666,7 +905,8 @@ class _CarPhotoSection extends ConsumerWidget {
                   GestureDetector(
                     onTap: () => _showImageSourceSheet(context, notifier),
                     child: Container(
-                      width: 96, height: 96,
+                      width: 96,
+                      height: 96,
                       margin: const EdgeInsets.only(right: 8),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF0F4FF),
@@ -682,7 +922,8 @@ class _CarPhotoSection extends ConsumerWidget {
                           const SizedBox(height: 4),
                           Text('Add Photo',
                               style: GoogleFonts.poppins(
-                                  fontSize: 10, fontWeight: FontWeight.w500,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
                                   color: _kBlue)),
                         ],
                       ),
@@ -693,7 +934,8 @@ class _CarPhotoSection extends ConsumerWidget {
                   final img = e.value;
                   return Stack(children: [
                     Container(
-                      width: 96, height: 96,
+                      width: 96,
+                      height: 96,
                       margin: const EdgeInsets.only(right: 8),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
@@ -704,7 +946,9 @@ class _CarPhotoSection extends ConsumerWidget {
                     ),
                     if (idx == 0)
                       Positioned(
-                        bottom: 0, left: 0, right: 8,
+                        bottom: 0,
+                        left: 0,
+                        right: 8,
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 3),
                           decoration: const BoxDecoration(
@@ -712,17 +956,22 @@ class _CarPhotoSection extends ConsumerWidget {
                             borderRadius: BorderRadius.vertical(
                                 bottom: Radius.circular(10)),
                           ),
-                          child: Text('Cover', textAlign: TextAlign.center,
-                              style: GoogleFonts.poppins(fontSize: 10,
-                                  color: Colors.white, fontWeight: FontWeight.w500)),
+                          child: Text('Cover',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.poppins(
+                                  fontSize: 10,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500)),
                         ),
                       ),
                     Positioned(
-                      top: 4, right: 12,
+                      top: 4,
+                      right: 12,
                       child: GestureDetector(
                         onTap: () => notifier.removeImage(idx),
                         child: Container(
-                          width: 22, height: 22,
+                          width: 22,
+                          height: 22,
                           decoration: const BoxDecoration(
                               color: Colors.black54, shape: BoxShape.circle),
                           child: const Icon(Icons.close,
@@ -757,13 +1006,19 @@ class _CarPhotoSection extends ConsumerWidget {
               leading: const Icon(Icons.photo_library_outlined, color: _kBlue),
               title: Text('Choose from Gallery',
                   style: GoogleFonts.poppins(fontSize: 14)),
-              onTap: () { Navigator.pop(context); notifier.pickFromGallery(); },
+              onTap: () {
+                Navigator.pop(context);
+                notifier.pickFromGallery();
+              },
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt_outlined, color: _kBlue),
               title: Text('Take a Photo',
                   style: GoogleFonts.poppins(fontSize: 14)),
-              onTap: () { Navigator.pop(context); notifier.pickFromCamera(); },
+              onTap: () {
+                Navigator.pop(context);
+                notifier.pickFromCamera();
+              },
             ),
           ]),
         ),
@@ -789,7 +1044,9 @@ class _Section extends StatelessWidget {
         children: [
           Text(title,
               style: GoogleFonts.poppins(
-                  fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87)),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87)),
           const SizedBox(height: 14),
           ...children,
         ],
@@ -814,7 +1071,9 @@ class _Field extends StatelessWidget {
         children: [
           Text(label,
               style: GoogleFonts.poppins(
-                  fontSize: 12, fontWeight: FontWeight.w500, color: Colors.black54)),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black54)),
           const SizedBox(height: 6),
           child,
         ],
@@ -851,7 +1110,8 @@ class _DropdownTile extends StatelessWidget {
                       fontSize: 14,
                       color: isPlaceholder ? Colors.black38 : Colors.black87)),
             ),
-            const Icon(Icons.keyboard_arrow_down, size: 20, color: Colors.black45),
+            const Icon(Icons.keyboard_arrow_down,
+                size: 20, color: Colors.black45),
           ],
         ),
       ),
@@ -894,12 +1154,10 @@ class _FullWidthChipGroup extends StatelessWidget {
                           fontSize: 14,
                           fontWeight:
                               isSelected ? FontWeight.w600 : FontWeight.w400,
-                          color:
-                              isSelected ? Colors.white : Colors.black87)),
+                          color: isSelected ? Colors.white : Colors.black87)),
                 ),
                 if (isSelected)
-                  const Icon(Icons.check_circle,
-                      color: Colors.white, size: 18),
+                  const Icon(Icons.check_circle, color: Colors.white, size: 18),
               ],
             ),
           ),

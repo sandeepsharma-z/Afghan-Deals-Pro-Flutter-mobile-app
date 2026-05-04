@@ -20,11 +20,62 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Stream<UserEntity?> get authStateChanges {
-    return _client.auth.onAuthStateChange.map((event) {
+    return _client.auth.onAuthStateChange.asyncMap((event) async {
       final user = event.session?.user;
       if (user == null) return null;
+      if (event.event == AuthChangeEvent.signedIn ||
+          event.event == AuthChangeEvent.userUpdated ||
+          event.event == AuthChangeEvent.tokenRefreshed ||
+          event.event == AuthChangeEvent.initialSession) {
+        await _ensureProfile(user);
+      }
       return UserModel.fromSupabaseUser(user);
     });
+  }
+
+  Future<void> _ensureProfile(User user) async {
+    final metadata = user.userMetadata ?? const <String, dynamic>{};
+    String? firstText(List<String> keys) {
+      for (final key in keys) {
+        final value = metadata[key]?.toString().trim();
+        if (value != null && value.isNotEmpty) return value;
+      }
+      return null;
+    }
+
+    final displayName = firstText(
+          const ['name', 'full_name', 'display_name', 'preferred_username'],
+        ) ??
+        user.email?.split('@').first ??
+        user.phone ??
+        'User';
+    final avatarUrl =
+        firstText(const ['avatar_url', 'picture', 'photo_url', 'image']);
+
+    final payload = <String, dynamic>{
+      'id': user.id,
+      'name': displayName,
+      'email': user.email,
+      'phone': user.phone,
+      if (avatarUrl != null) 'avatar_url': avatarUrl,
+      'country': metadata['country']?.toString().trim().isNotEmpty == true
+          ? metadata['country'].toString().trim()
+          : 'Afghanistan',
+      if (metadata['nationality']?.toString().trim().isNotEmpty == true)
+        'nationality': metadata['nationality'].toString().trim(),
+      if (metadata['gender']?.toString().trim().isNotEmpty == true)
+        'gender': metadata['gender'].toString().trim(),
+      if (metadata['dob']?.toString().trim().isNotEmpty == true)
+        'dob': metadata['dob'].toString().trim(),
+      'is_verified':
+          user.emailConfirmedAt != null || user.phoneConfirmedAt != null,
+    };
+
+    try {
+      await _client.from('profiles').upsert(payload, onConflict: 'id');
+    } catch (_) {
+      // Auth should not fail only because the profile mirror could not update.
+    }
   }
 
   @override
@@ -52,6 +103,7 @@ class AuthRepositoryImpl implements AuthRepository {
       if (response.user == null) {
         throw const AppAuthException('Verification failed. Please try again.');
       }
+      await _ensureProfile(response.user!);
       return UserModel.fromSupabaseUser(response.user!);
     } on AuthException catch (e) {
       throw AppAuthException(e.message, code: e.statusCode);
@@ -88,6 +140,7 @@ class AuthRepositoryImpl implements AuthRepository {
       if (response.user == null) {
         throw const AppAuthException('Sign up failed. Please try again.');
       }
+      await _ensureProfile(response.user!);
       return UserModel.fromSupabaseUser(response.user!);
     } on AuthException catch (e) {
       throw AppAuthException(e.message, code: e.statusCode);
@@ -110,6 +163,7 @@ class AuthRepositoryImpl implements AuthRepository {
       if (response.user == null) {
         throw const AppAuthException('Sign in failed. Please try again.');
       }
+      await _ensureProfile(response.user!);
       return UserModel.fromSupabaseUser(response.user!);
     } on AuthException catch (e) {
       throw AppAuthException(e.message, code: e.statusCode);
@@ -145,6 +199,7 @@ class AuthRepositoryImpl implements AuthRepository {
       if (response.user == null) {
         throw const AppAuthException('Verification failed. Please try again.');
       }
+      await _ensureProfile(response.user!);
       return UserModel.fromSupabaseUser(response.user!);
     } on AuthException catch (e) {
       throw AppAuthException(e.message, code: e.statusCode);
@@ -169,6 +224,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
       final immediateUser = _client.auth.currentUser;
       if (immediateUser != null) {
+        await _ensureProfile(immediateUser);
         return UserModel.fromSupabaseUser(immediateUser);
       }
 
@@ -177,19 +233,20 @@ class AuthRepositoryImpl implements AuthRepository {
               event.session?.user != null &&
               event.event != AuthChangeEvent.signedOut)
           .first
-          .timeout(const Duration(seconds: 20));
+          .timeout(const Duration(minutes: 2));
 
       final user = authEvent.session?.user;
       if (user == null) {
         throw const AppAuthException(
             'Google sign-in did not complete. Please try again.');
       }
+      await _ensureProfile(user);
       return UserModel.fromSupabaseUser(user);
     } on AuthException catch (e) {
       throw AppAuthException(e.message, code: e.statusCode);
     } on TimeoutException {
       throw const AppAuthException(
-        'Google sign-in timed out. Please open app again and retry.',
+        'Google sign-in timed out. Please complete Google login and try again.',
       );
     } catch (e) {
       if (e is AppAuthException) rethrow;

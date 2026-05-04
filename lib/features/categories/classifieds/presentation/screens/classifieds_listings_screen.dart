@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../../core/widgets/favorite_button.dart';
 import '../providers/classifieds_provider.dart';
 import '../../../../../features/listings/data/models/classified_listing_model.dart';
 import 'classifieds_detail_screen.dart';
+import 'classifieds_filter_screen.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -48,38 +54,50 @@ class _ClassifiedsListingsScreenState
               ? 'All Classifieds'
               : widget.subcategoryLabel,
           style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.black),
+              fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black),
         ),
         actions: [
           GestureDetector(
-            onTap: () => _showFilterSheet(context),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Stack(children: [
-                SvgPicture.asset('assets/icons/filter.svg', width: 20, height: 20),
-                if (hasFilter)
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                          color: _kBlue, shape: BoxShape.circle),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) =>
+                    ClassifiedsFilterScreen(subcategory: widget.subcategory),
+              ),
+            ),
+            child: SizedBox(
+              width: 44,
+              height: kToolbarHeight,
+              child: Center(
+                child: Stack(clipBehavior: Clip.none, children: [
+                  SvgPicture.asset('assets/icons/filter.svg',
+                      width: 20, height: 20),
+                  if (hasFilter)
+                    Positioned(
+                      right: -1,
+                      top: -1,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                            color: _kBlue, shape: BoxShape.circle),
+                      ),
                     ),
-                  ),
-              ]),
+                ]),
+              ),
             ),
           ),
           GestureDetector(
             onTap: () => _showSortSheet(context),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: SvgPicture.asset('assets/icons/bars_sort.svg', width: 20, height: 20),
+            child: SizedBox(
+              width: 44,
+              height: kToolbarHeight,
+              child: Center(
+                child: SvgPicture.asset('assets/icons/bars_sort.svg',
+                    width: 20, height: 20),
+              ),
             ),
           ),
+          const SizedBox(width: 4),
         ],
       ),
       body: listingsAsync.when(
@@ -100,18 +118,16 @@ class _ClassifiedsListingsScreenState
                   ]))
             : GridView.builder(
                 padding: const EdgeInsets.all(12),
-                gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10,
-                  mainAxisExtent: 218,
+                  mainAxisExtent: 245,
                 ),
                 itemCount: items.length,
                 itemBuilder: (_, i) => GestureDetector(
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) =>
-                        ClassifiedsDetailScreen(item: items[i]),
+                    builder: (_) => ClassifiedsDetailScreen(item: items[i]),
                   )),
                   child: _ClassifiedCard(item: items[i]),
                 ),
@@ -150,8 +166,7 @@ class _ClassifiedsListingsScreenState
                     fontSize: 16, fontWeight: FontWeight.w600)),
           ),
           ...options.map((opt) => ListTile(
-                title: Text(opt.$1,
-                    style: GoogleFonts.poppins(fontSize: 14)),
+                title: Text(opt.$1, style: GoogleFonts.poppins(fontSize: 14)),
                 trailing: filter.sortBy == opt.$2
                     ? const Icon(Icons.check, color: _kBlue)
                     : null,
@@ -166,168 +181,77 @@ class _ClassifiedsListingsScreenState
       ),
     );
   }
-
-  void _showFilterSheet(BuildContext context) {
-    final filter = ref.read(classifiedsFilterProvider);
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-      builder: (_) => _FilterSheet(filter: filter, onApply: (f) {
-        ref.read(classifiedsFilterProvider.notifier).state = f;
-      }),
-    );
-  }
 }
 
-class _FilterSheet extends StatefulWidget {
-  final ClassifiedsFilter filter;
-  final void Function(ClassifiedsFilter) onApply;
-  const _FilterSheet({required this.filter, required this.onApply});
-
-  @override
-  State<_FilterSheet> createState() => _FilterSheetState();
-}
-
-class _FilterSheetState extends State<_FilterSheet> {
-  late ClassifiedsFilter _draft;
-
-  @override
-  void initState() {
-    super.initState();
-    _draft = widget.filter;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 40, height: 4,
-            margin: const EdgeInsets.symmetric(vertical: 12),
-            decoration: BoxDecoration(
-                color: const Color(0xFFDDDDDD),
-                borderRadius: BorderRadius.circular(2)),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(children: [
-              Text('Filter',
-                  style: GoogleFonts.poppins(
-                      fontSize: 16, fontWeight: FontWeight.w600)),
-              const Spacer(),
-              TextButton(
-                onPressed: () => setState(() => _draft = const ClassifiedsFilter()),
-                child: Text('Clear All',
-                    style: GoogleFonts.poppins(fontSize: 13, color: _kBlue)),
-              ),
-            ]),
-          ),
-          const Divider(height: 1),
-          _filterRow('Condition', ['Flawless', 'Excellent', 'Good', 'Average', 'Poor'],
-              _draft.conditions,
-              (v) => setState(() => _draft = _draft.copyWith(
-                  conditions: _toggle(_draft.conditions, v)))),
-          _filterRow('Seller Type', ['All Sellers', 'Individuals', 'Businesses'],
-              _draft.sellerTypes,
-              (v) => setState(() => _draft = _draft.copyWith(
-                  sellerTypes: _toggle(_draft.sellerTypes, v)))),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: ElevatedButton(
-              onPressed: () {
-                widget.onApply(_draft);
-                context.pop();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _kBlue,
-                minimumSize: const Size(double.infinity, 48),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
-              ),
-              child: Text('Apply',
-                  style: GoogleFonts.poppins(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white)),
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
-      ),
-    );
-  }
-
-  Widget _filterRow(String label, List<String> options,
-      List<String> selected, void Function(String) onToggle) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(label,
-            style: GoogleFonts.poppins(
-                fontSize: 13, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 6,
-          children: options.map((opt) {
-            final isSelected =
-                selected.any((s) => s.toLowerCase() == opt.toLowerCase());
-            return GestureDetector(
-              onTap: () => onToggle(opt),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: isSelected ? _kBlue : Colors.white,
-                  border: Border.all(
-                      color: isSelected
-                          ? _kBlue
-                          : const Color(0xFFDDDDDD)),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(opt,
-                    style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: isSelected
-                            ? Colors.white
-                            : Colors.black87)),
-              ),
-            );
-          }).toList(),
-        ),
-      ]),
-    );
-  }
-
-  List<String> _toggle(List<String> list, String value) {
-    final lower = value.toLowerCase();
-    if (list.any((e) => e.toLowerCase() == lower)) {
-      return list.where((e) => e.toLowerCase() != lower).toList();
-    }
-    return [...list, value];
-  }
-}
-
-class _ClassifiedCard extends StatelessWidget {
+class _ClassifiedCard extends StatefulWidget {
   final ClassifiedListingModel item;
   const _ClassifiedCard({required this.item});
 
   @override
+  State<_ClassifiedCard> createState() => _ClassifiedCardState();
+}
+
+class _ClassifiedCardState extends State<_ClassifiedCard> {
+  late final PageController _pageController;
+  Timer? _timer;
+  int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(viewportFraction: 1);
+    if (widget.item.images.length > 1) {
+      _timer = Timer.periodic(const Duration(seconds: 3), (_) {
+        if (!mounted) return;
+        final next = (_currentPage + 1) % widget.item.images.length;
+        _pageController.animateToPage(
+          next,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+        );
+        setState(() => _currentPage = next);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  String _formatDate(String raw) {
+    final dt = DateTime.tryParse(raw);
+    if (dt == null) return '';
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    return '${dt.day} ${months[dt.month - 1]}, ${dt.year}';
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final item = widget.item;
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(7.38),
+        border: Border.all(color: const Color(0xFFD9D9D9), width: 1),
         boxShadow: const [
           BoxShadow(
-              color: Color(0x30000000), blurRadius: 4, offset: Offset(0, 1))
+              color: Color(0x40000000), blurRadius: 4, offset: Offset(0, 1))
         ],
       ),
       child: Column(
@@ -336,23 +260,33 @@ class _ClassifiedCard extends StatelessWidget {
           Stack(children: [
             ClipRRect(
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(8),
-                topRight: Radius.circular(8),
+                topLeft: Radius.circular(7.38),
+                topRight: Radius.circular(7.38),
               ),
               child: item.images.isEmpty
                   ? _placeholder()
-                  : Image.network(item.imageUrl,
-                      height: 118,
+                  : SizedBox(
+                      height: 110,
                       width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _placeholder()),
+                      child: PageView.builder(
+                        controller: _pageController,
+                        itemCount: item.images.length,
+                        onPageChanged: (i) => setState(() => _currentPage = i),
+                        itemBuilder: (_, i) => Image.network(
+                          item.images[i],
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _placeholder(),
+                        ),
+                      ),
+                    ),
             ),
             if (item.images.isNotEmpty)
               Positioned(
-                bottom: 6, left: 6,
+                bottom: 6,
+                left: 6,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 6, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
                       color: Colors.black54,
                       borderRadius: BorderRadius.circular(10)),
@@ -360,76 +294,88 @@ class _ClassifiedCard extends StatelessWidget {
                     const Icon(Icons.camera_alt_outlined,
                         size: 10, color: Colors.white),
                     const SizedBox(width: 3),
-                    Text('${item.images.length}',
+                    Text('${_currentPage + 1}/${item.images.length}',
                         style: GoogleFonts.poppins(
-                            fontSize: 9, color: Colors.white)),
+                            fontSize: 8,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white)),
                   ]),
                 ),
               ),
             Positioned(
-              top: 6, right: 6,
-              child: Container(
-                width: 26, height: 26,
-                decoration: const BoxDecoration(
-                    color: Color(0x28000000), shape: BoxShape.circle),
-                child: const Icon(Icons.favorite_border,
-                    size: 13, color: Colors.white),
+              top: 6,
+              right: 6,
+              child: Row(
+                children: [
+                  const _CircleBtn(icon: Icons.reply_outlined),
+                  const SizedBox(width: 4),
+                  FavoriteButton(
+                    listingId: item.id,
+                    size: 24,
+                    backgroundColor: const Color(0x100F172A),
+                        showShadow: false,
+                    unselectedIconColor: Colors.white,
+                    selectedIconColor: Colors.red,
+                  ),
+                ],
               ),
             ),
           ]),
           Padding(
-            padding: const EdgeInsets.fromLTRB(8, 6, 8, 4),
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            padding: const EdgeInsets.fromLTRB(8, 6, 8, 0),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
                 Expanded(
                   child: Text(item.formattedPrice,
                       style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
                           color: _kBlue)),
                 ),
-                Text(item.timeAgo,
+                Text(_formatDate(item.createdAt),
                     style: GoogleFonts.poppins(
-                        fontSize: 9, color: Colors.black38)),
+                        fontSize: 7.5, color: const Color(0xFF505050))),
               ]),
-              const SizedBox(height: 2),
               Text(item.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.poppins(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black87)),
-              if (item.condition.isNotEmpty) ...[
-                const SizedBox(height: 2),
-                Text(item.condition,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.black)),
+              Text(
+                'Classifieds${item.brand.isNotEmpty ? ' / ${item.brand}' : ''}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(fontSize: 10, color: Colors.black54),
+              ),
+              if (item.condition.isNotEmpty)
+                Text('Age: ${item.condition}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
-                        fontSize: 10, color: Colors.black45)),
-              ],
+                        fontSize: 10, color: Colors.black54)),
               const SizedBox(height: 4),
               Row(children: [
                 const Icon(Icons.location_on_outlined,
-                    size: 11, color: Color(0xFF505050)),
+                    size: 10, color: Color(0xFF505050)),
                 const SizedBox(width: 2),
                 Expanded(
                     child: Text(item.location,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
-                            fontSize: 10,
-                            color: const Color(0xFF505050)))),
+                            fontSize: 10, color: const Color(0xFF505050)))),
               ]),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
+              const SizedBox(height: 4),
               Row(children: [
-                Expanded(
-                    child: _contactBtn(Icons.phone_outlined,
-                        const Color(0xFF2258A8))),
+                const Spacer(),
+                _contactBtn(Icons.phone_outlined, () => _call(item.phone)),
                 const SizedBox(width: 6),
-                Expanded(
-                    child: _contactBtn(Icons.chat_bubble_outline,
-                        const Color(0xFF25D366))),
+                _waBtn(() => _whatsapp(item.phone)),
               ]),
             ]),
           ),
@@ -438,22 +384,71 @@ class _ClassifiedCard extends StatelessWidget {
     );
   }
 
-  Widget _contactBtn(IconData icon, Color color) {
-    return Container(
-      height: 26,
-      decoration: BoxDecoration(
-        border:
-            Border.all(color: color.withValues(alpha: 0.5)),
-        borderRadius: BorderRadius.circular(4),
+  Widget _contactBtn(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 31,
+        height: 22,
+        decoration: BoxDecoration(
+          border: Border.all(color: const Color(0xFFD9D9D9)),
+          borderRadius: BorderRadius.circular(7),
+          color: Colors.white,
+        ),
+        child: Center(child: Icon(icon, size: 14, color: _kBlue)),
       ),
-      child: Center(child: Icon(icon, size: 14, color: color)),
     );
   }
 
   Widget _placeholder() => Container(
-      height: 118,
+      height: 110,
       color: const Color(0xFFEDEDED),
       child: const Center(
-          child: Icon(Icons.grid_view_outlined,
-              color: Colors.grey, size: 36)));
+          child: Icon(Icons.grid_view_outlined, color: Colors.grey, size: 36)));
+
+  Widget _waBtn(VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 31,
+        height: 22,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(7),
+          border: Border.all(color: const Color(0xFFD9D9D9)),
+          color: Colors.white,
+        ),
+        child: const Center(
+            child: FaIcon(FontAwesomeIcons.whatsapp, size: 14, color: _kBlue)),
+      ),
+    );
+  }
+
+  void _call(String phone) {
+    final cleaned = phone.replaceAll(RegExp(r'[^0-9+]'), '');
+    launchUrl(Uri.parse('tel:${cleaned.isEmpty ? '+93700000000' : cleaned}'));
+  }
+
+  void _whatsapp(String phone) {
+    final cleaned = phone.replaceAll(RegExp(r'[^0-9]'), '');
+    launchUrl(
+      Uri.parse('https://wa.me/${cleaned.isEmpty ? '93700000000' : cleaned}'),
+      mode: LaunchMode.externalApplication,
+    );
+  }
+}
+
+class _CircleBtn extends StatelessWidget {
+  final IconData icon;
+  const _CircleBtn({required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 28,
+      height: 28,
+      decoration:
+          const BoxDecoration(color: Color(0x100F172A), shape: BoxShape.circle),
+      child: Icon(icon, size: 14, color: Colors.white),
+    );
+  }
 }
