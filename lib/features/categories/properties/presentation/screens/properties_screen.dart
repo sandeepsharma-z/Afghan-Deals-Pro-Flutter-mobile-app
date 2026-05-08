@@ -8,6 +8,8 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../../core/router/route_names.dart';
+import '../../../../../core/localization/app_language_provider.dart';
+import '../../../../../features/home/presentation/providers/country_provider.dart';
 import '../../../../../core/widgets/favorite_button.dart';
 import '../../../cars/data/models/subcategory_model.dart';
 import '../../../cars/presentation/providers/subcategories_provider.dart';
@@ -56,6 +58,7 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(appLanguageProvider);
     final subcatsAsync = ref.watch(subcategoriesProvider('properties'));
     final listingsAsync = ref.watch(propertyListingsProvider);
 
@@ -331,7 +334,7 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-              child: Text('See all',
+              child: Text('See All',
                   style: GoogleFonts.poppins(
                       fontSize: 11, fontWeight: FontWeight.w500)),
             ),
@@ -341,7 +344,71 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
     );
   }
 
+  String? _flagImageFor(String country) {
+    switch (country) {
+      case 'Afghanistan':
+        return 'assets/images/flags/afghanistan.png';
+      case 'Oman':
+        return 'assets/images/flags/oman.png';
+      case 'UAE':
+        return 'assets/images/flags/uae.png';
+      case 'Qatar':
+        return 'assets/images/flags/qatar.png';
+      case 'KSA':
+        return 'assets/images/flags/ksa.png';
+      case 'Syria':
+        return 'assets/images/flags/syria.png';
+      default:
+        return null;
+    }
+  }
+
+  String _flagFor(String country) {
+    switch (country) {
+      case 'Afghanistan':
+        return 'AF';
+      case 'Oman':
+        return 'OM';
+      case 'UAE':
+        return 'AE';
+      case 'Qatar':
+        return 'QA';
+      case 'KSA':
+        return 'SA';
+      case 'Syria':
+        return 'SY';
+      default:
+        return 'GL';
+    }
+  }
+
+  void _showCountrySheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      useRootNavigator: true,
+      builder: (_) => _CountrySheet(
+        countries: const [
+          _Country('Afghanistan', 'AF', 'assets/images/flags/afghanistan.png',
+              '+93'),
+          _Country('Oman', 'OM', 'assets/images/flags/oman.png', '+968'),
+          _Country('UAE', 'AE', 'assets/images/flags/uae.png', '+971'),
+          _Country('Qatar', 'QA', 'assets/images/flags/qatar.png', '+974'),
+          _Country('KSA', 'SA', 'assets/images/flags/ksa.png', '+966'),
+          _Country('Syria', 'SY', 'assets/images/flags/syria.png', '+963'),
+        ],
+        selected: ref.watch(selectedCountryProvider),
+        onSelect: (c) {
+          ref.read(selectedCountryProvider.notifier).setCountry(c);
+          context.pop();
+        },
+      ),
+    );
+  }
+
   Widget _buildHeader(BuildContext context) {
+    final selectedCountry = ref.watch(selectedCountryProvider);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
@@ -352,18 +419,24 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
                 size: 20, color: Colors.black87),
           ),
           const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-            decoration: _headerBoxDecoration,
-            child: Row(
-              children: [
-                Image.asset('assets/images/flags/afghanistan.png',
-                    width: 22, height: 22, fit: BoxFit.cover),
-                const SizedBox(width: 5),
-                Text('Afghanistan',
-                    style: GoogleFonts.montserrat(
-                        fontSize: 12, fontWeight: FontWeight.w500)),
-              ],
+          GestureDetector(
+            onTap: _showCountrySheet,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: _headerBoxDecoration,
+              child: Row(
+                children: [
+                  _flagImageFor(selectedCountry) != null
+                      ? Image.asset(_flagImageFor(selectedCountry)!,
+                          width: 22, height: 22, fit: BoxFit.cover)
+                      : Text(_flagFor(selectedCountry),
+                          style: const TextStyle(fontSize: 15)),
+                  const SizedBox(width: 5),
+                  Text(selectedCountry,
+                      style: GoogleFonts.montserrat(
+                          fontSize: 12, fontWeight: FontWeight.w500)),
+                ],
+              ),
             ),
           ),
           const SizedBox(width: 10),
@@ -436,12 +509,6 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
                   child: Icon(Icons.close, size: 16, color: Colors.black54),
                 ),
               )
-            else
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: SvgPicture.asset('assets/icons/filter.svg',
-                    width: 16, height: 16),
-              ),
           ],
         ),
       ),
@@ -768,4 +835,133 @@ class _SellRingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _Country {
+  final String name;
+  final String flag;
+  final String? imagePath;
+  final String dialCode;
+  const _Country(this.name, this.flag, [this.imagePath, this.dialCode = '']);
+}
+
+class _CountrySheet extends StatelessWidget {
+  final List<_Country> countries;
+  final String selected;
+  final ValueChanged<String> onSelect;
+
+  const _CountrySheet({
+    required this.countries,
+    required this.selected,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final screenH = MediaQuery.of(context).size.height;
+    return Container(
+      height: screenH * 0.48,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 12),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: const Color(0xFFDDDDDD),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Text('Select Country',
+                    style: GoogleFonts.montserrat(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87)),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () => context.pop(),
+                  child:
+                      const Icon(Icons.close, size: 22, color: Colors.black54),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.only(bottom: 24),
+              itemCount: countries.length,
+              separatorBuilder: (_, __) => const Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: Color(0xFFE8E8E8),
+                  indent: 20,
+                  endIndent: 20),
+              itemBuilder: (_, i) {
+                final c = countries[i];
+                final isSelected = c.name == selected;
+                return GestureDetector(
+                  onTap: () => onSelect(c.name),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 14),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 22,
+                          height: 22,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color:
+                                  isSelected ? _kBlue : const Color(0xFFBBBBBB),
+                              width: 2,
+                            ),
+                            color: isSelected ? _kBlue : Colors.transparent,
+                          ),
+                          child: isSelected
+                              ? const Icon(Icons.check,
+                                  size: 14, color: Colors.white)
+                              : null,
+                        ),
+                        const SizedBox(width: 14),
+                        c.imagePath != null
+                            ? Image.asset(c.imagePath!,
+                                width: 34, height: 34, fit: BoxFit.cover)
+                            : Text(c.flag,
+                                style: const TextStyle(fontSize: 26)),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(c.name,
+                              style: GoogleFonts.montserrat(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black87)),
+                        ),
+                        if (c.dialCode.isNotEmpty)
+                          Text(c.dialCode,
+                              style: GoogleFonts.montserrat(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black45)),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

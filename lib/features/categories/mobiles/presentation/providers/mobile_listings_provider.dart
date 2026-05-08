@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../../features/listings/data/models/mobile_listing_model.dart';
 import '../../../../admin/presentation/providers/admin_dynamic_provider.dart';
+import '../../../../../features/home/presentation/providers/country_provider.dart';
 
 String _slugForMobileBrand(String value) {
   return value
@@ -46,12 +47,19 @@ Future<List<String>> _distinctMobileCategoryDataValues(String key) async {
 /// All mobile listings (category = 'mobiles')
 final mobileListingsProvider =
     FutureProvider.autoDispose<List<MobileListingModel>>((ref) async {
-  final response = await Supabase.instance.client
+  final selectedCountry = ref.watch(selectedCountryProvider);
+
+  var query = Supabase.instance.client
       .from('listings')
       .select()
       .eq('category', 'mobiles')
-      .eq('is_active', true)
-      .order('created_at', ascending: false);
+      .eq('is_active', true);
+
+  if (selectedCountry.isNotEmpty) {
+    query = query.ilike('country', selectedCountry);
+  }
+
+  final response = await query.order('created_at', ascending: false);
 
   return (response as List<dynamic>)
       .map((e) => MobileListingModel.fromMap(e as Map<String, dynamic>))
@@ -61,12 +69,19 @@ final mobileListingsProvider =
 /// Mobile listings filtered by brand
 final mobileListingsByBrandProvider = FutureProvider.autoDispose
     .family<List<MobileListingModel>, String>((ref, brand) async {
-  final response = await Supabase.instance.client
+  final selectedCountry = ref.watch(selectedCountryProvider);
+
+  var query = Supabase.instance.client
       .from('listings')
       .select()
       .eq('category', 'mobiles')
-      .eq('is_active', true)
-      .order('created_at', ascending: false);
+      .eq('is_active', true);
+
+  if (selectedCountry.isNotEmpty) {
+    query = query.ilike('country', selectedCountry);
+  }
+
+  final response = await query.order('created_at', ascending: false);
 
   final all = (response as List<dynamic>)
       .map((e) => MobileListingModel.fromMap(e as Map<String, dynamic>))

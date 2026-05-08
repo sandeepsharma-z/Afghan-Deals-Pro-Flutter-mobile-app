@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../core/router/route_names.dart';
 import '../../../../../core/widgets/favorite_button.dart';
+import '../../../../../core/widgets/translated_text.dart';
 import 'property_detail_screen.dart';
 import 'property_filter_screen.dart';
 import '../../data/models/property_listing_model.dart';
@@ -612,7 +613,7 @@ class _PropertyCardState extends State<_PropertyCard> {
                     ],
                   ),
                   // Title
-                  Text(item.title,
+                  TranslatedText(item.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(

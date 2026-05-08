@@ -6,6 +6,7 @@ import 'dart:async';
 
 import '../../data/models/chat_thread_model.dart';
 import '../providers/chat_provider.dart';
+import '../../../../../core/localization/app_localizations.dart';
 
 final chatUserProfileProvider = FutureProvider.autoDispose
     .family<_ChatUserProfileData, ChatThreadModel>((ref, thread) async {
@@ -99,7 +100,7 @@ class _ChatUserProfileScreenState extends ConsumerState<ChatUserProfileScreen> {
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Report submitted to admin.')),
+          SnackBar(content: Text(context.l10n.t('report_submitted'))),
         );
       }
     } catch (e) {
@@ -117,10 +118,10 @@ class _ChatUserProfileScreenState extends ConsumerState<ChatUserProfileScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('Block ${user.name}?',
+        title: Text('${context.l10n.t('block')} ${user.name}?',
             style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
         content: Text(
-          'You can report this user to admin and keep the chat closed.',
+          context.l10n.t('block_user_desc'),
           style: GoogleFonts.poppins(fontSize: 13),
         ),
         actions: [
@@ -130,7 +131,7 @@ class _ChatUserProfileScreenState extends ConsumerState<ChatUserProfileScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Block',
+            child: Text(context.l10n.t('block'),
                 style: GoogleFonts.poppins(color: const Color(0xFFC92325))),
           ),
         ],
@@ -164,7 +165,7 @@ class _ChatUserProfileScreenState extends ConsumerState<ChatUserProfileScreen> {
       if (mounted) {
         setState(() => _blockedOverride = true);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('User blocked. Chat is disabled.')),
+          SnackBar(content: Text(context.l10n.t('user_blocked_chat_disabled'))),
         );
       }
     } catch (e) {
@@ -182,10 +183,10 @@ class _ChatUserProfileScreenState extends ConsumerState<ChatUserProfileScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('Unblock ${user.name}?',
+        title: Text('${context.l10n.t('unblock')} ${user.name}?',
             style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
         content: Text(
-          'This user will be able to chat with you again.',
+          context.l10n.t('unblock_user_desc'),
           style: GoogleFonts.poppins(fontSize: 13),
         ),
         actions: [
@@ -195,7 +196,7 @@ class _ChatUserProfileScreenState extends ConsumerState<ChatUserProfileScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Unblock',
+            child: Text(context.l10n.t('unblock'),
                 style: GoogleFonts.poppins(color: const Color(0xFF2258A8))),
           ),
         ],
@@ -214,7 +215,7 @@ class _ChatUserProfileScreenState extends ConsumerState<ChatUserProfileScreen> {
       if (mounted) {
         setState(() => _blockedOverride = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('User unblocked. Chat is enabled.')),
+          SnackBar(content: Text(context.l10n.t('user_unblocked_chat_enabled'))),
         );
       }
     } catch (e) {
@@ -365,7 +366,7 @@ class _ChatUserProfileScreenState extends ConsumerState<ChatUserProfileScreen> {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Text('Report User',
+                child: Text(context.l10n.t('report_user'),
                     style: GoogleFonts.poppins(
                         fontSize: 16, fontWeight: FontWeight.w700)),
               ),
@@ -400,7 +401,7 @@ class _ChatUserProfileScreenState extends ConsumerState<ChatUserProfileScreen> {
               size: 18, color: Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('User Profile',
+        title: Text(context.l10n.t('user_profile'),
             style: GoogleFonts.poppins(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
@@ -472,7 +473,7 @@ class _ChatUserProfileScreenState extends ConsumerState<ChatUserProfileScreen> {
                                   .withValues(alpha: 0.2)),
                         ),
                         child: Text(
-                          'Blocked',
+                          context.l10n.t('blocked'),
                           style: GoogleFonts.poppins(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -486,10 +487,10 @@ class _ChatUserProfileScreenState extends ConsumerState<ChatUserProfileScreen> {
                       children: [
                         Expanded(
                           child:
-                              _stat('Listings', user.listingsCount.toString()),
+                              _stat(context.l10n.t('listings'), user.listingsCount.toString()),
                         ),
                         Expanded(
-                          child: _stat('Member Since', _memberSince(user)),
+                          child: _stat(context.l10n.t('member_since'), _memberSince(user)),
                         ),
                       ],
                     ),
@@ -506,7 +507,7 @@ class _ChatUserProfileScreenState extends ConsumerState<ChatUserProfileScreen> {
                   Expanded(
                     child: _outlineButton(
                       icon: Icons.flag_outlined,
-                      label: _reporting ? 'Reporting...' : 'Report',
+                      label: _reporting ? '${context.l10n.t('reporting')}...' : context.l10n.t('report'),
                       color: const Color(0xFFC92325),
                       onTap: _reporting ? null : () => _reportUser(user),
                     ),
@@ -516,8 +517,8 @@ class _ChatUserProfileScreenState extends ConsumerState<ChatUserProfileScreen> {
                     child: _outlineButton(
                       icon: isBlocked ? Icons.block : Icons.block_outlined,
                       label: isBlocked
-                          ? 'Blocked'
-                          : (_blocking ? 'Blocking...' : 'Block'),
+                          ? context.l10n.t('blocked')
+                          : (_blocking ? '${context.l10n.t('blocking')}...' : context.l10n.t('block')),
                       color: const Color(0xFFC92325),
                       onTap: _blocking
                           ? null
@@ -582,11 +583,11 @@ class _ChatUserProfileScreenState extends ConsumerState<ChatUserProfileScreen> {
       ),
       child: Column(
         children: [
-          _infoRow(Icons.email_outlined, 'Email', user.email ?? 'Not shared'),
+          _infoRow(Icons.email_outlined, context.l10n.t('email'), user.email ?? context.l10n.t('not_shared')),
           _divider(),
-          _infoRow(Icons.phone_outlined, 'Phone', user.phone ?? 'Not shared'),
+          _infoRow(Icons.phone_outlined, context.l10n.t('phone'), user.phone ?? context.l10n.t('not_shared')),
           _divider(),
-          _infoRow(Icons.location_on_outlined, 'Location', _location(user)),
+          _infoRow(Icons.location_on_outlined, context.l10n.t('location'), _location(user)),
         ],
       ),
     );
@@ -618,7 +619,7 @@ class _ChatUserProfileScreenState extends ConsumerState<ChatUserProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Chat Listing',
+                Text(context.l10n.t('chat_listing'),
                     style: GoogleFonts.poppins(
                         fontSize: 11, color: Colors.black45)),
                 const SizedBox(height: 3),
@@ -714,7 +715,7 @@ class _ChatUserProfileScreenState extends ConsumerState<ChatUserProfileScreen> {
       if (user.country != null && user.country!.trim().isNotEmpty)
         user.country!.trim(),
     ];
-    return parts.isEmpty ? 'Location not shared' : parts.join(', ');
+    return parts.isEmpty ? context.l10n.t('location_not_shared') : parts.join(', ');
   }
 
   String _memberSince(_ChatUserProfileData user) {

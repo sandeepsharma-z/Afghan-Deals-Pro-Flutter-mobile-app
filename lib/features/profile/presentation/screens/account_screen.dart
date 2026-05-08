@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/localization/app_language_provider.dart';
 import '../../../../core/widgets/app_bottom_nav.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/screens/onboarding_screen.dart';
@@ -13,6 +14,7 @@ import 'profile_screen.dart';
 import 'account_settings_screen.dart';
 import 'notification_settings_screen.dart';
 import '../../../../core/router/route_names.dart';
+import '../../../../core/localization/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
 class AccountScreen extends ConsumerStatefulWidget {
@@ -27,7 +29,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
   static const _grey = Color(0xFF7C7D88);
 
   String _selectedCountry = 'Afghanistan';
-  String _selectedLanguage = 'Pashto';
+  String _selectedLanguage = 'English';
   bool _loadedPreferences = false;
 
   void _loadPreferences(dynamic profile, List<String> languages) {
@@ -37,15 +39,14 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
     final profileCountry = profile?.country?.toString().trim() ?? '';
     final metaCountry = meta['country']?.toString().trim() ?? '';
     final metaLanguage = meta['language']?.toString().trim() ?? '';
+    final currentLocale = ref.read(appLanguageProvider);
 
     _selectedCountry = profileCountry.isNotEmpty
         ? profileCountry
         : (metaCountry.isNotEmpty ? metaCountry : _selectedCountry);
     _selectedLanguage = metaLanguage.isNotEmpty
         ? metaLanguage
-        : (languages.contains(_selectedLanguage)
-            ? _selectedLanguage
-            : (languages.isNotEmpty ? languages.first : 'English'));
+        : AppLanguageNotifier.nameFromCode(currentLocale.languageCode);
   }
 
   Future<void> _savePreference({
@@ -71,7 +72,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
     }
   }
 
-  void _showLanguagePicker(List<String> langs) {
+  void _showLanguagePicker() {
+    const langs = supportedAppLanguages;
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -85,7 +87,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Language',
+                Text(context.l10n.t('language'),
                     style: GoogleFonts.montserrat(
                         fontSize: 18, fontWeight: FontWeight.w700)),
                 IconButton(
@@ -102,11 +104,17 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
             itemCount: langs.length,
             itemBuilder: (_, i) {
               final lang = langs[i];
-              final selected = lang == _selectedLanguage;
+              final selected = lang.name == _selectedLanguage;
+              final labelKey = switch (lang.code) {
+                'ps' => 'pashto',
+                'fa' => 'dari',
+                'ur' => 'urdu',
+                _ => 'english',
+              };
               return Column(
                 children: [
                   ListTile(
-                    title: Text(lang,
+                    title: Text(context.l10n.t(labelKey),
                         style: GoogleFonts.montserrat(
                             fontSize: 16,
                             fontWeight:
@@ -115,8 +123,11 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                         ? const Icon(Icons.check, color: Color(0xFF1E56A6))
                         : null,
                     onTap: () {
-                      setState(() => _selectedLanguage = lang);
-                      _savePreference(language: lang);
+                      setState(() => _selectedLanguage = lang.name);
+                      ref
+                          .read(appLanguageProvider.notifier)
+                          .setLanguageName(lang.name);
+                      _savePreference(language: lang.name);
                       Navigator.pop(context);
                     },
                   ),
@@ -148,7 +159,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Country',
+                Text(context.l10n.t('country'),
                     style: GoogleFonts.montserrat(
                         fontSize: 18, fontWeight: FontWeight.w700)),
                 IconButton(
@@ -209,6 +220,22 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
 
   bool _uploadingAvatar = false;
 
+  String? _displayAvatarUrl(dynamic profile, dynamic user) {
+    final profileAvatar = profile?.avatarUrl?.toString().trim() ?? '';
+    if (profileAvatar.isNotEmpty) return profileAvatar;
+
+    final userAvatar = user?.avatarUrl?.toString().trim() ?? '';
+    if (userAvatar.isNotEmpty) return userAvatar;
+
+    final metadata = Supabase.instance.client.auth.currentUser?.userMetadata;
+    for (final key in const ['avatar_url', 'picture', 'photo_url', 'image']) {
+      final value = metadata?[key]?.toString().trim() ?? '';
+      if (value.isNotEmpty) return value;
+    }
+
+    return null;
+  }
+
   Future<void> _pickAndUploadAvatar() async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(
@@ -250,8 +277,19 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
     }
   }
 
+  Widget _avatarFallback() {
+    return Padding(
+      padding: const EdgeInsets.all(6),
+      child: Image.asset(
+        'assets/images/logo-01.png',
+        fit: BoxFit.contain,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    ref.watch(appLanguageProvider);
     final authState = ref.watch(authStateProvider);
     final user = authState.valueOrNull;
 
@@ -271,10 +309,13 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
         ? profile!.name!
         : (user?.name?.isNotEmpty == true
             ? user!.name!
-            : (user?.email ?? user?.phone ?? 'Guest'));
+            : (user?.email ?? user?.phone ?? context.l10n.t('guest')));
+    final avatarUrl = _displayAvatarUrl(profile, user);
     final isVerified = profile?.isVerified ?? false;
     final joinedDate = user?.createdAt != null
-        ? 'Joined on ${_formatDate(user!.createdAt!)}'
+        ? context.l10n
+            .t('joined_on')
+            .replaceAll('{date}', _formatDate(user!.createdAt!))
         : '';
     final topInset = widget.embedded ? 0.0 : MediaQuery.of(context).padding.top;
 
@@ -331,19 +372,14 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                                       ? const Center(
                                           child: CircularProgressIndicator(
                                               strokeWidth: 2))
-                                      : (profile?.avatarUrl != null
-                                          ? Image.network(profile!.avatarUrl!,
-                                              fit: BoxFit.cover)
-                                          : user?.avatarUrl != null
-                                              ? Image.network(user!.avatarUrl!,
-                                                  fit: BoxFit.cover)
-                                              : Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(6),
-                                                  child: Image.asset(
-                                                      'assets/images/logo-01.png',
-                                                      fit: BoxFit.contain),
-                                                )),
+                                      : avatarUrl != null
+                                          ? Image.network(
+                                              avatarUrl,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (_, __, ___) =>
+                                                  _avatarFallback(),
+                                            )
+                                          : _avatarFallback(),
                                 ),
                               ),
                               Positioned(
@@ -398,7 +434,9 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text(
-                                      isVerified ? 'Verified' : 'Get Verified',
+                                      isVerified
+                                          ? context.l10n.t('verified')
+                                          : context.l10n.t('get_verified'),
                                       style: GoogleFonts.montserrat(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w500,
@@ -439,39 +477,42 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
 
                   // ── Menu items ────────────────────────────────
                   const SizedBox(height: 16),
-                  _flatItem(Icons.person_outline, 'Profile', null,
+                  _flatItem(
+                      Icons.person_outline, context.l10n.t('profile'), null,
                       onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (_) => const ProfileScreen()))),
-                  _flatItem(Icons.settings_outlined, 'Account Settings', null,
+                  _flatItem(Icons.settings_outlined,
+                      context.l10n.t('account_settings'), null,
                       onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (_) => const AccountSettingsScreen()))),
                   _flatItem(Icons.notifications_outlined,
-                      'Notification Settings', null,
+                      context.l10n.t('notifications'), null,
                       onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (_) =>
                                   const NotificationSettingsScreen()))),
                   _line(),
-                  _flatItem(
-                      Icons.location_city_outlined, 'Country', _selectedCountry,
+                  _flatItem(Icons.location_city_outlined,
+                      context.l10n.t('country'), _selectedCountry,
                       onTap: () => _showCountryPicker(countries, languages)),
-                  _flatItem(
-                      Icons.translate_outlined, 'Language', _selectedLanguage,
-                      onTap: () => _showLanguagePicker(languages)),
+                  _flatItem(Icons.translate_outlined,
+                      context.l10n.t('language'), _selectedLanguage,
+                      onTap: _showLanguagePicker),
                   _line(),
-                  _flatItem(Icons.logout, 'Log Out', null, onTap: () async {
+                  _flatItem(Icons.logout, context.l10n.t('log_out'), null,
+                      onTap: () async {
                     final confirm = await showDialog<bool>(
                       context: context,
                       builder: (_) => AlertDialog(
-                        title: Text('Log Out',
+                        title: Text(context.l10n.t('log_out'),
                             style: GoogleFonts.montserrat(
                                 fontWeight: FontWeight.w600)),
-                        content: Text('Are you sure you want to log out?',
+                        content: Text(context.l10n.t('logout_confirm'),
                             style: GoogleFonts.montserrat()),
                         actions: [
                           TextButton(
@@ -482,7 +523,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                           ),
                           TextButton(
                             onPressed: () => Navigator.pop(context, true),
-                            child: Text('Log Out',
+                            child: Text(context.l10n.t('log_out'),
                                 style:
                                     GoogleFonts.montserrat(color: Colors.red)),
                           ),

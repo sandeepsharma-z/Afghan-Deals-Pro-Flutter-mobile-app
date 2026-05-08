@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
 import '../../data/models/listing_model.dart';
 
@@ -78,7 +79,7 @@ class ListingDetailScreen extends ConsumerWidget {
                     const Icon(Icons.error_outline, size: 48, color: Colors.red),
                     const SizedBox(height: 16),
                     Text(
-                      'Listing not found',
+                      context.l10n.t('listing_not_found'),
                       textAlign: TextAlign.center,
                       style: GoogleFonts.montserrat(
                         fontSize: 16,
@@ -105,7 +106,7 @@ class ListingDetailScreen extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          'Go Back',
+                          context.l10n.t('go_back'),
                           style: GoogleFonts.montserrat(
                             fontSize: 14,
                             color: Colors.white,
@@ -122,7 +123,7 @@ class ListingDetailScreen extends ConsumerWidget {
         }
 
         final listing = snapshot.data!;
-        return _routeToDetailScreen(listing);
+        return _routeToDetailScreen(context, listing);
       },
     );
   }
@@ -144,7 +145,7 @@ class ListingDetailScreen extends ConsumerWidget {
   }
 
   /// Route to the appropriate detail screen based on category
-  Widget _routeToDetailScreen(ListingModel listing) {
+  Widget _routeToDetailScreen(BuildContext context, ListingModel listing) {
     final cat = listing.category.toLowerCase().trim();
 
     switch (cat) {
@@ -152,37 +153,37 @@ class ListingDetailScreen extends ConsumerWidget {
       case 'car':
         // For cars, we pass the listing as-is since CarSaleDetailScreen expects CarSaleModel
         // The screen will need to handle ListingModel or we convert it
-        return _buildUnavailableScreen('Car detail screen requires additional setup');
+        return _buildUnavailableScreen(context.l10n.t('car_detail_not_available'));
 
       case 'properties':
       case 'property':
-        return _buildUnavailableScreen('Property detail screen requires additional setup');
+        return _buildUnavailableScreen(context.l10n.t('property_detail_not_available'));
 
       case 'mobiles':
       case 'mobile':
-        return _buildUnavailableScreen('Mobile detail screen requires additional setup');
+        return _buildUnavailableScreen(context.l10n.t('mobile_detail_not_available'));
 
       case 'electronics':
       case 'electronic':
-        return _buildUnavailableScreen('Electronics detail screen requires additional setup');
+        return _buildUnavailableScreen(context.l10n.t('electronics_detail_not_available'));
 
       case 'furniture':
-        return _buildUnavailableScreen('Furniture detail screen requires additional setup');
+        return _buildUnavailableScreen(context.l10n.t('furniture_detail_not_available'));
 
       case 'jobs':
       case 'job':
-        return _buildUnavailableScreen('Jobs detail screen requires additional setup');
+        return _buildUnavailableScreen(context.l10n.t('jobs_detail_not_available'));
 
       case 'classifieds':
       case 'classified':
-        return _buildUnavailableScreen('Classifieds detail screen requires additional setup');
+        return _buildUnavailableScreen(context.l10n.t('classifieds_detail_not_available'));
 
       case 'spare-parts':
       case 'spare_parts':
-        return _buildUnavailableScreen('Spare parts detail screen requires additional setup');
+        return _buildUnavailableScreen(context.l10n.t('spare_parts_detail_not_available'));
 
       default:
-        return _buildUnavailableScreen('Detail screen not available for this category');
+        return _buildUnavailableScreen(context.l10n.t('detail_not_available'));
     }
   }
 

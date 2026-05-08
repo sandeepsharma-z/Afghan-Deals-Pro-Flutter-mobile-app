@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../core/widgets/favorite_button.dart';
+import '../../../../../core/widgets/translated_text.dart';
 import '../providers/classifieds_provider.dart';
 import '../../../../../features/listings/data/models/classified_listing_model.dart';
 import 'classifieds_detail_screen.dart';
@@ -112,7 +113,7 @@ class _ClassifiedsListingsScreenState
                     const Icon(Icons.grid_view_outlined,
                         size: 64, color: Colors.black26),
                     const SizedBox(height: 12),
-                    Text('No listings found',
+                    Text('No listings',
                         style: GoogleFonts.poppins(
                             fontSize: 15, color: Colors.black45)),
                   ]))
@@ -337,7 +338,7 @@ class _ClassifiedCardState extends State<_ClassifiedCard> {
                     style: GoogleFonts.poppins(
                         fontSize: 7.5, color: const Color(0xFF505050))),
               ]),
-              Text(item.title,
+              TranslatedText(item.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.poppins(

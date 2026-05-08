@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/widgets/app_button.dart';
+import '../../../../../core/localization/app_localizations.dart';
 import '../providers/auth_provider.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
@@ -148,38 +149,38 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: AppDimensions.sm),
-                      Text('Create Account', style: AppTextStyles.heading2),
+                      Text(context.l10n.t('create_account'), style: AppTextStyles.heading2),
                       const SizedBox(height: 6),
-                      Text('Fill in your details to get started',
+                      Text(context.l10n.t('fill_details_to_start'),
                           style: AppTextStyles.caption),
                       const SizedBox(height: AppDimensions.lg),
 
                       // Full Name
-                      _label('Full Name *'),
+                      _label('${context.l10n.t('full_name')} *'),
                       const SizedBox(height: 6),
                       _field(
                         controller: _nameCtrl,
-                        hint: 'Enter your full name',
+                        hint: context.l10n.t('enter_full_name'),
                         keyboardType: TextInputType.name,
                         validator: (v) => v == null || v.trim().isEmpty
-                            ? 'Name is required'
+                            ? context.l10n.t('name_required')
                             : null,
                       ),
                       const SizedBox(height: AppDimensions.md),
 
                       // Email
-                      _label('Email *'),
+                      _label('${context.l10n.t('email')} *'),
                       const SizedBox(height: 6),
                       _field(
                         controller: _emailCtrl,
-                        hint: 'Enter your email',
+                        hint: context.l10n.t('enter_email'),
                         keyboardType: TextInputType.emailAddress,
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) {
-                            return 'Email is required';
+                            return context.l10n.t('email_required');
                           }
                           if (!v.contains('@')) {
-                            return 'Enter a valid email';
+                            return context.l10n.t('valid_email_required');
                           }
                           return null;
                         },
@@ -187,17 +188,17 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       const SizedBox(height: AppDimensions.md),
 
                       // Phone
-                      _label('Phone Number'),
+                      _label(context.l10n.t('phone_number')),
                       const SizedBox(height: 6),
                       _field(
                         controller: _phoneCtrl,
-                        hint: 'e.g. +93700000000',
+                        hint: context.l10n.t('eg_phone'),
                         keyboardType: TextInputType.phone,
                       ),
                       const SizedBox(height: AppDimensions.md),
 
                       // Date of Birth
-                      _label('Date of Birth'),
+                      _label(context.l10n.t('date_of_birth')),
                       const SizedBox(height: 6),
                       GestureDetector(
                         onTap: _pickDob,
@@ -216,7 +217,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                                 child: Text(
                                   _dob != null
                                       ? '${_dob!.day}/${_dob!.month}/${_dob!.year}'
-                                      : 'Select date of birth',
+                                      : context.l10n.t('select_date_of_birth'),
                                   style: AppTextStyles.body.copyWith(
                                     color: _dob != null
                                         ? AppColors.black
@@ -233,11 +234,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       const SizedBox(height: AppDimensions.md),
 
                       // Nationality
-                      _label('Nationality'),
+                      _label(context.l10n.t('nationality')),
                       const SizedBox(height: 6),
                       DropdownButtonFormField<String>(
                         value: _nationality,
-                        hint: Text('Select nationality',
+                        hint: Text(context.l10n.t('select_nationality'),
                             style: AppTextStyles.body
                                 .copyWith(color: AppColors.grey)),
                         style:
@@ -267,11 +268,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       const SizedBox(height: AppDimensions.md),
 
                       // Gender
-                      _label('Gender'),
+                      _label(context.l10n.t('gender')),
                       const SizedBox(height: 6),
                       DropdownButtonFormField<String>(
                         value: _gender,
-                        hint: Text('Select gender',
+                        hint: Text(context.l10n.t('select_gender'),
                             style: AppTextStyles.body
                                 .copyWith(color: AppColors.grey)),
                         style:
@@ -292,7 +293,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                                 color: AppColors.primary, width: 1.5),
                           ),
                         ),
-                        items: ['Male', 'Female', 'Prefer not to say']
+                        items: [
+                          context.l10n.t('male'),
+                          context.l10n.t('female'),
+                          context.l10n.t('prefer_not_to_say'),
+                        ]
                             .map((g) =>
                                 DropdownMenuItem(value: g, child: Text(g)))
                             .toList(),
@@ -301,11 +306,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       const SizedBox(height: AppDimensions.md),
 
                       // Password
-                      _label('Password *'),
+                      _label('${context.l10n.t('password')} *'),
                       const SizedBox(height: 6),
                       _field(
                         controller: _passwordCtrl,
-                        hint: 'Create a password (min 6 chars)',
+                        hint: context.l10n.t('create_password'),
                         obscure: _obscure,
                         suffix: IconButton(
                           icon: Icon(
@@ -318,10 +323,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         ),
                         validator: (v) {
                           if (v == null || v.isEmpty) {
-                            return 'Password is required';
+                            return context.l10n.t('password_required');
                           }
                           if (v.length < 6) {
-                            return 'Minimum 6 characters';
+                            return context.l10n.t('min_6_characters');
                           }
                           return null;
                         },
@@ -338,13 +343,13 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               child: Column(
                 children: [
                   AppButton(
-                    label: 'Create Account',
+                    label: context.l10n.t('create_account'),
                     onTap: isLoading ? null : _signUp,
                     isLoading: isLoading,
                   ),
                   const SizedBox(height: 10),
                   AppButton(
-                    label: 'Continue with Google',
+                    label: context.l10n.t('continue_google'),
                     type: AppButtonType.outline,
                     onTap: isLoading ? null : _continueWithGoogle,
                     prefixIcon: const _GoogleIcon(),
@@ -356,9 +361,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       text: TextSpan(
                         style: AppTextStyles.caption,
                         children: [
-                          const TextSpan(text: 'Already have an account? '),
                           TextSpan(
-                            text: 'Sign In',
+                              text: context.l10n.t('already_have_account')),
+                          TextSpan(
+                            text: context.l10n.t('sign_in'),
                             style: AppTextStyles.caption.copyWith(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w600,

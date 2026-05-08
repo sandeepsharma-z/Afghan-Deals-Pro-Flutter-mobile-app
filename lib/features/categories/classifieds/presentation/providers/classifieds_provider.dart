@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../features/home/presentation/providers/country_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../../features/listings/data/models/classified_listing_model.dart';
@@ -152,12 +153,17 @@ final classifiedsFilterProvider = StateProvider.autoDispose<ClassifiedsFilter>(
 
 // ── Listings providers ─────────────────────────────────────────────────────
 Future<List<ClassifiedListingModel>> _fetchClassifieds(
-    {String subcategory = ''}) async {
+    {String subcategory = '', String country = ''}) async {
   var query = Supabase.instance.client
       .from('listings')
       .select()
       .eq('category', 'classifieds')
       .eq('is_active', true);
+
+  if (country.isNotEmpty) {
+    query = query.ilike('country', country);
+  }
+
   if (subcategory.isNotEmpty) {
     query = query.eq('subcategory', subcategory);
   }
@@ -169,12 +175,14 @@ Future<List<ClassifiedListingModel>> _fetchClassifieds(
 
 final classifiedsListingsProvider =
     FutureProvider.autoDispose<List<ClassifiedListingModel>>((ref) async {
-  return _fetchClassifieds();
+  final selectedCountry = ref.watch(selectedCountryProvider);
+  return _fetchClassifieds(country: selectedCountry);
 });
 
 final classifiedsBySubcategoryProvider = FutureProvider.autoDispose
     .family<List<ClassifiedListingModel>, String>((ref, subcategory) async {
-  return _fetchClassifieds(subcategory: subcategory);
+  final selectedCountry = ref.watch(selectedCountryProvider);
+  return _fetchClassifieds(subcategory: subcategory, country: selectedCountry);
 });
 
 final classifiedsFilteredProvider = FutureProvider.autoDispose

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../../features/home/presentation/providers/country_provider.dart';
 
 class SparePartBrand {
   final String name;
@@ -495,14 +496,21 @@ final sparePartBrandMetaProvider = FutureProvider.autoDispose
 
 final sparePartListingsProvider = FutureProvider.autoDispose
     .family<List<SparePartListing>, SparePartFilter>((ref, filter) async {
-  final response = await Supabase.instance.client
+  final selectedCountry = ref.watch(selectedCountryProvider);
+
+  var query = Supabase.instance.client
       .from('listings')
       .select(
         'id, title, description, seller_id, seller_name, price, currency, images, city, region, created_at, category_data, subcategory',
       )
-      .inFilter('category', const ['spare-parts', 'spare_parts'])
-      .eq('is_active', true)
-      .order('created_at', ascending: false);
+      .inFilter('category', const ['spare-parts', 'spare_parts']).eq(
+          'is_active', true);
+
+  if (selectedCountry.isNotEmpty) {
+    query = query.ilike('country', selectedCountry);
+  }
+
+  final response = await query.order('created_at', ascending: false);
 
   final all = (response as List<dynamic>)
       .map((e) => SparePartListing.fromMap(Map<String, dynamic>.from(e)))

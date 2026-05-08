@@ -8,6 +8,7 @@ import '../../data/models/chat_message_model.dart';
 import '../../data/models/chat_thread_model.dart';
 import '../providers/chat_provider.dart';
 import 'chat_user_profile_screen.dart';
+import '../../../../../core/localization/app_localizations.dart';
 
 class ChatDetailScreen extends ConsumerStatefulWidget {
   final String chatId;
@@ -257,7 +258,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
 
                 if (all.isEmpty) {
                   return Center(
-                    child: Text('Say hi to start chat',
+                    child: Text(context.l10n.t('say_hi_to_start'),
                         style: GoogleFonts.poppins(
                             fontSize: 14, color: Colors.black54)),
                   );
@@ -333,7 +334,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Your account has been restricted from sending messages.',
+                    context.l10n.t('account_restricted'),
                     style: GoogleFonts.poppins(
                         fontSize: 12, color: const Color(0xFFC92325)),
                   ),
@@ -365,7 +366,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'This user is blocked. Unblock from user profile to continue chat.',
+                    context.l10n.t('user_blocked_unblock_to_chat'),
                     style: GoogleFonts.poppins(
                         fontSize: 12, color: const Color(0xFFC92325)),
                   ),
@@ -401,7 +402,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                 minLines: 1,
                 maxLines: 4,
                 decoration: InputDecoration(
-                  hintText: 'Type message...',
+                  hintText: context.l10n.t('message'),
                   hintStyle:
                       GoogleFonts.poppins(fontSize: 13, color: Colors.black38),
                   contentPadding:
@@ -519,7 +520,7 @@ class _MessageBubble extends StatelessWidget {
                   const Icon(Icons.done_all,
                       size: 13, color: Color(0xFF2258A8)),
                   const SizedBox(width: 2),
-                  Text('Seen',
+                  Text(context.l10n.t('seen'),
                       style: GoogleFonts.poppins(
                           fontSize: 10, color: const Color(0xFF2258A8))),
                 ],

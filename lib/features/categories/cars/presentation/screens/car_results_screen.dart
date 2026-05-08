@@ -7,8 +7,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/router/route_names.dart';
-import '../../../../../core/widgets/favorite_button.dart';
 import '../../../../chat/presentation/providers/chat_provider.dart';
+import '../../../../profile/presentation/providers/favorites_provider.dart';
 import '../../../../../features/listings/data/models/rental_car_model.dart';
 import '../providers/rental_cars_provider.dart';
 
@@ -551,9 +551,12 @@ class _CarCardState extends ConsumerState<_CarCard> {
                     right: 8,
                     child: Row(
                       children: [
-                        const _TopCircleButton(icon: Icons.reply_outlined),
+                        _TopCircleButton(
+                          icon: Icons.reply_outlined,
+                          onTap: _shareItem,
+                        ),
                         const SizedBox(width: 5),
-                        FavoriteButton(
+                        _RentalFavoriteButton(
                           listingId: car.id,
                           size: 24,
                           backgroundColor: const Color(0x100F172A),
@@ -742,6 +745,7 @@ class _CarCardState extends ConsumerState<_CarCard> {
           await ref.read(chatActionsProvider).openOrCreateChatForListing(
                 listingId: widget.car.id,
                 sellerId: widget.car.sellerId,
+                sellerName: widget.car.sellerName,
               );
       if (!mounted) return;
       context.push('/chat/$chatId');
@@ -756,6 +760,106 @@ class _CarCardState extends ConsumerState<_CarCard> {
         SnackBar(content: Text(message)),
       );
     }
+  }
+
+  void _shareItem() {
+    final carName = '${widget.car.name} ${widget.car.carModel}'.trim();
+    final shareText =
+        'Check out this rental car: $carName - ${widget.car.priceDaily}/day on Afghan Deals Pro';
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      builder: (_) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Share Listing',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: const Icon(Icons.copy, color: Color(0xFF2258A8)),
+                title: Text(
+                  'Copy to Clipboard',
+                  style: GoogleFonts.poppins(fontSize: 14),
+                ),
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: shareText));
+                  context.pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Copied: $carName'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.message, color: Color(0xFF2258A8)),
+                title: Text(
+                  'Share via Message',
+                  style: GoogleFonts.poppins(fontSize: 14),
+                ),
+                onTap: () {
+                  context.pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Shared: $carName'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.link, color: Color(0xFF2258A8)),
+                title: Text(
+                  'Copy Link',
+                  style: GoogleFonts.poppins(fontSize: 14),
+                ),
+                onTap: () {
+                  Clipboard.setData(
+                    ClipboardData(
+                        text: 'afghan-deals-pro://rental-car/${widget.car.id}'),
+                  );
+                  context.pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Link copied for $carName'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -927,7 +1031,10 @@ class _RentalCarDetailScreenState
                               onTap: _shareItem,
                             ),
                             const SizedBox(width: 10),
-                            FavoriteButton(listingId: car.id, size: 24),
+                            _RentalFavoriteButton(
+                              listingId: car.id,
+                              size: 36,
+                            ),
                           ],
                         ),
                       ),
@@ -1091,6 +1198,7 @@ class _RentalCarDetailScreenState
           await ref.read(chatActionsProvider).openOrCreateChatForListing(
                 listingId: widget.car.id,
                 sellerId: widget.car.sellerId,
+                sellerName: widget.car.sellerName,
               );
       if (!mounted) return;
       context.push('/chat/$chatId');
@@ -1110,7 +1218,7 @@ class _RentalCarDetailScreenState
   void _shareItem() {
     final carName = '${widget.car.name} ${widget.car.carModel}'.trim();
     final shareText =
-        'Check out this rental car: $carName - AED ${widget.car.priceDaily}/day on Afghan Deals Pro';
+        'Check out this rental car: $carName - ${widget.car.priceDaily}/day on Afghan Deals Pro';
 
     showModalBottomSheet(
       context: context,
@@ -1277,8 +1385,8 @@ class _DetailTopCircleButton extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
-        width: 24,
-        height: 24,
+        width: 36,
+        height: 36,
         decoration: const BoxDecoration(
           color: Colors.white,
           shape: BoxShape.circle,
@@ -1290,7 +1398,7 @@ class _DetailTopCircleButton extends StatelessWidget {
             ),
           ],
         ),
-        child: Icon(icon, color: const Color(0xFF222222), size: 14),
+        child: Icon(icon, color: const Color(0xFF222222), size: 18),
       ),
     );
   }
@@ -1428,19 +1536,81 @@ class _DetailRentBox extends StatelessWidget {
 
 class _TopCircleButton extends StatelessWidget {
   final IconData icon;
-  const _TopCircleButton({required this.icon});
+  final VoidCallback? onTap;
+  const _TopCircleButton({required this.icon, this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 24,
-      height: 24,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: const Color(0x99FFFFFF)),
-        color: const Color(0x100F172A),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: const Color(0x99FFFFFF)),
+          color: const Color(0x100F172A),
+        ),
+        child: Icon(icon, color: Colors.white, size: 12),
       ),
-      child: Icon(icon, color: Colors.white, size: 12),
+    );
+  }
+}
+
+class _RentalFavoriteButton extends ConsumerWidget {
+  final String listingId;
+  final double size;
+  final Color backgroundColor;
+  final Color unselectedIconColor;
+  final Color selectedIconColor;
+  final bool showShadow;
+
+  const _RentalFavoriteButton({
+    required this.listingId,
+    required this.size,
+    this.backgroundColor = Colors.white,
+    this.unselectedIconColor = Colors.black54,
+    this.selectedIconColor = Colors.red,
+    this.showShadow = true,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final favoriteIds = ref.watch(favoriteIdsProvider);
+    final isFavorited = favoriteIds.contains(listingId);
+    final tapSize = size < 36 ? 36.0 : size;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () async {
+        if (listingId.isEmpty) return;
+        await ref.read(favoriteIdsProvider.notifier).toggleFavorite(listingId);
+      },
+      child: SizedBox(
+        width: tapSize,
+        height: tapSize,
+        child: Center(
+          child: Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              shape: BoxShape.circle,
+              boxShadow: showShadow
+                  ? const [
+                      BoxShadow(color: Color(0x30000000), blurRadius: 4),
+                    ]
+                  : null,
+            ),
+            child: Icon(
+              isFavorited ? Icons.favorite : Icons.favorite_border,
+              size: size * 0.57,
+              color: isFavorited ? selectedIconColor : unselectedIconColor,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

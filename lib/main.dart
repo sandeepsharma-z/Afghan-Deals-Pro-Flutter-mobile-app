@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -9,6 +10,8 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/router/app_router.dart';
+import 'core/localization/app_language_provider.dart';
+import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'features/chat/presentation/providers/chat_provider.dart';
 import 'firebase_options.dart';
@@ -60,9 +63,9 @@ Future<void> main() async {
       ?.createNotificationChannel(_chatNotificationChannel);
 
   await Supabase.initialize(
-    url: 'https://nxgniehrrcpqqymorjxq.supabase.co',
+    url: 'https://cmebycscxjeudegsqzmx.supabase.co',
     anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54Z25pZWhycmNwcXF5bW9yanhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwODk5MDAsImV4cCI6MjA4OTY2NTkwMH0.F6r42k-M0OzbyjOrUA91Wyvi4gSru4uSgUckxaQxrkE',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtZWJ5Y3NjeGpldWRlZ3Nxem14Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxMzEzNDIsImV4cCI6MjA5MzcwNzM0Mn0.K0dMmJ7Oi2RV-YfTNaHGhsUFySD_PatUBo2k0iYRJuQ',
     authOptions: const FlutterAuthClientOptions(
       authFlowType: AuthFlowType.pkce,
     ),
@@ -262,10 +265,26 @@ class _AfghanDealsProState extends ConsumerState<AfghanDealsPro>
   @override
   Widget build(BuildContext context) {
     final router = ref.watch(appRouterProvider);
+    final locale = ref.watch(appLanguageProvider);
+
     return MaterialApp.router(
       title: 'Afghan Deals Pro',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      locale: locale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      builder: (context, child) {
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
       routerConfig: router,
     );
   }

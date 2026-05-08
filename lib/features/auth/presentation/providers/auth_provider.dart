@@ -1,10 +1,13 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../../../core/error/app_exception.dart';
+import '../../../../core/localization/app_language_provider.dart';
 
 // ── Supabase client provider ──────────────────────────────────────────────────
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
@@ -47,8 +50,9 @@ class AuthActionError extends AuthActionState {
 
 class AuthNotifier extends StateNotifier<AuthActionState> {
   final AuthRepository _repository;
+  final Ref _ref;
 
-  AuthNotifier(this._repository) : super(const AuthActionIdle());
+  AuthNotifier(this._repository, this._ref) : super(const AuthActionIdle());
 
   // ── Phone OTP ───────────────────────────────────────────────────────────────
   Future<bool> sendPhoneOtp(String phone) async {
@@ -199,7 +203,24 @@ class AuthNotifier extends StateNotifier<AuthActionState> {
   Future<void> signOut() async {
     state = const AuthActionLoading();
     try {
+      // Clear Supabase metadata language BEFORE logout (while still authenticated)
+      try {
+        await Supabase.instance.client.auth.updateUser(
+          UserAttributes(data: {'language': null}),
+        );
+      } catch (_) {
+        // Ignore if update fails
+      }
+
       await _repository.signOut();
+
+      // Reset language to English on logout
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('app_language_code', 'en');
+
+      // Reset language provider state to English
+      await _ref.read(appLanguageProvider.notifier).setLocale(const Locale('en'));
+
       state = const AuthActionSuccess();
       // Clear auth state after successful signout
       // The authStateProvider will update via the stream automatically
@@ -215,5 +236,5 @@ class AuthNotifier extends StateNotifier<AuthActionState> {
 
 final authNotifierProvider =
     StateNotifierProvider<AuthNotifier, AuthActionState>((ref) {
-  return AuthNotifier(ref.read(authRepositoryProvider));
+  return AuthNotifier(ref.read(authRepositoryProvider), ref);
 });

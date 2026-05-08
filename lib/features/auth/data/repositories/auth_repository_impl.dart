@@ -11,6 +11,57 @@ class AuthRepositoryImpl implements AuthRepository {
 
   AuthRepositoryImpl(this._client);
 
+  String? _firstNonEmpty(Iterable<String?> values) {
+    for (final value in values) {
+      final trimmed = value?.trim();
+      if (trimmed != null && trimmed.isNotEmpty) return trimmed;
+    }
+    return null;
+  }
+
+  String? _metadataText(Map<String, dynamic> metadata, List<String> keys) {
+    return _firstNonEmpty(
+      keys.map((key) => metadata[key]?.toString()),
+    );
+  }
+
+  String? _identityText(User user, List<String> keys) {
+    for (final identity in user.identities ?? const <UserIdentity>[]) {
+      final data = identity.identityData;
+      if (data == null) continue;
+      final value = _metadataText(data, keys);
+      if (value != null) return value;
+    }
+    return null;
+  }
+
+  String? _resolvedAvatar(User user) {
+    final metadata = user.userMetadata ?? const <String, dynamic>{};
+    return _firstNonEmpty([
+      _metadataText(metadata, const ['avatar_url', 'picture', 'photo_url', 'image']),
+      _identityText(user, const ['avatar_url', 'picture', 'photo_url', 'image']),
+      _identityText(user, const ['avatar']),
+    ]);
+  }
+
+  String _resolvedDisplayName(User user) {
+    final metadata = user.userMetadata ?? const <String, dynamic>{};
+    return _firstNonEmpty([
+          _metadataText(
+            metadata,
+            const ['name', 'full_name', 'display_name', 'preferred_username'],
+          ),
+          _identityText(
+            user,
+            const ['name', 'full_name', 'display_name', 'preferred_username'],
+          ),
+          user.email?.split('@').first,
+          user.phone,
+          'User',
+        ]) ??
+        'User';
+  }
+
   @override
   UserEntity? get currentUser {
     final user = _client.auth.currentUser;
@@ -35,22 +86,23 @@ class AuthRepositoryImpl implements AuthRepository {
 
   Future<void> _ensureProfile(User user) async {
     final metadata = user.userMetadata ?? const <String, dynamic>{};
-    String? firstText(List<String> keys) {
-      for (final key in keys) {
-        final value = metadata[key]?.toString().trim();
-        if (value != null && value.isNotEmpty) return value;
-      }
-      return null;
+    final displayName = _resolvedDisplayName(user);
+    final oauthAvatarUrl = _resolvedAvatar(user);
+
+    Map<String, dynamic>? existingProfile;
+    try {
+      existingProfile = await _client
+          .from('profiles')
+          .select('avatar_url')
+          .eq('id', user.id)
+          .maybeSingle();
+    } catch (_) {
+      existingProfile = null;
     }
 
-    final displayName = firstText(
-          const ['name', 'full_name', 'display_name', 'preferred_username'],
-        ) ??
-        user.email?.split('@').first ??
-        user.phone ??
-        'User';
-    final avatarUrl =
-        firstText(const ['avatar_url', 'picture', 'photo_url', 'image']);
+    final existingAvatarUrl =
+        existingProfile?['avatar_url']?.toString().trim();
+    final avatarUrl = _firstNonEmpty([existingAvatarUrl, oauthAvatarUrl]);
 
     final payload = <String, dynamic>{
       'id': user.id,
@@ -76,6 +128,12 @@ class AuthRepositoryImpl implements AuthRepository {
     } catch (_) {
       // Auth should not fail only because the profile mirror could not update.
     }
+  }
+
+  bool _isInvalidRefreshToken(Object error) {
+    final message = error.toString().toLowerCase();
+    return message.contains('invalid refresh token') ||
+        message.contains('refresh token not found');
   }
 
   @override
@@ -213,6 +271,12 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<UserEntity> signInWithGoogle() async {
     try {
+      try {
+        await _client.auth.signOut();
+      } catch (e) {
+        if (!_isInvalidRefreshToken(e)) rethrow;
+      }
+
       final launched = await _client.auth.signInWithOAuth(
         OAuthProvider.google,
         redirectTo: 'io.supabase.flutter://login-callback/',
@@ -243,6 +307,13 @@ class AuthRepositoryImpl implements AuthRepository {
       await _ensureProfile(user);
       return UserModel.fromSupabaseUser(user);
     } on AuthException catch (e) {
+      if (_isInvalidRefreshToken(e)) {
+        final user = _client.auth.currentUser;
+        if (user != null) {
+          await _ensureProfile(user);
+          return UserModel.fromSupabaseUser(user);
+        }
+      }
       throw AppAuthException(e.message, code: e.statusCode);
     } on TimeoutException {
       throw const AppAuthException(

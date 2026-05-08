@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../router/route_names.dart';
 import '../theme/app_colors.dart';
+import '../localization/app_localizations.dart';
 import '../../features/chat/presentation/providers/chat_provider.dart';
 
 class AppBottomNav extends ConsumerWidget {
@@ -54,14 +55,15 @@ class AppBottomNav extends ConsumerWidget {
           child: Row(
             children: [
               Expanded(
-                  child: _navItem(context, 0, Icons.home_rounded, 'HOME', 0)),
+                  child: _navItem(context, 0, Icons.home_rounded,
+                      context.l10n.t('home'), 0)),
               Expanded(child: _chatNavItem(context, totalUnread)),
               // Center notch space
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Text('SELL',
+                    Text(context.l10n.t('sell'),
                         style: GoogleFonts.montserrat(
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
@@ -71,11 +73,11 @@ class AppBottomNav extends ConsumerWidget {
                 ),
               ),
               Expanded(
-                  child:
-                      _navItem(context, 3, Icons.favorite_border, 'MY ADS', 0)),
+                  child: _navItem(context, 3, Icons.favorite_border,
+                      context.l10n.t('my_ads'), 0)),
               Expanded(
-                  child:
-                      _navItem(context, 4, Icons.person_outline, 'ACCOUNT', 0)),
+                  child: _navItem(context, 4, Icons.person_outline,
+                      context.l10n.t('account'), 0)),
             ],
           ),
         ),
@@ -123,7 +125,7 @@ class AppBottomNav extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 7),
-            Text('CHATS',
+            Text(context.l10n.t('chats'),
                 style: GoogleFonts.montserrat(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,

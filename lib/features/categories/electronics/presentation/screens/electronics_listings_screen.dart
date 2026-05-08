@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../core/widgets/favorite_button.dart';
+import '../../../../../core/widgets/translated_text.dart';
 import '../../../../../features/listings/data/models/electronics_listing_model.dart';
 import '../providers/electronics_provider.dart';
 import 'electronics_detail_screen.dart';
@@ -109,7 +110,7 @@ class _ElectronicsListingsScreenState
         data: (listings) {
           if (listings.isEmpty) {
             return const Center(
-              child: Text('No listings found',
+              child: Text('No listings',
                   style: TextStyle(color: Colors.black45)),
             );
           }
@@ -184,7 +185,7 @@ class _ElectronicsListingsScreenState
   }
 }
 
-class _ListingCard extends StatelessWidget {
+class _ListingCard extends ConsumerWidget {
   final ElectronicsListingModel item;
   const _ListingCard({required this.item});
 
@@ -209,7 +210,7 @@ class _ListingCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -340,7 +341,7 @@ class _ListingCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                Text(
+                TranslatedText(
                   item.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

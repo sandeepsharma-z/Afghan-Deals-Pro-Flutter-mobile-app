@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../../core/localization/app_localizations.dart';
 import '../providers/sell_provider.dart';
 
 // ── Static data ────────────────────────────────────────────────────────────────
@@ -374,7 +375,7 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
                   color: const Color(0xFFDDDDDD),
                   borderRadius: BorderRadius.circular(2))),
           const SizedBox(height: 12),
-          Text(title,
+          Text(context.l10n.t(title),
               style: GoogleFonts.poppins(
                   fontSize: 15, fontWeight: FontWeight.w600)),
           const Divider(height: 16),
@@ -841,7 +842,7 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
       onChanged: onChanged,
       style: GoogleFonts.poppins(fontSize: 14, color: Colors.black87),
       decoration: InputDecoration(
-        hintText: hint,
+        hintText: context.l10n.t(hint),
         hintStyle: GoogleFonts.poppins(fontSize: 13, color: Colors.black38),
         filled: true,
         fillColor: Colors.white,
@@ -882,7 +883,7 @@ class _CarPhotoSection extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            Text('Photos',
+            Text(context.l10n.t('Photos'),
                 style: GoogleFonts.poppins(
                     fontSize: 14, fontWeight: FontWeight.w600)),
             const SizedBox(width: 8),
@@ -920,7 +921,7 @@ class _CarPhotoSection extends ConsumerWidget {
                           const Icon(Icons.add_photo_alternate_outlined,
                               color: _kBlue, size: 28),
                           const SizedBox(height: 4),
-                          Text('Add Photo',
+                          Text(context.l10n.t('Add Photo'),
                               style: GoogleFonts.poppins(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w500,
@@ -956,7 +957,7 @@ class _CarPhotoSection extends ConsumerWidget {
                             borderRadius: BorderRadius.vertical(
                                 bottom: Radius.circular(10)),
                           ),
-                          child: Text('Cover',
+                          child: Text(context.l10n.t('Cover'),
                               textAlign: TextAlign.center,
                               style: GoogleFonts.poppins(
                                   fontSize: 10,
@@ -1004,7 +1005,7 @@ class _CarPhotoSection extends ConsumerWidget {
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             ListTile(
               leading: const Icon(Icons.photo_library_outlined, color: _kBlue),
-              title: Text('Choose from Gallery',
+              title: Text(context.l10n.t('Choose from Gallery'),
                   style: GoogleFonts.poppins(fontSize: 14)),
               onTap: () {
                 Navigator.pop(context);
@@ -1013,7 +1014,7 @@ class _CarPhotoSection extends ConsumerWidget {
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt_outlined, color: _kBlue),
-              title: Text('Take a Photo',
+              title: Text(context.l10n.t('Take a Photo'),
                   style: GoogleFonts.poppins(fontSize: 14)),
               onTap: () {
                 Navigator.pop(context);
@@ -1042,7 +1043,7 @@ class _Section extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title,
+          Text(context.l10n.t(title),
               style: GoogleFonts.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -1069,7 +1070,7 @@ class _Field extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label,
+          Text(context.l10n.t(label),
               style: GoogleFonts.poppins(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,

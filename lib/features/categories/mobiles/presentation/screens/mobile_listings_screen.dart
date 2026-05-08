@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/router/route_names.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/favorite_button.dart';
+import '../../../../../core/widgets/translated_text.dart';
 import '../../../../../features/chat/presentation/providers/chat_provider.dart';
 import '../../../../../features/listings/data/models/mobile_listing_model.dart';
 import '../providers/mobile_listings_provider.dart';
@@ -172,7 +173,7 @@ class _MobileListingsScreenState extends ConsumerState<MobileListingsScreen> {
                             const Icon(Icons.smartphone_outlined,
                                 size: 64, color: Colors.black26),
                             const SizedBox(height: 12),
-                            Text('No listings found',
+                            Text('No listings',
                                 style: GoogleFonts.poppins(
                                     fontSize: 16, color: Colors.black45)),
                           ],
@@ -443,7 +444,7 @@ class _MobileListCard extends ConsumerWidget {
                     ],
                   ),
                   // Title
-                  Text(listing.title,
+                  TranslatedText(listing.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(

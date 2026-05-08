@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/router/route_names.dart';
-import '../../../home/presentation/screens/home_screen.dart';
 import '../../data/models/chat_thread_model.dart';
 import '../providers/chat_provider.dart';
 
@@ -33,13 +32,11 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
     if (widget.onBackToHome != null) {
       debugPrint('Chats embedded back tapped -> Home tab');
       widget.onBackToHome!();
+      if (mounted) setState(() {});
       return;
     }
     debugPrint('Chats back tapped -> Home');
-    Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
-      (route) => false,
-    );
+    context.go(RouteNames.home);
   }
 
   Future<void> _deleteChat(ChatThreadModel thread) async {
@@ -83,172 +80,178 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
   Widget build(BuildContext context) {
     final chatsAsync = ref.watch(chatThreadsProvider);
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _goBack();
+      },
+      child: Scaffold(
         backgroundColor: Colors.white,
-        elevation: 0,
-        leadingWidth: 48,
-        leading: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: _goBack,
-          child: const SizedBox(
-            width: 48,
-            height: kToolbarHeight,
-            child: Center(
-              child: Icon(Icons.arrow_back_ios_new,
-                  size: 18, color: Colors.black87),
-            ),
-          ),
-        ),
-        title: Text('Chats',
-            style: GoogleFonts.montserrat(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                color: Colors.black87)),
-        centerTitle: true,
-        actions: const [SizedBox(width: 48)],
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1, thickness: 1, color: Color(0xFFE8E8E8)),
-        ),
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Filters
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: Row(
-              children: List.generate(_filters.length, (i) {
-                final selected = _filterIndex == i;
-                return Padding(
-                  padding:
-                      EdgeInsets.only(right: i < _filters.length - 1 ? 8 : 0),
-                  child: GestureDetector(
-                    onTap: () => setState(() => _filterIndex = i),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                            color: selected ? Colors.black : _grey, width: 1),
-                      ),
-                      child: Text(_filters[i],
-                          style: GoogleFonts.montserrat(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: selected ? Colors.black : _grey)),
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: chatsAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Text(e.toString(),
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.montserrat(
-                          fontSize: 13, color: Colors.red)),
-                ),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leadingWidth: 48,
+          leading: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: _goBack,
+            child: const SizedBox(
+              width: 48,
+              height: kToolbarHeight,
+              child: Center(
+                child: Icon(Icons.arrow_back_ios_new,
+                    size: 18, color: Colors.black87),
               ),
-              data: (items) {
-                final filtered = _applyFilter(items);
-                if (filtered.isEmpty) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 40),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text('Your chat is empty!',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.montserrat(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.black87)),
-                          const SizedBox(height: 12),
-                          Text(
-                              'Open any listing and tap Chat to start a conversation.',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.montserrat(
-                                  fontSize: 13,
-                                  color: Colors.black45,
-                                  height: 1.5)),
-                          const SizedBox(height: 24),
-                          SizedBox(
-                            width: 180,
-                            height: 38,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                if (widget.onExploreListings != null) {
-                                  widget.onExploreListings!();
-                                  return;
-                                }
-                                context.go(RouteNames.home);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: _blue,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8)),
-                              ),
-                              child: Text('Explore Listings',
-                                  style: GoogleFonts.montserrat(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white)),
-                            ),
-                          ),
-                        ],
+            ),
+          ),
+          title: Text('Chats',
+              style: GoogleFonts.montserrat(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87)),
+          centerTitle: true,
+          actions: const [SizedBox(width: 48)],
+          bottom: const PreferredSize(
+            preferredSize: Size.fromHeight(1),
+            child: Divider(height: 1, thickness: 1, color: Color(0xFFE8E8E8)),
+          ),
+        ),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Filters
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Row(
+                children: List.generate(_filters.length, (i) {
+                  final selected = _filterIndex == i;
+                  return Padding(
+                    padding:
+                        EdgeInsets.only(right: i < _filters.length - 1 ? 8 : 0),
+                    child: GestureDetector(
+                      onTap: () => setState(() => _filterIndex = i),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                              color: selected ? Colors.black : _grey, width: 1),
+                        ),
+                        child: Text(_filters[i],
+                            style: GoogleFonts.montserrat(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: selected ? Colors.black : _grey)),
                       ),
                     ),
                   );
-                }
-
-                return ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
-                  itemCount: filtered.length,
-                  separatorBuilder: (_, __) => const Divider(
-                      height: 1, thickness: 1, color: Color(0xFFEDEDED)),
-                  itemBuilder: (_, i) {
-                    final item = filtered[i];
-                    return Dismissible(
-                      key: Key(item.id),
-                      direction: DismissDirection.endToStart,
-                      background: Container(
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.only(right: 20),
-                        color: Colors.red,
-                        child: const Icon(Icons.delete_outline,
-                            color: Colors.white, size: 24),
-                      ),
-                      confirmDismiss: (_) async {
-                        await _deleteChat(item);
-                        return false; // we handle deletion ourselves
-                      },
-                      child: _ChatTile(
-                        item: item,
-                        onTap: () {
-                          debugPrint('Chat tile tapped: ${item.id}');
-                          context.push('/chat/${item.id}');
-                        },
+                }),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: chatsAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) => Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(e.toString(),
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.montserrat(
+                            fontSize: 13, color: Colors.red)),
+                  ),
+                ),
+                data: (items) {
+                  final filtered = _applyFilter(items);
+                  if (filtered.isEmpty) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 40),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('Your chat is empty!',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.montserrat(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.black87)),
+                            const SizedBox(height: 12),
+                            Text(
+                                'Open any listing and tap Chat to start a conversation.',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.montserrat(
+                                    fontSize: 13,
+                                    color: Colors.black45,
+                                    height: 1.5)),
+                            const SizedBox(height: 24),
+                            SizedBox(
+                              width: 180,
+                              height: 38,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  if (widget.onExploreListings != null) {
+                                    widget.onExploreListings!();
+                                    return;
+                                  }
+                                  context.go(RouteNames.home);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: _blue,
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8)),
+                                ),
+                                child: Text('Explore Listings',
+                                    style: GoogleFonts.montserrat(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white)),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     );
-                  },
-                );
-              },
+                  }
+
+                  return ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
+                    itemCount: filtered.length,
+                    separatorBuilder: (_, __) => const Divider(
+                        height: 1, thickness: 1, color: Color(0xFFEDEDED)),
+                    itemBuilder: (_, i) {
+                      final item = filtered[i];
+                      return Dismissible(
+                        key: Key(item.id),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 20),
+                          color: Colors.red,
+                          child: const Icon(Icons.delete_outline,
+                              color: Colors.white, size: 24),
+                        ),
+                        confirmDismiss: (_) async {
+                          await _deleteChat(item);
+                          return false; // we handle deletion ourselves
+                        },
+                        child: _ChatTile(
+                          item: item,
+                          onTap: () {
+                            debugPrint('Chat tile tapped: ${item.id}');
+                            context.push('/chat/${item.id}');
+                          },
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/favorite_button.dart';
+import '../../../../../core/widgets/translated_text.dart';
 import '../../../../../features/listings/data/models/car_sale_model.dart';
 import '../providers/car_listings_provider.dart';
 
@@ -256,7 +257,7 @@ class _CarListingsScreenState extends ConsumerState<CarListingsScreen> {
                             const Icon(Icons.directions_car_outlined,
                                 size: 64, color: Colors.black26),
                             const SizedBox(height: 12),
-                            Text('No listings found',
+                            Text('No listings',
                                 style: GoogleFonts.montserrat(
                                     fontSize: 16,
                                     color: Colors.black45)),
@@ -380,12 +381,12 @@ class _CarListingsScreenState extends ConsumerState<CarListingsScreen> {
 }
 
 // ── List Card ─────────────────────────────────────────────────────────────────
-class _ListingCard extends StatelessWidget {
+class _ListingCard extends ConsumerWidget {
   final CarSaleModel listing;
   const _ListingCard({required this.listing});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
@@ -447,7 +448,7 @@ class _ListingCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(listing.title,
+                    TranslatedText(listing.title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.montserrat(
@@ -512,12 +513,12 @@ class _ListingCard extends StatelessWidget {
 }
 
 // ── Grid Card ─────────────────────────────────────────────────────────────────
-class _GridCard extends StatelessWidget {
+class _GridCard extends ConsumerWidget {
   final CarSaleModel listing;
   const _GridCard({required this.listing});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -587,7 +588,7 @@ class _GridCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(listing.title,
+                  TranslatedText(listing.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.montserrat(

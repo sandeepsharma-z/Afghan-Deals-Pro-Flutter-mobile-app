@@ -76,7 +76,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // If auth is still loading, stay on splash to wait for it
       authState.whenData((user) => null); // Just trigger loading state
       final isAuthLoading = authState.isLoading;
-      if (isAuthLoading) return RouteNames.splash;
+      if (isAuthLoading && location != RouteNames.home) {
+        return RouteNames.splash;
+      }
 
       // Get auth result after loading is done
       final isAuthenticated = authState.when(

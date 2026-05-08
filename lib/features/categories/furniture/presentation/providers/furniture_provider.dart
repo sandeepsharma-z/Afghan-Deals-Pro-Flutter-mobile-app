@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../../features/listings/data/models/furniture_listing_model.dart';
 import '../../../../admin/presentation/providers/admin_dynamic_provider.dart';
+import '../../../../../features/home/presentation/providers/country_provider.dart';
 
 const _unset = Object();
 
@@ -179,12 +180,17 @@ final furnitureFilterProvider = StateProvider.autoDispose<FurnitureFilter>(
 
 // ── Listings providers ─────────────────────────────────────────────────────
 Future<List<FurnitureListingModel>> _fetchFurniture(
-    {String subcategory = ''}) async {
+    {String subcategory = '', String country = ''}) async {
   var query = Supabase.instance.client
       .from('listings')
       .select()
       .eq('category', 'furniture')
       .eq('is_active', true);
+
+  if (country.isNotEmpty) {
+    query = query.ilike('country', country);
+  }
+
   if (subcategory.isNotEmpty) {
     query = query.eq('subcategory', subcategory);
   }
@@ -196,12 +202,14 @@ Future<List<FurnitureListingModel>> _fetchFurniture(
 
 final furnitureListingsProvider =
     FutureProvider.autoDispose<List<FurnitureListingModel>>((ref) async {
-  return _fetchFurniture();
+  final selectedCountry = ref.watch(selectedCountryProvider);
+  return _fetchFurniture(country: selectedCountry);
 });
 
 final furnitureBySubcategoryProvider = FutureProvider.autoDispose
     .family<List<FurnitureListingModel>, String>((ref, subcategory) async {
-  return _fetchFurniture(subcategory: subcategory);
+  final selectedCountry = ref.watch(selectedCountryProvider);
+  return _fetchFurniture(subcategory: subcategory, country: selectedCountry);
 });
 
 final furnitureFilteredProvider = FutureProvider.autoDispose

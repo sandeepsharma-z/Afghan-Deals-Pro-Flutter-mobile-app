@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../core/widgets/favorite_button.dart';
+import '../../../../../core/widgets/translated_text.dart';
 import '../providers/furniture_provider.dart';
 import '../../../../../features/listings/data/models/furniture_listing_model.dart';
 import 'furniture_detail_screen.dart';
@@ -112,7 +113,7 @@ class _FurnitureListingsScreenState
                       const Icon(Icons.chair_outlined,
                           size: 64, color: Colors.black26),
                       const SizedBox(height: 12),
-                      Text('No listings found',
+                      Text('No listings',
                           style: GoogleFonts.poppins(
                               fontSize: 15, color: Colors.black45)),
                     ]),
@@ -343,7 +344,7 @@ class _FurnitureResultCardState extends State<_FurnitureResultCard> {
                           fontSize: 7.5, color: const Color(0xFF505050))),
                 ],
               ),
-              Text(item.title,
+              TranslatedText(item.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.poppins(

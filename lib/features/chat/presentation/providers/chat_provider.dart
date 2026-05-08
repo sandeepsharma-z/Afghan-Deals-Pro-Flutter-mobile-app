@@ -209,7 +209,7 @@ final chatMessagesProvider = StreamProvider.autoDispose
 // Total unread across all chats (for bottom nav badge)
 final totalUnreadProvider = Provider.autoDispose<int>((ref) {
   final threads = ref.watch(chatThreadsProvider).valueOrNull ?? [];
-  return threads.fold(0, (sum, t) => sum + t.unreadCount);
+  return threads.where((thread) => thread.unreadCount > 0).length;
 });
 
 // Streams the current user's chat-ban status in real time

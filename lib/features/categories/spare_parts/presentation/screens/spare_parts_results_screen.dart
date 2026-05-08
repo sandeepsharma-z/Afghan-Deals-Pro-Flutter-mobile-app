@@ -379,7 +379,7 @@ class _SparePartsResultsScreenState
           if (listings.isEmpty) {
             return Center(
               child: Text(
-                'No listings found',
+                'No listings',
                 style: GoogleFonts.poppins(fontSize: 14, color: Colors.black54),
               ),
             );

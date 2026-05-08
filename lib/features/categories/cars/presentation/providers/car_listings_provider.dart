@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../features/listings/data/models/car_sale_model.dart';
+import '../../../../../features/home/presentation/providers/country_provider.dart';
 
 dynamic _applySubcategoryFilter(dynamic query, String rawSubcategory) {
   final key = rawSubcategory.trim().toLowerCase();
@@ -23,13 +24,18 @@ dynamic _applySubcategoryFilter(dynamic query, String rawSubcategory) {
 final carListingsProvider = FutureProvider.autoDispose
     .family<List<CarSaleModel>, String>((ref, subcategory) async {
   final key = subcategory.trim().toLowerCase();
+  final selectedCountry = ref.watch(selectedCountryProvider);
 
-  final baseQuery = Supabase.instance.client
+  var baseQuery = Supabase.instance.client
       .from('listings')
       .select(
           'id,seller_id,title,description,seller_name,price,currency,images,city,region,is_featured,created_at,category_data')
       .eq('category', 'cars')
       .eq('is_active', true);
+
+  if (selectedCountry.isNotEmpty) {
+    baseQuery = baseQuery.ilike('country', selectedCountry);
+  }
 
   final query = _applySubcategoryFilter(baseQuery, key);
 

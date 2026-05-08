@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../core/widgets/favorite_button.dart';
+import '../../../../../core/localization/app_localizations.dart';
 import '../../../../chat/presentation/providers/chat_provider.dart';
 import '../../../../../features/listings/data/models/jobs_listing_model.dart';
 
@@ -367,7 +368,7 @@ class _JobsDetailScreenState extends ConsumerState<JobsDetailScreen> {
               ),
               const SizedBox(height: 20),
               Text(
-                'Share Listing',
+                context.l10n.t('share_listing'),
                 style: GoogleFonts.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -377,14 +378,14 @@ class _JobsDetailScreenState extends ConsumerState<JobsDetailScreen> {
               const SizedBox(height: 20),
               ListTile(
                 leading: const Icon(Icons.copy, color: Color(0xFF2258A8)),
-                title: Text('Copy to Clipboard',
+                title: Text(context.l10n.t('copy_to_clipboard'),
                     style: GoogleFonts.poppins(fontSize: 14)),
                 onTap: () {
                   Clipboard.setData(ClipboardData(text: shareText));
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Copied: $itemName'),
+                      content: Text(context.l10n.t('copied_text').replaceAll('{text}', itemName)),
                       duration: const Duration(seconds: 2),
                     ),
                   );
@@ -392,13 +393,13 @@ class _JobsDetailScreenState extends ConsumerState<JobsDetailScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.message, color: Color(0xFF2258A8)),
-                title: Text('Share via Message',
+                title: Text(context.l10n.t('share_via_message'),
                     style: GoogleFonts.poppins(fontSize: 14)),
                 onTap: () {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Shared: $itemName'),
+                      content: Text('${context.l10n.t('shared')}: $itemName'),
                       duration: const Duration(seconds: 2),
                     ),
                   );
@@ -407,7 +408,7 @@ class _JobsDetailScreenState extends ConsumerState<JobsDetailScreen> {
               ListTile(
                 leading: const Icon(Icons.link, color: Color(0xFF2258A8)),
                 title:
-                    Text('Copy Link', style: GoogleFonts.poppins(fontSize: 14)),
+                    Text(context.l10n.t('copy_link'), style: GoogleFonts.poppins(fontSize: 14)),
                 onTap: () {
                   Clipboard.setData(
                     ClipboardData(
@@ -416,7 +417,7 @@ class _JobsDetailScreenState extends ConsumerState<JobsDetailScreen> {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Link copied for $itemName'),
+                      content: Text(context.l10n.t('link_copied').replaceAll('{text}', itemName)),
                       duration: const Duration(seconds: 2),
                     ),
                   );

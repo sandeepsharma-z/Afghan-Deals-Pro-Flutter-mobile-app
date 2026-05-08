@@ -9,6 +9,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_bottom_nav.dart';
+import '../../../../../core/localization/app_localizations.dart';
 import '../providers/auth_provider.dart';
 
 class OnboardingScreen extends ConsumerWidget {
@@ -63,7 +64,8 @@ class OnboardingScreen extends ConsumerWidget {
                       const Icon(Icons.info_outline,
                           size: 18, color: AppColors.grey),
                       const SizedBox(width: 4),
-                      Text('Help', style: AppTextStyles.caption),
+                      Text(context.l10n.t('help'),
+                          style: AppTextStyles.caption),
                     ],
                   ),
                 ],
@@ -83,14 +85,14 @@ class OnboardingScreen extends ConsumerWidget {
                     const SizedBox(height: 20),
 
                     Text(
-                      'Welcome to AFGHAN DEALS PRO',
+                      context.l10n.t('welcome_title'),
                       textAlign: TextAlign.center,
                       style: AppTextStyles.heading2,
                     ),
                     const SizedBox(height: 10),
 
                     Text(
-                      'The trusted community of\nbuyers and sellers',
+                      context.l10n.t('welcome_subtitle'),
                       textAlign: TextAlign.center,
                       style: AppTextStyles.caption.copyWith(height: 1.5),
                     ),
@@ -105,7 +107,7 @@ class OnboardingScreen extends ConsumerWidget {
                           const Icon(Icons.smartphone_outlined,
                               size: 20, color: AppColors.black),
                           const SizedBox(width: 10),
-                          Text('Continue with Phone',
+                          Text(context.l10n.t('continue_phone'),
                               style: AppTextStyles.label),
                         ],
                       ),
@@ -126,7 +128,7 @@ class OnboardingScreen extends ConsumerWidget {
                         children: [
                           _GoogleIcon(),
                           const SizedBox(width: 10),
-                          Text('Continue with Google',
+                          Text(context.l10n.t('continue_google'),
                               style: AppTextStyles.label),
                         ],
                       ),
@@ -135,7 +137,7 @@ class OnboardingScreen extends ConsumerWidget {
 
                     // Sign in with Apple
                     AppButton(
-                      label: 'Sign in with Apple',
+                      label: context.l10n.t('sign_in_apple'),
                       onTap: isLoading
                           ? null
                           : () async {
@@ -158,7 +160,8 @@ class OnboardingScreen extends ConsumerWidget {
                                 color: AppColors.greyBorder, thickness: 1)),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Text('OR', style: AppTextStyles.small),
+                          child: Text(context.l10n.t('or'),
+                              style: AppTextStyles.small),
                         ),
                         const Expanded(
                             child: Divider(
@@ -171,7 +174,7 @@ class OnboardingScreen extends ConsumerWidget {
                     GestureDetector(
                       onTap: () => context.push(RouteNames.signIn),
                       child: Text(
-                        'Login with Email',
+                        context.l10n.t('login_email'),
                         style: AppTextStyles.bodyBold.copyWith(
                           color: AppColors.primary,
                           decoration: TextDecoration.underline,
@@ -188,11 +191,9 @@ class OnboardingScreen extends ConsumerWidget {
                       text: TextSpan(
                         style: AppTextStyles.small.copyWith(height: 1.6),
                         children: [
-                          const TextSpan(
-                              text: 'If you continue, you are accepting\n'),
+                          TextSpan(text: context.l10n.t('terms_intro')),
                           TextSpan(
-                            text:
-                                'AFGHAN DEALS PRO Terms and Conditions\nand Privacy Policy',
+                            text: context.l10n.t('terms_text'),
                             style: AppTextStyles.small.copyWith(
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.grey),

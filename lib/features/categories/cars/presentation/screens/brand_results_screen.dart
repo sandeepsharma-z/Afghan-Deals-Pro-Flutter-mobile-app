@@ -399,7 +399,7 @@ class _BrandResultsScreenState extends ConsumerState<BrandResultsScreen> {
                   const Icon(Icons.directions_car_outlined,
                       size: 64, color: Color(0xFFCCCCCC)),
                   const SizedBox(height: 12),
-                  Text('No listings found',
+                  Text('No listings',
                       style: GoogleFonts.poppins(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,

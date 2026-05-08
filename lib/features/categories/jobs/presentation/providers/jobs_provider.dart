@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../../features/listings/data/models/jobs_listing_model.dart';
 import '../../../../admin/presentation/providers/admin_dynamic_provider.dart';
+import '../../../../../features/home/presentation/providers/country_provider.dart';
 
 const _unset = Object();
 
@@ -302,13 +303,19 @@ final jobsFilterProvider =
     StateProvider.autoDispose<JobsFilter>((ref) => const JobsFilter());
 
 // ── Listings providers ─────────────────────────────────────────────────────
-Future<List<JobsListingModel>> _fetchJobs({String subcategory = ''}) async {
-  final response = await Supabase.instance.client
+Future<List<JobsListingModel>> _fetchJobs(
+    {String subcategory = '', String country = ''}) async {
+  var query = Supabase.instance.client
       .from('listings')
       .select()
       .eq('category', 'jobs')
-      .eq('is_active', true)
-      .order('created_at', ascending: false);
+      .eq('is_active', true);
+
+  if (country.isNotEmpty) {
+    query = query.ilike('country', country);
+  }
+
+  final response = await query.order('created_at', ascending: false);
   final items = (response as List<dynamic>)
       .map((e) => JobsListingModel.fromMap(e as Map<String, dynamic>))
       .toList();
@@ -320,12 +327,14 @@ Future<List<JobsListingModel>> _fetchJobs({String subcategory = ''}) async {
 
 final jobsListingsProvider =
     FutureProvider.autoDispose<List<JobsListingModel>>((ref) async {
-  return _fetchJobs();
+  final selectedCountry = ref.watch(selectedCountryProvider);
+  return _fetchJobs(country: selectedCountry);
 });
 
 final jobsBySubcategoryProvider = FutureProvider.autoDispose
     .family<List<JobsListingModel>, String>((ref, subcategory) async {
-  return _fetchJobs(subcategory: subcategory);
+  final selectedCountry = ref.watch(selectedCountryProvider);
+  return _fetchJobs(subcategory: subcategory, country: selectedCountry);
 });
 
 final jobsFilteredProvider = FutureProvider.autoDispose

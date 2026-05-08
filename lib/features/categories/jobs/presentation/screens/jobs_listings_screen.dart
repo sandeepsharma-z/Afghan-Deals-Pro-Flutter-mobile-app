@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../providers/jobs_provider.dart';
 import '../../../../../core/router/route_names.dart';
 import '../../../../../core/widgets/favorite_button.dart';
+import '../../../../../core/widgets/translated_text.dart';
 import '../../../../../features/chat/presentation/providers/chat_provider.dart';
 import '../../../../../features/listings/data/models/jobs_listing_model.dart';
 import 'jobs_detail_screen.dart';
@@ -398,7 +399,7 @@ class _JobResultCardState extends State<_JobResultCard> {
                       ),
                     ],
                   ),
-                  Text(item.title,
+                  TranslatedText(item.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(

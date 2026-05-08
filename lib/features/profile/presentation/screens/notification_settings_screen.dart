@@ -79,8 +79,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 GestureDetector(
-                  onTap: () =>
-                      ref.invalidate(notificationSettingsProvider),
+                  onTap: () => ref.invalidate(notificationSettingsProvider),
                   child: Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
@@ -118,7 +117,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                   },
                 ),
                 const SizedBox(height: 12),
-                _SectionHeader(title: 'Messages & Activity'),
+                const _SectionHeader(title: 'Messages & Activity'),
                 _ToggleTile(
                   icon: Icons.chat_bubble_outline,
                   iconBg: const Color(0xFFE8F8EF),
@@ -133,7 +132,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                     ref.invalidate(notificationSettingsProvider);
                   },
                 ),
-                _Divider(),
+                const _Divider(),
                 _ToggleTile(
                   icon: Icons.local_offer_outlined,
                   iconBg: const Color(0xFFE8F0FB),
@@ -148,7 +147,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                     ref.invalidate(notificationSettingsProvider);
                   },
                 ),
-                _Divider(),
+                const _Divider(),
                 _ToggleTile(
                   icon: Icons.favorite_border,
                   iconBg: const Color(0xFFFEEBEB),
@@ -164,7 +163,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                   },
                 ),
                 const SizedBox(height: 12),
-                _SectionHeader(title: 'Deals & Updates'),
+                const _SectionHeader(title: 'Deals & Updates'),
                 _ToggleTile(
                   icon: Icons.trending_down_outlined,
                   iconBg: const Color(0xFFFFF8E1),
@@ -179,7 +178,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                     ref.invalidate(notificationSettingsProvider);
                   },
                 ),
-                _Divider(),
+                const _Divider(),
                 _ToggleTile(
                   icon: Icons.campaign_outlined,
                   iconBg: const Color(0xFFFFF8E1),
@@ -194,7 +193,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                     ref.invalidate(notificationSettingsProvider);
                   },
                 ),
-                _Divider(),
+                const _Divider(),
                 _ToggleTile(
                   icon: Icons.newspaper_outlined,
                   iconBg: const Color(0xFFE8F0FB),
@@ -210,7 +209,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                   },
                 ),
                 const SizedBox(height: 12),
-                _SectionHeader(title: 'Account'),
+                const _SectionHeader(title: 'Account'),
                 _ToggleTile(
                   icon: Icons.security_outlined,
                   iconBg: const Color(0xFFE8F8EF),

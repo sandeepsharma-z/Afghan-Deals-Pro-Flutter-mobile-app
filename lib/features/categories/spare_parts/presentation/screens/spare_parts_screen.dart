@@ -241,7 +241,7 @@ class _TopDealsHeader extends StatelessWidget {
           onTap: onSeeAll,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-            child: Text('See all',
+            child: Text('See All',
                 style: GoogleFonts.poppins(
                     fontSize: 11, fontWeight: FontWeight.w500)),
           ),

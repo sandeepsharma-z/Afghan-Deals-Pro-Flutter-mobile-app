@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/router/route_names.dart';
+import '../../../../../core/localization/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/profile_provider.dart';
 import '../providers/profile_options_provider.dart';
@@ -93,8 +94,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile saved successfully!'),
+          SnackBar(
+            content: Text(context.l10n.t('profile_saved_successfully')),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
           ),
@@ -104,7 +105,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to save: $e'),
+            content: Text('${context.l10n.t('failed_to_save')}: $e'),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
           ),
@@ -217,7 +218,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           onPressed: () => context.pop(),
         ),
         title: Text(
-          'My Profile',
+          context.l10n.t('my_profile'),
           style: GoogleFonts.poppins(
             fontSize: 15,
             fontWeight: FontWeight.w600,
@@ -234,7 +235,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       body: profileAsync.when(
         loading: () => const Center(
             child: CircularProgressIndicator(color: AppColors.primary)),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => Center(child: Text('${context.l10n.t('error')}: $e')),
         data: (_) => Column(
           children: [
             Expanded(
@@ -244,34 +245,34 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 20),
-                    Text('Profile Name',
+                    Text(context.l10n.t('profile_name'),
                         style: GoogleFonts.montserrat(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: Colors.black)),
                     const SizedBox(height: 4),
-                    Text('This is displayed on your profile',
+                    Text(context.l10n.t('displayed_on_profile'),
                         style:
                             GoogleFonts.montserrat(fontSize: 13, color: _grey)),
                     const SizedBox(height: 18),
-                    _label('First Name'),
+                    _label(context.l10n.t('first_name')),
                     const SizedBox(height: 6),
-                    _inputField(controller: _firstNameCtrl, hint: 'First Name'),
+                    _inputField(controller: _firstNameCtrl, hint: context.l10n.t('first_name')),
                     const SizedBox(height: 14),
-                    _label('Last Name'),
+                    _label(context.l10n.t('last_name')),
                     const SizedBox(height: 6),
-                    _inputField(controller: _lastNameCtrl, hint: 'Last Name'),
+                    _inputField(controller: _lastNameCtrl, hint: context.l10n.t('last_name')),
                     const SizedBox(height: 24),
                     const Divider(
                         height: 1, thickness: 1, color: Color(0xFFE0E0E0)),
                     const SizedBox(height: 24),
-                    Text('Account details',
+                    Text(context.l10n.t('account_details'),
                         style: GoogleFonts.montserrat(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: Colors.black)),
                     const SizedBox(height: 4),
-                    Text('This is not visible to other users',
+                    Text(context.l10n.t('not_visible_to_others'),
                         style:
                             GoogleFonts.montserrat(fontSize: 13, color: _grey)),
                     const SizedBox(height: 18),
@@ -279,24 +280,24 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       const Icon(Icons.calendar_today_outlined,
                           size: 16, color: Colors.black54),
                       const SizedBox(width: 6),
-                      _label('Date of Birth'),
+                      _label(context.l10n.t('date_of_birth')),
                     ]),
                     const SizedBox(height: 6),
-                    _inputField(controller: _dobCtrl, hint: 'Date of Birth'),
+                    _inputField(controller: _dobCtrl, hint: context.l10n.t('select_date_of_birth')),
                     const SizedBox(height: 14),
                     Row(children: [
                       const Icon(Icons.language_outlined,
                           size: 16, color: Colors.black54),
                       const SizedBox(width: 6),
-                      _label('Nationality'),
+                      _label(context.l10n.t('nationality')),
                     ]),
                     const SizedBox(height: 6),
                     _dropdownField(
                       value: _nationalityCtrl.text.trim().isEmpty
-                          ? 'Select nationality'
+                          ? context.l10n.t('select_nationality')
                           : _nationalityCtrl.text.trim(),
                       onTap: () => _showOptionPicker(
-                        title: 'Nationality',
+                        title: context.l10n.t('nationality'),
                         options: nationalities,
                         onSelect: (v) =>
                             setState(() => _nationalityCtrl.text = v),
@@ -307,7 +308,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       const Icon(Icons.person_outline,
                           size: 16, color: Colors.black54),
                       const SizedBox(width: 6),
-                      _label('Gender'),
+                      _label(context.l10n.t('gender')),
                     ]),
                     const SizedBox(height: 10),
                     Wrap(
@@ -341,7 +342,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           child: CircularProgressIndicator(
                               strokeWidth: 2, color: Colors.white),
                         )
-                      : Text('Save Changes',
+                      : Text(context.l10n.t('save_changes'),
                           style: GoogleFonts.montserrat(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,

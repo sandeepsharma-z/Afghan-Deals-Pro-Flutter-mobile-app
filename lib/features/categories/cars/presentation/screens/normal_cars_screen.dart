@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/router/route_names.dart';
 import '../../../../../core/widgets/favorite_button.dart';
+import '../../../../../core/localization/app_language_provider.dart';
+import '../../../../../features/home/presentation/providers/country_provider.dart';
 import '../../../../../features/listings/data/models/car_sale_model.dart';
 import '../providers/car_brands_provider.dart';
 import '../providers/car_listings_provider.dart';
@@ -182,7 +184,6 @@ class NormalCarsScreen extends ConsumerStatefulWidget {
 
 class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
   String _activeFilter = 'All';
-  String _selectedCountry = 'Afghanistan';
   String _selectedSort = 'Newest to Oldest';
   String _selectedBodyType = 'All';
   String _selectedCondition = 'All';
@@ -276,9 +277,9 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
           _Country('KSA', 'SA', 'assets/images/flags/ksa.png', '+966'),
           _Country('Syria', 'SY', 'assets/images/flags/syria.png', '+963'),
         ],
-        selected: _selectedCountry,
+        selected: ref.watch(selectedCountryProvider),
         onSelect: (c) {
-          setState(() => _selectedCountry = c);
+          ref.read(selectedCountryProvider.notifier).setCountry(c);
           context.pop();
         },
       ),
@@ -295,6 +296,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(appLanguageProvider);
     final asyncCars = ref.watch(carListingsProvider(widget.subcategory));
     final asyncBrands =
         ref.watch(carBrandsBySubcategoryProvider(widget.subcategory));
@@ -358,7 +360,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
                                               size: 64,
                                               color: Color(0xFFCCCCCC)),
                                           SizedBox(height: 12),
-                                          Text('No listings yet',
+                                          Text('No listings',
                                               style: TextStyle(
                                                   fontSize: 15,
                                                   color: Colors.black45)),
@@ -393,6 +395,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
 
   // ── Same header as HomeScreen ──────────────────────────────────────────────
   Widget _buildHeader(BuildContext context) {
+    final selectedCountry = ref.watch(selectedCountryProvider);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
@@ -411,13 +414,13 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _flagImageFor(_selectedCountry) != null
-                      ? Image.asset(_flagImageFor(_selectedCountry)!,
+                  _flagImageFor(selectedCountry) != null
+                      ? Image.asset(_flagImageFor(selectedCountry)!,
                           width: 22, height: 22, fit: BoxFit.cover)
-                      : Text(_flagFor(_selectedCountry),
+                      : Text(_flagFor(selectedCountry),
                           style: const TextStyle(fontSize: 15)),
                   const SizedBox(width: 5),
-                  Text(_selectedCountry,
+                  Text(selectedCountry,
                       style: GoogleFonts.montserrat(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
@@ -495,18 +498,6 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
                 },
                 child: const Icon(Icons.close, size: 14, color: Colors.black45),
               ),
-            const SizedBox(width: 8),
-            GestureDetector(
-              onTap: () => _openFilterSheet(cars),
-              child: SvgPicture.asset('assets/icons/filter.svg',
-                  width: 16, height: 16),
-            ),
-            const SizedBox(width: 10),
-            GestureDetector(
-              onTap: _openSortSheet,
-              child: SvgPicture.asset('assets/icons/bars_sort.svg',
-                  width: 16, height: 16),
-            ),
             const SizedBox(width: 12),
           ],
         ),
@@ -538,7 +529,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
                 ),
               ),
             ),
-            child: Text('See all',
+            child: Text('See All',
                 style: GoogleFonts.poppins(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
@@ -593,7 +584,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
               const Icon(Icons.directions_car_outlined,
                   size: 64, color: Colors.black26),
               const SizedBox(height: 12),
-              Text('No listings found',
+              Text('No listings',
                   style:
                       GoogleFonts.poppins(fontSize: 14, color: Colors.black45)),
             ],
@@ -689,6 +680,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
     return copy;
   }
 
+  // ignore: unused_element
   void _openSortSheet() {
     showModalBottomSheet(
       context: context,
@@ -762,6 +754,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
     );
   }
 
+  // ignore: unused_element
   void _openFilterSheet(List<CarSaleModel> cars) {
     if (widget.subcategory.trim().toLowerCase().contains('new')) {
       _openDynamicFilterScreen(cars);
@@ -1349,7 +1342,7 @@ class _CarCardState extends State<_CarCard> {
                     listingId: car.id,
                     size: 28,
                     backgroundColor: const Color(0x100F172A),
-                        showShadow: false,
+                    showShadow: false,
                     unselectedIconColor: Colors.white,
                     selectedIconColor: Colors.red,
                   ),
@@ -2169,7 +2162,7 @@ class _AllCarsScreenState extends ConsumerState<_AllCarsScreen> {
                           const Icon(Icons.directions_car_outlined,
                               size: 64, color: Colors.black26),
                           const SizedBox(height: 12),
-                          Text('No listings found',
+                          Text('No listings',
                               style: GoogleFonts.poppins(
                                   fontSize: 14, color: Colors.black45)),
                         ],

@@ -6,7 +6,7 @@ import 'property_listings_screen.dart';
 
 const _kBlue = Color(0xFF2258A8);
 const _kBaseUrl =
-    'https://nxgniehrrcpqqymorjxq.supabase.co/storage/v1/object/public/category-images/properties';
+    'https://cmebycscxjeudegsqzmx.supabase.co/storage/v1/object/public/category-images/properties';
 
 class _Subtype {
   final String name;
@@ -328,8 +328,6 @@ class _PropertySubtypeScreenState extends State<PropertySubtypeScreen> {
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          SvgPicture.asset('assets/icons/filter.svg', width: 16, height: 16),
           const SizedBox(width: 12),
         ],
       ),

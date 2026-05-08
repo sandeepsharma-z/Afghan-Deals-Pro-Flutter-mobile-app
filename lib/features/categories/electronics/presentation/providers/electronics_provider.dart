@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../../features/listings/data/models/electronics_listing_model.dart';
 import '../../../../admin/presentation/providers/admin_dynamic_provider.dart';
+import '../../../../../features/home/presentation/providers/country_provider.dart';
 
 const _unset = Object();
 
@@ -147,12 +148,17 @@ final electronicsFilterProvider = StateProvider.autoDispose<ElectronicsFilter>(
 
 // ── Listings providers ─────────────────────────────────────────────────────
 Future<List<ElectronicsListingModel>> _fetchElectronics(
-    {String subcategory = ''}) async {
+    {String subcategory = '', String country = ''}) async {
   var query = Supabase.instance.client
       .from('listings')
       .select()
       .eq('category', 'electronics')
       .eq('is_active', true);
+
+  if (country.isNotEmpty) {
+    query = query.ilike('country', country);
+  }
+
   if (subcategory.isNotEmpty) {
     query = query.eq('subcategory', subcategory);
   }
@@ -164,12 +170,14 @@ Future<List<ElectronicsListingModel>> _fetchElectronics(
 
 final electronicsListingsProvider =
     FutureProvider.autoDispose<List<ElectronicsListingModel>>((ref) async {
-  return _fetchElectronics();
+  final selectedCountry = ref.watch(selectedCountryProvider);
+  return _fetchElectronics(country: selectedCountry);
 });
 
 final electronicsBySubcategoryProvider = FutureProvider.autoDispose
     .family<List<ElectronicsListingModel>, String>((ref, subcategory) async {
-  return _fetchElectronics(subcategory: subcategory);
+  final selectedCountry = ref.watch(selectedCountryProvider);
+  return _fetchElectronics(subcategory: subcategory, country: selectedCountry);
 });
 
 final electronicsFilteredProvider = FutureProvider.autoDispose

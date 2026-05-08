@@ -4,8 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_language_provider.dart';
+import '../../../chat/presentation/providers/chat_provider.dart';
 import '../../../chat/presentation/screens/chats_screen.dart';
 import '../../../profile/presentation/screens/account_screen.dart';
 import '../../../profile/presentation/screens/my_ads_screen.dart';
@@ -15,6 +19,7 @@ import '../../../categories/electronics/presentation/screens/electronics_screen.
 import '../../../categories/furniture/presentation/screens/furniture_screen.dart';
 import '../../../categories/jobs/presentation/screens/jobs_screen.dart';
 import '../../../categories/classifieds/presentation/screens/classifieds_screen.dart';
+import '../../../listings/presentation/screens/search_results_screen.dart';
 import '../providers/home_provider.dart';
 import '../providers/country_provider.dart';
 import '../../data/models/home_category_model.dart';
@@ -163,6 +168,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  void _showHelpSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      useRootNavigator: true,
+      builder: (_) => const _HelpSheet(),
+    );
+  }
+
   static const _slugAssets = {
     'cars': 'assets/images/categories/car.png',
     'properties': 'assets/images/categories/home.png',
@@ -285,6 +300,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(appLanguageProvider);
     final categoriesAsync = ref.watch(homeCategoriesProvider);
 
     return Scaffold(
@@ -374,12 +390,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ),
           const SizedBox(width: 12),
-          Container(
-            width: 34,
-            height: 34,
-            decoration: _headerBoxDecoration,
-            child: const Center(
-              child: Icon(Icons.help_outline, size: 22, color: Colors.black54),
+          GestureDetector(
+            onTap: _showHelpSheet,
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              width: 34,
+              height: 34,
+              decoration: _headerBoxDecoration,
+              child: const Center(
+                child:
+                    Icon(Icons.help_outline, size: 22, color: Colors.black54),
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -403,24 +424,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildDiscoverBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: const Color(0xFFC2C2C2)),
-          borderRadius: BorderRadius.circular(9),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const SearchResultsScreen()),
         ),
-        child: Row(
-          children: [
-            Image.asset('assets/images/logo.png',
-                height: 22, fit: BoxFit.contain),
-            const SizedBox(width: 10),
-            Text(
-              'Discover AFGHAN DEALS PRO Deal',
-              style:
-                  GoogleFonts.montserrat(fontSize: 13, color: Colors.black87),
-            ),
-          ],
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: const Color(0xFFC2C2C2)),
+            borderRadius: BorderRadius.circular(9),
+          ),
+          child: Row(
+            children: [
+              Image.asset('assets/images/logo.png',
+                  height: 22, fit: BoxFit.contain),
+              const SizedBox(width: 10),
+              Text(
+                context.l10n.t('discover'),
+                style:
+                    GoogleFonts.montserrat(fontSize: 13, color: Colors.black87),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -575,15 +602,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           height: 66,
           child: Row(
             children: [
-              Expanded(child: _navItem(0, Icons.home_rounded, 'HOME')),
-              Expanded(child: _navItem(1, Icons.chat_bubble_outline, 'CHATS')),
+              Expanded(
+                  child:
+                      _navItem(0, Icons.home_rounded, context.l10n.t('home'))),
+              Expanded(
+                  child: _navItem(
+                      1, Icons.chat_bubble_outline, context.l10n.t('chats'))),
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
-                      'SELL',
+                      context.l10n.t('sell'),
                       textAlign: TextAlign.center,
                       style: GoogleFonts.montserrat(
                         fontSize: 10,
@@ -595,8 +626,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ],
                 ),
               ),
-              Expanded(child: _navItem(3, Icons.favorite_border, 'MY ADS')),
-              Expanded(child: _navItem(4, Icons.person_outline, 'ACCOUNT')),
+              Expanded(
+                  child: _navItem(
+                      3, Icons.favorite_border, context.l10n.t('my_ads'))),
+              Expanded(
+                  child: _navItem(
+                      4, Icons.person_outline, context.l10n.t('account'))),
             ],
           ),
         ),
@@ -606,6 +641,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _navItem(int index, IconData icon, String label) {
     final active = _activeIndex == index;
+    final unread = index == 1 ? ref.watch(totalUnreadProvider) : 0;
     return GestureDetector(
       onTap: () {
         final isGuest = Supabase.instance.client.auth.currentUser == null;
@@ -623,8 +659,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(icon,
-                size: 24, color: active ? AppColors.navActive : Colors.black38),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(icon,
+                    size: 24,
+                    color: active ? AppColors.navActive : Colors.black38),
+                if (unread > 0)
+                  Positioned(
+                    top: -5,
+                    right: -8,
+                    child: Container(
+                      constraints:
+                          const BoxConstraints(minWidth: 15, minHeight: 15),
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFC92325),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Center(
+                        child: Text(
+                          unread > 99 ? '99+' : '$unread',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            height: 1,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
             const SizedBox(height: 7),
             Text(
               label,
@@ -679,7 +746,7 @@ class _CountrySheet extends StatelessWidget {
             child: Row(
               children: [
                 Text(
-                  'Select Country',
+                  context.l10n.t('select_country'),
                   style: GoogleFonts.montserrat(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
@@ -794,6 +861,189 @@ class _CategoryTile {
     this.imageUrl,
     this.assetPath,
   });
+}
+
+class _HelpSheet extends StatelessWidget {
+  const _HelpSheet();
+
+  static const _blue = Color(0xFF2258A8);
+
+  Future<void> _launch(String value) async {
+    final uri = Uri.parse(value);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenH = MediaQuery.of(context).size.height;
+    return Container(
+      constraints: BoxConstraints(maxHeight: screenH * 0.62),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFDDDDDD),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 16, 10, 8),
+              child: Row(
+                children: [
+                  Text(
+                    context.l10n.t('help_support'),
+                    style: GoogleFonts.montserrat(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.black54),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+            _helpItem(
+              icon: Icons.search_outlined,
+              title: context.l10n.t('find_listings'),
+              subtitle: context.l10n.t('find_listings_desc'),
+            ),
+            _helpItem(
+              icon: Icons.add_circle_outline,
+              title: context.l10n.t('post_ad'),
+              subtitle: context.l10n.t('post_ad_desc'),
+            ),
+            _helpItem(
+              icon: Icons.chat_bubble_outline,
+              title: context.l10n.t('chat_with_sellers'),
+              subtitle: context.l10n.t('chat_with_sellers_desc'),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _actionButton(
+                      icon: Icons.call_outlined,
+                      label: 'Call',
+                      onTap: () => _launch('tel:+93700000000'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _actionButton(
+                      icon: Icons.email_outlined,
+                      label: context.l10n.t('email'),
+                      onTap: () => _launch(
+                          'mailto:support@afghandealspro.com?subject=Afghan%20Deals%20Pro%20Support'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _helpItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: const BoxDecoration(
+              color: Color(0xFFEAF1FB),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 19, color: _blue),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 12,
+                    height: 1.35,
+                    color: Colors.black54,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _actionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 44,
+        decoration: BoxDecoration(
+          color: _blue,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 18, color: Colors.white),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: GoogleFonts.montserrat(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _Country {

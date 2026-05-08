@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../../core/router/route_names.dart';
 import '../../../../../core/widgets/favorite_button.dart';
+import '../../../../../core/localization/app_localizations.dart';
 import '../../../../chat/presentation/providers/chat_provider.dart';
 import '../../../../../features/listings/data/models/car_sale_model.dart';
 
@@ -239,7 +240,7 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
                         height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
                     const SizedBox(height: 14),
                     Text(
-                      'Car Overview',
+                      context.l10n.t('car_overview'),
                       style: GoogleFonts.poppins(
                         fontSize: 19.06,
                         fontWeight: FontWeight.w600,
@@ -248,15 +249,15 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    _overviewRow('Condition',
+                    _overviewRow(context.l10n.t('Condition'),
                         car.condition.isEmpty ? '-' : car.condition),
                     _overviewRow(
-                        'Body Type', car.bodyType.isEmpty ? '-' : car.bodyType),
+                        context.l10n.t('Body Type'), car.bodyType.isEmpty ? '-' : car.bodyType),
                     _overviewRow(
-                        'Fuel Type', car.fuelType.isEmpty ? '-' : car.fuelType),
-                    _overviewRow('Transmission',
+                        context.l10n.t('Fuel Type'), car.fuelType.isEmpty ? '-' : car.fuelType),
+                    _overviewRow(context.l10n.t('Transmission'),
                         car.transmission.isEmpty ? '-' : car.transmission),
-                    _overviewRow('Color', car.color.isEmpty ? '-' : car.color),
+                    _overviewRow(context.l10n.t('Color'), car.color.isEmpty ? '-' : car.color),
                     const SizedBox(height: 14),
                     const Divider(
                         height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
@@ -309,7 +310,7 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
               ),
               const SizedBox(height: 20),
               Text(
-                'Share Listing',
+                context.l10n.t('share_listing'),
                 style: GoogleFonts.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -319,14 +320,14 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
               const SizedBox(height: 20),
               ListTile(
                 leading: const Icon(Icons.copy, color: Color(0xFF2258A8)),
-                title: Text('Copy to Clipboard',
+                title: Text(context.l10n.t('copy_to_clipboard'),
                     style: GoogleFonts.poppins(fontSize: 14)),
                 onTap: () {
                   Clipboard.setData(ClipboardData(text: shareText));
                   context.pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Copied: $itemName'),
+                      content: Text(context.l10n.t('copied_text').replaceAll('{text}', itemName)),
                       duration: const Duration(seconds: 2),
                     ),
                   );
@@ -334,13 +335,13 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.message, color: Color(0xFF2258A8)),
-                title: Text('Share via Message',
+                title: Text(context.l10n.t('share_via_message'),
                     style: GoogleFonts.poppins(fontSize: 14)),
                 onTap: () {
                   context.pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Shared: $itemName'),
+                      content: Text('${context.l10n.t('shared')}: $itemName'),
                       duration: const Duration(seconds: 2),
                     ),
                   );
@@ -348,7 +349,7 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.link, color: Color(0xFF2258A8)),
-                title: Text('Copy Link',
+                title: Text(context.l10n.t('copy_link'),
                     style: GoogleFonts.poppins(fontSize: 14)),
                 onTap: () {
                   Clipboard.setData(
@@ -357,7 +358,7 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
                   context.pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Link copied for $itemName'),
+                      content: Text(context.l10n.t('link_copied').replaceAll('{text}', itemName)),
                       duration: const Duration(seconds: 2),
                     ),
                   );
