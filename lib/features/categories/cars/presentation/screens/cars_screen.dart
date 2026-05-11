@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../../core/localization/app_localizations.dart';
+import '../../../../../core/localization/localized_lookup.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../data/models/subcategory_model.dart';
 import '../providers/subcategories_provider.dart';
@@ -26,7 +28,7 @@ class CarsScreen extends ConsumerWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Cars',
+          localizedCategoryName(context.l10n, 'cars'),
           style: GoogleFonts.poppins(
             fontSize: 15,
             fontWeight: FontWeight.w600,
@@ -135,7 +137,11 @@ class _SubcategoryTile extends StatelessWidget {
               child: Row(
                 children: [
                   Text(
-                    subcategory.name,
+                    localizedCarSubcategoryName(
+                      context.l10n,
+                      subcategory.slug,
+                      fallbackName: subcategory.name,
+                    ),
                     style: GoogleFonts.montserrat(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
@@ -151,7 +157,7 @@ class _SubcategoryTile extends StatelessWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        'New',
+                        context.l10n.t('new'),
                         style: GoogleFonts.montserrat(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,

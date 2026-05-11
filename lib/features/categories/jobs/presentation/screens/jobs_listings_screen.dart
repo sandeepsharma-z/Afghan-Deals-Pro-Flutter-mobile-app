@@ -8,6 +8,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../providers/jobs_provider.dart';
+import '../../../../../core/localization/app_localizations.dart';
+import '../../../../../core/localization/localized_lookup.dart';
 import '../../../../../core/router/route_names.dart';
 import '../../../../../core/widgets/favorite_button.dart';
 import '../../../../../core/widgets/translated_text.dart';
@@ -32,6 +34,17 @@ class JobsListingsScreen extends ConsumerStatefulWidget {
 }
 
 class _JobsListingsScreenState extends ConsumerState<JobsListingsScreen> {
+  String _sortLabel(BuildContext context, String value) {
+    switch (value) {
+      case 'Salary Highest to Lowest':
+        return context.l10n.t('max_salary');
+      case 'Salary Lowest to Highest':
+        return context.l10n.t('min_salary');
+      default:
+        return localizedCarSortLabel(context.l10n, value);
+    }
+  }
+
   Future<void> _handleChat(
       WidgetRef ref, BuildContext context, JobsListingModel item) async {
     try {
@@ -77,7 +90,7 @@ class _JobsListingsScreenState extends ConsumerState<JobsListingsScreen> {
         ),
         title: Text(
           widget.subcategoryLabel.isEmpty
-              ? 'All Jobs'
+              ? context.l10n.t('jobs')
               : widget.subcategoryLabel,
           style: GoogleFonts.poppins(
             fontSize: 15,
@@ -139,7 +152,7 @@ class _JobsListingsScreenState extends ConsumerState<JobsListingsScreen> {
       body: listingsAsync.when(
         loading: () =>
             const Center(child: CircularProgressIndicator(color: _kBlue)),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => Center(child: Text('${context.l10n.t('error')}: $e')),
         data: (items) => items.isEmpty
             ? Center(
                 child: Column(
@@ -148,7 +161,7 @@ class _JobsListingsScreenState extends ConsumerState<JobsListingsScreen> {
                       const Icon(Icons.work_outline,
                           size: 64, color: Colors.black26),
                       const SizedBox(height: 12),
-                      Text('No jobs found',
+                      Text(context.l10n.t('no_jobs_found'),
                           style: GoogleFonts.poppins(
                               fontSize: 15, color: Colors.black45)),
                     ]),
@@ -200,12 +213,12 @@ class _JobsListingsScreenState extends ConsumerState<JobsListingsScreen> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Text('Sort',
+            child: Text(context.l10n.t('sort'),
                 style: GoogleFonts.poppins(
                     fontSize: 16, fontWeight: FontWeight.w600)),
           ),
           ...options.map((opt) => ListTile(
-                title: Text(opt.$1, style: GoogleFonts.poppins(fontSize: 14)),
+                title: Text(_sortLabel(context, opt.$1), style: GoogleFonts.poppins(fontSize: 14)),
                 trailing: filter.sortBy == opt.$2
                     ? const Icon(Icons.check, color: _kBlue)
                     : null,
@@ -422,7 +435,7 @@ class _JobResultCardState extends State<_JobResultCard> {
                           size: 10, color: Color(0xFF505050)),
                       const SizedBox(width: 2),
                       Expanded(
-                        child: Text(item.location,
+                        child: TranslatedText(item.location,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.poppins(

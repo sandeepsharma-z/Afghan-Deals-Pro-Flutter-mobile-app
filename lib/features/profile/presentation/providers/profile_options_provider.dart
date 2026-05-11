@@ -47,16 +47,6 @@ Future<String?> _defaultCountryFromSettings() async {
   try {
     final response = await client
         .from('app_settings')
-        .select('default_country')
-        .eq('id', 1)
-        .maybeSingle();
-    final value = response?['default_country']?.toString().trim();
-    if (value != null && value.isNotEmpty) return value;
-  } catch (_) {}
-
-  try {
-    final response = await client
-        .from('app_settings')
         .select('setting_value')
         .eq('category', 'general')
         .eq('setting_key', 'default_country')

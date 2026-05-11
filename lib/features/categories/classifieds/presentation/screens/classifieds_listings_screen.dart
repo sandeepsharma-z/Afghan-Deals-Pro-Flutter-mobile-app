@@ -8,6 +8,8 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../../core/localization/app_localizations.dart';
+import '../../../../../core/localization/localized_lookup.dart';
 import '../../../../../core/widgets/favorite_button.dart';
 import '../../../../../core/widgets/translated_text.dart';
 import '../providers/classifieds_provider.dart';
@@ -33,6 +35,9 @@ class ClassifiedsListingsScreen extends ConsumerStatefulWidget {
 
 class _ClassifiedsListingsScreenState
     extends ConsumerState<ClassifiedsListingsScreen> {
+  String _sortLabel(BuildContext context, String value) =>
+      localizedCarSortLabel(context.l10n, value);
+
   @override
   Widget build(BuildContext context) {
     final listingsAsync =
@@ -52,7 +57,7 @@ class _ClassifiedsListingsScreenState
         ),
         title: Text(
           widget.subcategoryLabel.isEmpty
-              ? 'All Classifieds'
+              ? context.l10n.t('all_classifieds')
               : widget.subcategoryLabel,
           style: GoogleFonts.poppins(
               fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black),
@@ -104,7 +109,7 @@ class _ClassifiedsListingsScreenState
       body: listingsAsync.when(
         loading: () =>
             const Center(child: CircularProgressIndicator(color: _kBlue)),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => Center(child: Text('${context.l10n.t('error')}: $e')),
         data: (items) => items.isEmpty
             ? Center(
                 child: Column(
@@ -113,7 +118,7 @@ class _ClassifiedsListingsScreenState
                     const Icon(Icons.grid_view_outlined,
                         size: 64, color: Colors.black26),
                     const SizedBox(height: 12),
-                    Text('No listings',
+                    Text(context.l10n.t('no_listings'),
                         style: GoogleFonts.poppins(
                             fontSize: 15, color: Colors.black45)),
                   ]))
@@ -162,12 +167,12 @@ class _ClassifiedsListingsScreenState
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Text('Sort',
+            child: Text(context.l10n.t('sort'),
                 style: GoogleFonts.poppins(
                     fontSize: 16, fontWeight: FontWeight.w600)),
           ),
           ...options.map((opt) => ListTile(
-                title: Text(opt.$1, style: GoogleFonts.poppins(fontSize: 14)),
+                title: Text(_sortLabel(context, opt.$1), style: GoogleFonts.poppins(fontSize: 14)),
                 trailing: filter.sortBy == opt.$2
                     ? const Icon(Icons.check, color: _kBlue)
                     : null,
@@ -352,7 +357,7 @@ class _ClassifiedCardState extends State<_ClassifiedCard> {
                 style: GoogleFonts.poppins(fontSize: 10, color: Colors.black54),
               ),
               if (item.condition.isNotEmpty)
-                Text('Age: ${item.condition}',
+                Text('${context.l10n.t('Age')}: ${item.condition}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
@@ -363,7 +368,7 @@ class _ClassifiedCardState extends State<_ClassifiedCard> {
                     size: 10, color: Color(0xFF505050)),
                 const SizedBox(width: 2),
                 Expanded(
-                    child: Text(item.location,
+                    child: TranslatedText(item.location,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(

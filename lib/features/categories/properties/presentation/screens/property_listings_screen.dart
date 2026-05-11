@@ -9,6 +9,8 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../../core/localization/app_localizations.dart';
+import '../../../../../core/localization/localized_lookup.dart';
 import '../../../../../core/router/route_names.dart';
 import '../../../../../core/widgets/favorite_button.dart';
 import '../../../../../core/widgets/translated_text.dart';
@@ -71,6 +73,9 @@ class _PropertyListingsScreenState
     'Price Highest to Lowest',
     'Price Lowest to Highest',
   ];
+
+  String _sortLabel(BuildContext context, String value) =>
+      localizedCarSortLabel(context.l10n, value);
 
   List<PropertyListingModel> _applyFilters(
       List<PropertyListingModel> listings) {
@@ -198,7 +203,7 @@ class _PropertyListingsScreenState
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Text('Sort',
+                child: Text(context.l10n.t('sort'),
                     style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -229,7 +234,7 @@ class _PropertyListingsScreenState
                       child: Row(
                         children: [
                           Expanded(
-                            child: Text(item,
+                        child: Text(_sortLabel(context, item),
                                 style: GoogleFonts.poppins(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
@@ -351,7 +356,7 @@ class _PropertyListingsScreenState
         loading: () =>
             const Center(child: CircularProgressIndicator(color: _kBlue)),
         error: (e, _) => Center(
-            child: Text('Error: $e',
+            child: Text('${context.l10n.t('error')}: $e',
                 style: GoogleFonts.poppins(fontSize: 13, color: Colors.red))),
         data: (allListings) {
           // Client-side type filter
@@ -377,7 +382,7 @@ class _PropertyListingsScreenState
                             const Icon(Icons.home_work_outlined,
                                 size: 64, color: Color(0xFFCCCCCC)),
                             const SizedBox(height: 12),
-                            Text('No properties found',
+                            Text(context.l10n.t('no_listings'),
                                 style: GoogleFonts.poppins(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
@@ -578,7 +583,7 @@ class _PropertyCardState extends State<_PropertyCard> {
                         color: const Color(0xFFFFC107),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: Text('Featured',
+                      child: Text(context.l10n.t('featured'),
                           style: GoogleFonts.poppins(
                               color: Colors.white,
                               fontSize: 7,
@@ -629,7 +634,7 @@ class _PropertyCardState extends State<_PropertyCard> {
                           size: 10, color: Color(0xFF505050)),
                       const SizedBox(width: 2),
                       Expanded(
-                        child: Text(item.location,
+                        child: TranslatedText(item.location,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.poppins(

@@ -369,7 +369,7 @@ class _FurnitureResultCardState extends State<_FurnitureResultCard> {
                     size: 10, color: Color(0xFF505050)),
                 const SizedBox(width: 2),
                 Expanded(
-                  child: Text(item.location,
+                  child: TranslatedText(item.location,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(

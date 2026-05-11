@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/router/route_names.dart';
+import '../../../../core/widgets/translated_text.dart';
 import '../../../../core/widgets/app_bottom_nav.dart';
 import '../../../categories/cars/presentation/screens/car_sale_detail_screen.dart';
 import '../../../categories/classifieds/presentation/screens/classifieds_detail_screen.dart';
@@ -142,7 +143,7 @@ class MyAdsScreen extends ConsumerWidget {
             ),
           ),
         ),
-        title: Text(
+        title: TranslatedText(
           'My Ads',
           style: GoogleFonts.montserrat(
             fontSize: 17,
@@ -165,7 +166,7 @@ class MyAdsScreen extends ConsumerWidget {
                 children: [
                   const Icon(Icons.error_outline, size: 48, color: Colors.red),
                   const SizedBox(height: 16),
-                  Text(
+                  TranslatedText(
                     'Error loading ads',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.montserrat(
@@ -186,7 +187,7 @@ class MyAdsScreen extends ConsumerWidget {
                         border: Border.all(color: Colors.blue),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: Text(
+                      child: TranslatedText(
                         'Retry',
                         style: GoogleFonts.montserrat(
                           fontSize: 14,
@@ -211,7 +212,7 @@ class MyAdsScreen extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    TranslatedText(
                       'My Ads',
                       style: GoogleFonts.montserrat(
                         fontSize: 14,
@@ -243,7 +244,7 @@ class MyAdsScreen extends ConsumerWidget {
                         const Icon(Icons.inventory_2_outlined,
                             size: 40, color: Colors.black26),
                         const SizedBox(height: 8),
-                        Text(
+                        TranslatedText(
                           'No ads yet',
                           style: GoogleFonts.montserrat(
                             fontSize: 14,
@@ -256,7 +257,7 @@ class MyAdsScreen extends ConsumerWidget {
                   )
                 else
                   SizedBox(
-                    height: 200,
+                    height: 218,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       padding: EdgeInsets.zero,
@@ -290,7 +291,7 @@ class MyAdsScreen extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Center(
-                      child: Text(
+                      child: TranslatedText(
                         'Error loading favorites',
                         style: GoogleFonts.montserrat(
                             fontSize: 12, color: Colors.red),
@@ -304,7 +305,7 @@ class MyAdsScreen extends ConsumerWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
+                            TranslatedText(
                               'My Favorites',
                               style: GoogleFonts.montserrat(
                                 fontSize: 14,
@@ -337,7 +338,7 @@ class MyAdsScreen extends ConsumerWidget {
                                 const Icon(Icons.favorite_border,
                                     size: 40, color: Colors.black26),
                                 const SizedBox(height: 8),
-                                Text(
+                                TranslatedText(
                                   'No favorites yet',
                                   style: GoogleFonts.montserrat(
                                     fontSize: 14,
@@ -358,7 +359,7 @@ class MyAdsScreen extends ConsumerWidget {
                               crossAxisCount: 2,
                               mainAxisSpacing: 10,
                               crossAxisSpacing: 14,
-                              mainAxisExtent: 180,
+                              mainAxisExtent: 212,
                             ),
                             itemCount: favorites.length,
                             itemBuilder: (context, index) {
@@ -452,7 +453,7 @@ class _AdCardState extends State<_AdCard> {
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: SizedBox(
-              height: 120,
+              height: 112,
               width: double.infinity,
               child: ad.images.isEmpty
                   ? Container(
@@ -476,31 +477,54 @@ class _AdCardState extends State<_AdCard> {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            _formatPrice(),
-            style: GoogleFonts.montserrat(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: _blue,
+          SizedBox(
+            height: 18,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: TranslatedText(
+                _formatPrice(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.montserrat(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: _blue,
+                ),
+              ),
             ),
           ),
-          Text(
-            ad.title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.montserrat(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Colors.black,
+          const SizedBox(height: 2),
+          SizedBox(
+            height: 34,
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: TranslatedText(
+                ad.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.montserrat(
+                  fontSize: 12,
+                  height: 1.2,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black,
+                ),
+              ),
             ),
           ),
-          Text(
-            ad.city ?? 'Location',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.montserrat(
-              fontSize: 12,
-              color: Colors.black54,
+          const SizedBox(height: 2),
+          SizedBox(
+            height: 16,
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: TranslatedText(
+                ad.city ?? 'Location',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.montserrat(
+                  fontSize: 12,
+                  color: Colors.black54,
+                ),
+              ),
             ),
           ),
         ],
@@ -525,7 +549,7 @@ class _ListingDetailView extends StatelessWidget {
               size: 20, color: Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
+        title: TranslatedText(
           listing.title,
           style: GoogleFonts.montserrat(
             fontSize: 16,
@@ -559,7 +583,7 @@ class _ListingDetailView extends StatelessWidget {
               ),
             const SizedBox(height: 16),
             // Price
-            Text(
+            TranslatedText(
               listing.price != null
                   ? 'AFN ${listing.price}'
                   : 'Price on request',
@@ -571,7 +595,7 @@ class _ListingDetailView extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             // Title
-            Text(
+            TranslatedText(
               listing.title,
               style: GoogleFonts.montserrat(
                 fontSize: 18,
@@ -587,7 +611,7 @@ class _ListingDetailView extends StatelessWidget {
                     size: 16, color: Colors.black54),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
+                  child: TranslatedText(
                     '${listing.city ?? 'N/A'}, ${listing.region ?? 'N/A'}',
                     style: GoogleFonts.montserrat(
                       fontSize: 14,
@@ -605,7 +629,7 @@ class _ListingDetailView extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  TranslatedText(
                     'Description',
                     style: GoogleFonts.montserrat(
                       fontSize: 14,
@@ -614,7 +638,7 @@ class _ListingDetailView extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
+                  TranslatedText(
                     listing.description!,
                     style: GoogleFonts.montserrat(
                       fontSize: 14,
@@ -625,7 +649,7 @@ class _ListingDetailView extends StatelessWidget {
                 ],
               ),
             // Category
-            Text(
+            TranslatedText(
               'Category: ${listing.category}',
               style: GoogleFonts.montserrat(
                 fontSize: 12,
@@ -634,7 +658,7 @@ class _ListingDetailView extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             // Seller
-            Text(
+            TranslatedText(
               'Seller: ${listing.sellerName}',
               style: GoogleFonts.montserrat(
                 fontSize: 12,

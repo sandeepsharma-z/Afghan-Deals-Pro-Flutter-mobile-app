@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/widgets/translated_text.dart';
 import '../../../home/presentation/screens/home_screen.dart';
 
 class FavoritesScreen extends StatelessWidget {
@@ -41,7 +42,7 @@ class FavoritesScreen extends StatelessWidget {
             ),
           ),
         ),
-        title: Text(
+        title: TranslatedText(
           'Favorites',
           style: GoogleFonts.montserrat(
             fontSize: 17,
@@ -72,7 +73,7 @@ class FavoritesScreen extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          TranslatedText(
                             'All Favorites',
                             style: GoogleFonts.montserrat(
                               fontSize: 15,
@@ -80,7 +81,7 @@ class FavoritesScreen extends StatelessWidget {
                               color: Colors.black87,
                             ),
                           ),
-                          Text(
+                          TranslatedText(
                             '${_savedAds.length} saved ad',
                             style: GoogleFonts.montserrat(
                               fontSize: 12,
@@ -95,7 +96,7 @@ class FavoritesScreen extends StatelessWidget {
                         onTap: () {},
                         child: Row(
                           children: [
-                            Text(
+                            TranslatedText(
                               'View All',
                               style: GoogleFonts.montserrat(
                                 fontSize: 13,
@@ -133,7 +134,7 @@ class FavoritesScreen extends StatelessWidget {
                   const SizedBox(height: 32),
 
                   // ── Personalized Favorite lists ────────────
-                  Text(
+                  TranslatedText(
                     'Personalized Favorite lists',
                     style: GoogleFonts.montserrat(
                       fontSize: 15,
@@ -157,7 +158,7 @@ class FavoritesScreen extends StatelessWidget {
                       children: [
                         const Icon(Icons.favorite, color: _blue, size: 36),
                         const SizedBox(height: 16),
-                        Text(
+                        TranslatedText(
                           'Create your personalized list',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.montserrat(
@@ -167,7 +168,7 @@ class FavoritesScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Text(
+                        TranslatedText(
                           'Organize your favorites',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.montserrat(
@@ -177,7 +178,7 @@ class FavoritesScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 20),
-                        Text(
+                        TranslatedText(
                           'Invite friends to view or collaborate on your list',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.montserrat(
@@ -198,7 +199,7 @@ class FavoritesScreen extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 28, vertical: 10),
                           ),
-                          child: Text(
+                          child: TranslatedText(
                             'Make A List',
                             style: GoogleFonts.montserrat(
                               fontSize: 13,

@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../../core/localization/app_localizations.dart';
+import '../../../../../core/localization/localized_lookup.dart';
 import '../../../../../core/router/route_names.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/favorite_button.dart';
@@ -38,6 +40,9 @@ class MobileListingsScreen extends ConsumerStatefulWidget {
 class _MobileListingsScreenState extends ConsumerState<MobileListingsScreen> {
   String _sortBy = 'Newest to Oldest';
   AppliedMobileFilters? _appliedFilters;
+
+  String _sortLabel(BuildContext context, String value) =>
+      localizedCarSortLabel(context.l10n, value);
 
   bool _matches(String value, Set<String> selected) {
     if (selected.isEmpty) return true;
@@ -98,7 +103,7 @@ class _MobileListingsScreenState extends ConsumerState<MobileListingsScreen> {
 
     final cities = ref.watch(mobileCitiesProvider).valueOrNull ?? <String>[];
 
-    final title = brand.isEmpty ? 'Mobile Phones' : brand;
+    final title = brand.isEmpty ? context.l10n.t('mobile_phones') : brand;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -159,7 +164,7 @@ class _MobileListingsScreenState extends ConsumerState<MobileListingsScreen> {
       body: asyncData.when(
         loading: () =>
             const Center(child: CircularProgressIndicator(color: _kBlue)),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => Center(child: Text('${context.l10n.t('error')}: $e')),
         data: (listings) {
           final sorted = _sorted(_applyFilters(listings));
           return Column(
@@ -173,7 +178,7 @@ class _MobileListingsScreenState extends ConsumerState<MobileListingsScreen> {
                             const Icon(Icons.smartphone_outlined,
                                 size: 64, color: Colors.black26),
                             const SizedBox(height: 12),
-                            Text('No listings',
+                            Text(context.l10n.t('no_listings'),
                                 style: GoogleFonts.poppins(
                                     fontSize: 16, color: Colors.black45)),
                           ],
@@ -227,7 +232,7 @@ class _MobileListingsScreenState extends ConsumerState<MobileListingsScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Sort By',
+                  Text(context.l10n.t('sort_by'),
                       style: GoogleFonts.poppins(
                           fontSize: 16, fontWeight: FontWeight.w600)),
                   IconButton(
@@ -240,7 +245,7 @@ class _MobileListingsScreenState extends ConsumerState<MobileListingsScreen> {
             ..._sortOptions.map((opt) => Column(
                   children: [
                     ListTile(
-                      title: Text(opt,
+                      title: Text(_sortLabel(context, opt),
                           style: GoogleFonts.poppins(
                               fontSize: 14,
                               fontWeight: opt == _sortBy
@@ -412,7 +417,7 @@ class _MobileListCard extends ConsumerWidget {
                         color: const Color(0xFFFFC107),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: Text('Featured',
+                      child: Text(context.l10n.t('featured'),
                           style: GoogleFonts.poppins(
                               fontSize: 7,
                               fontWeight: FontWeight.w600,
@@ -461,7 +466,7 @@ class _MobileListCard extends ConsumerWidget {
                   ),
                   // Age
                   if (listing.condition.isNotEmpty)
-                    Text('Age: ${listing.condition}',
+                    Text('${context.l10n.t('Age')}: ${listing.condition}',
                         style: GoogleFonts.poppins(
                             fontSize: 10, color: Colors.black54)),
                   const SizedBox(height: 4),
@@ -472,7 +477,7 @@ class _MobileListCard extends ConsumerWidget {
                           size: 10, color: Color(0xFF505050)),
                       const SizedBox(width: 2),
                       Expanded(
-                        child: Text(listing.location,
+                        child: TranslatedText(listing.location,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.poppins(

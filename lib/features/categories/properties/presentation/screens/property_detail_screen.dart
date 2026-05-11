@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/router/route_names.dart';
 import '../../../../../core/widgets/favorite_button.dart';
 import '../../../../../core/localization/app_localizations.dart';
+import '../../../../../core/widgets/translated_text.dart';
 import '../../../../chat/presentation/providers/chat_provider.dart';
 import '../../data/models/property_listing_model.dart';
 
@@ -183,7 +184,7 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
                       ),
                     ),
                   ),
-                  Text(
+                  TranslatedText(
                     property.title,
                     style: GoogleFonts.poppins(
                       fontSize: 17.24,
@@ -194,8 +195,10 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    'Properties${property.subcategory.isNotEmpty ? ' / ${property.subcategory}' : ''}',
+                  TranslatedText(
+                    property.subcategory.isNotEmpty
+                        ? '${context.l10n.t('category_properties')} / ${property.subcategory}'
+                        : context.l10n.t('category_properties'),
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       fontWeight: FontWeight.w400,
@@ -209,7 +212,7 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
                       const Icon(Icons.location_on_outlined,
                           size: 15, color: Color(0xFF505050)),
                       const SizedBox(width: 5),
-                      Text(
+                      TranslatedText(
                         property.location,
                         style: GoogleFonts.poppins(
                           fontSize: 11.62,
@@ -237,7 +240,7 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
                           height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
                       const SizedBox(height: 14),
                       if (property.description.isNotEmpty)
-                        Text(
+                        TranslatedText(
                           property.description,
                           style: GoogleFonts.poppins(
                             fontSize: 14,
@@ -254,18 +257,18 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
                       if (property.description.isNotEmpty)
                         const SizedBox(height: 14),
                       if (property.propertyType.isNotEmpty)
-                        _overviewRow('Property Type', property.propertyType),
+                        _overviewRow(context.l10n.t('Property Type'), property.propertyType),
                       if (property.purpose.isNotEmpty)
-                        _overviewRow('Purpose', property.purpose),
+                        _overviewRow(context.l10n.t('Purpose'), property.purpose),
                       if (property.bedrooms > 0)
-                        _overviewRow('Bedrooms', property.bedrooms.toString()),
+                        _overviewRow(context.l10n.t('Bedrooms'), property.bedrooms.toString()),
                       if (property.bathrooms > 0)
                         _overviewRow(
-                            'Bathrooms', property.bathrooms.toString()),
+                            context.l10n.t('Bathrooms'), property.bathrooms.toString()),
                       if (property.area.isNotEmpty)
-                        _overviewRow('Area', property.area),
+                        _overviewRow(context.l10n.t('Area (sqft)'), property.area),
                       if (property.furnishing.isNotEmpty)
-                        _overviewRow('Furnishing', property.furnishing),
+                        _overviewRow(context.l10n.t('Furnishing'), property.furnishing),
                       _overviewRow('Posted', property.createdAt),
                       const SizedBox(height: 14),
                       const Divider(
@@ -283,13 +286,13 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
               child: Row(
                 children: [
                   Expanded(
-                      child: _detailAction(Icons.phone_outlined, 'Call',
+                      child: _detailAction(Icons.phone_outlined, context.l10n.t('call'),
                           onTap: () => _launch('tel:${property.phone}'))),
                   const SizedBox(width: 8),
                   Expanded(child: _whatsAppAction(onTap: () => _openChat())),
                   const SizedBox(width: 8),
                   Expanded(
-                      child: _detailAction(Icons.message_outlined, 'Chat',
+                      child: _detailAction(Icons.message_outlined, context.l10n.t('chat'),
                           onTap: _openChat)),
                 ],
               ),
@@ -307,7 +310,7 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            child: Text(
+            child: TranslatedText(
               k,
               style: GoogleFonts.poppins(
                 fontSize: 17.24,
@@ -320,7 +323,7 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
           ),
           SizedBox(
             width: 132,
-            child: Text(
+            child: TranslatedText(
               v,
               textAlign: TextAlign.left,
               style: GoogleFonts.poppins(

@@ -6,8 +6,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../../core/localization/app_localizations.dart';
+import '../../../../../core/localization/localized_lookup.dart';
 import '../../../../../core/router/route_names.dart';
 import '../../../../../core/widgets/favorite_button.dart';
+import '../../../../../core/widgets/translated_text.dart';
 import '../providers/classifieds_provider.dart';
 import '../../../../../features/listings/data/models/classified_listing_model.dart';
 import '../../../../../features/home/presentation/providers/country_provider.dart';
@@ -116,7 +119,7 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
               child: listingsAsync.when(
                 loading: () => const Center(
                     child: CircularProgressIndicator(color: _kBlue)),
-                error: (e, _) => Center(child: Text('Error: $e')),
+                error: (e, _) => Center(child: Text('${context.l10n.t('error')}: $e')),
                 data: (listings) => _buildBody(listings, subcategoriesAsync),
               ),
             ),
@@ -179,10 +182,10 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
             _buildTopDealsHeader(subcategoriesAsync),
             const SizedBox(height: 12),
             if (filtered.isEmpty)
-              const SizedBox(
+              SizedBox(
                 height: 260,
                 child: Center(
-                  child: Text('No listings',
+                  child: Text(context.l10n.t('no_listings'),
                       style: TextStyle(color: Colors.black45)),
                 ),
               )
@@ -317,7 +320,7 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
             height: 39,
             child: Align(
               alignment: Alignment.topCenter,
-              child: Text(
+              child: TranslatedText(
                 label,
                 maxLines: 3,
                 textAlign: TextAlign.center,
@@ -340,7 +343,7 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Row(children: [
-            Text('Top Deals',
+            Text(context.l10n.t('top_deals'),
                 style: GoogleFonts.poppins(
                     fontSize: 14.75, fontWeight: FontWeight.w600)),
             const Spacer(),
@@ -351,7 +354,7 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
                   subcategoryLabel: 'All Classifieds',
                 ),
               )),
-              child: Text('See All',
+              child: Text(context.l10n.t('see_all'),
                   style: GoogleFonts.poppins(
                       fontSize: 11, fontWeight: FontWeight.w500)),
             ),
@@ -487,7 +490,7 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
                   : Text(_flagFor(selectedCountry),
                       style: const TextStyle(fontSize: 15)),
               const SizedBox(width: 5),
-              Text(selectedCountry,
+              Text(localizedCountryName(context.l10n, selectedCountry),
                   style: GoogleFonts.montserrat(
                       fontSize: 12, fontWeight: FontWeight.w500)),
             ]),
@@ -534,7 +537,7 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
                   isCollapsed: true,
                   filled: false,
                   fillColor: Colors.transparent,
-                  hintText: 'Search classifieds',
+                  hintText: context.l10n.t('search'),
                   hintStyle: GoogleFonts.poppins(
                       fontSize: 11,
                       fontWeight: FontWeight.w400,
@@ -704,7 +707,7 @@ class _ClassifiedCard extends StatelessWidget {
                   decoration: BoxDecoration(
                       color: const Color(0xFFFF6B00),
                       borderRadius: BorderRadius.circular(4)),
-                  child: Text('Featured',
+                  child: Text(context.l10n.t('featured'),
                       style: GoogleFonts.poppins(
                           fontSize: 9,
                           fontWeight: FontWeight.w600,
@@ -735,7 +738,7 @@ class _ClassifiedCard extends StatelessWidget {
                       height: 1.3,
                       color: _kBlue)),
               const SizedBox(height: 4),
-              Text(item.title,
+              TranslatedText(item.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.poppins(
@@ -749,7 +752,7 @@ class _ClassifiedCard extends StatelessWidget {
                     size: 12, color: Color(0xFF505050)),
                 const SizedBox(width: 3),
                 Expanded(
-                    child: Text(item.location,
+                    child: TranslatedText(item.location,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
@@ -822,7 +825,7 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
               child: listingsAsync.when(
                 loading: () => const Center(
                     child: CircularProgressIndicator(color: _kBlue)),
-                error: (e, _) => Center(child: Text('Error: $e')),
+                error: (e, _) => Center(child: Text('${context.l10n.t('error')}: $e')),
                 data: (all) {
                   final slugSet =
                       widget.subcategories.map((s) => s.slug).toSet();
@@ -930,7 +933,7 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
                   : Text(_flagFor(selectedCountry),
                       style: const TextStyle(fontSize: 15)),
               const SizedBox(width: 5),
-              Text(selectedCountry,
+              Text(localizedCountryName(context.l10n, selectedCountry),
                   style: GoogleFonts.montserrat(
                       fontSize: 12, fontWeight: FontWeight.w500)),
             ]),
@@ -969,7 +972,7 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
             const Icon(Icons.search, size: 16, color: Colors.black87),
             const SizedBox(width: 8),
             Expanded(
-                child: Text('Search books & sports...',
+                child: Text(context.l10n.t('search'),
                     style: GoogleFonts.poppins(
                         fontSize: 11, fontWeight: FontWeight.w400))),
           ]),
@@ -995,10 +998,10 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
             _buildTopDealsHeader(),
             const SizedBox(height: 12),
             if (filtered.isEmpty)
-              const SizedBox(
+              SizedBox(
                 height: 260,
                 child: Center(
-                  child: Text('No listings',
+                  child: Text(context.l10n.t('no_listings'),
                       style: TextStyle(color: Colors.black45)),
                 ),
               )
@@ -1105,7 +1108,7 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Row(children: [
-            Text('Top Deals',
+            Text(context.l10n.t('top_deals'),
                 style: GoogleFonts.poppins(
                     fontSize: 14.75, fontWeight: FontWeight.w600)),
             const Spacer(),
@@ -1116,7 +1119,7 @@ class _BooksAndSportsScreenState extends ConsumerState<_BooksAndSportsScreen> {
                   subcategoryLabel: 'Books & Sports',
                 ),
               )),
-              child: Text('See All',
+              child: Text(context.l10n.t('see_all'),
                   style: GoogleFonts.poppins(
                       fontSize: 11, fontWeight: FontWeight.w500)),
             ),
@@ -1381,14 +1384,14 @@ class _ClassifiedsCategoryScreenState
               child: specificAsync.when(
                 loading: () => const Center(
                     child: CircularProgressIndicator(color: _kBlue)),
-                error: (e, _) => Center(child: Text('Error: $e')),
+                error: (e, _) => Center(child: Text('${context.l10n.t('error')}: $e')),
                 data: (specific) {
                   // if subcategory has listings, show them; else show all classifieds
                   if (specific.isNotEmpty) return _buildBody(specific);
                   return allAsync.when(
                     loading: () => const Center(
                         child: CircularProgressIndicator(color: _kBlue)),
-                    error: (e, _) => Center(child: Text('Error: $e')),
+                    error: (e, _) => Center(child: Text('${context.l10n.t('error')}: $e')),
                     data: (all) => _buildBody(all),
                   );
                 },
@@ -1421,7 +1424,7 @@ class _ClassifiedsCategoryScreenState
             Image.asset('assets/images/flags/afghanistan.png',
                 width: 22, height: 22, fit: BoxFit.cover),
             const SizedBox(width: 5),
-            Text('Afghanistan',
+            Text(context.l10n.t('afghanistan'),
                 style: GoogleFonts.montserrat(
                     fontSize: 12, fontWeight: FontWeight.w500)),
           ]),
@@ -1505,11 +1508,11 @@ class _ClassifiedsCategoryScreenState
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Row(children: [
-                Text('Top Deals',
+                Text(context.l10n.t('top_deals'),
                     style: GoogleFonts.poppins(
                         fontSize: 14.75, fontWeight: FontWeight.w600)),
                 const Spacer(),
-                Text('${displayed.length} listings',
+                Text('${displayed.length} ${context.l10n.t('listings')}',
                     style: GoogleFonts.poppins(
                         fontSize: 11, color: Colors.black45)),
               ]),
@@ -1517,10 +1520,10 @@ class _ClassifiedsCategoryScreenState
             const SizedBox(height: 12),
             // ── Grid ─────────────────────────────────────────────────────
             if (displayed.isEmpty)
-              const SizedBox(
+                SizedBox(
                 height: 260,
                 child: Center(
-                  child: Text('No listings',
+                  child: Text(context.l10n.t('no_listings'),
                       style: TextStyle(color: Colors.black45)),
                 ),
               )
@@ -1803,7 +1806,7 @@ class _CountrySheet extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                Text('Select Country',
+                Text(context.l10n.t('select_country'),
                     style: GoogleFonts.montserrat(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,

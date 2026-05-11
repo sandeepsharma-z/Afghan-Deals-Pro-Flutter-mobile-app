@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../core/widgets/favorite_button.dart';
 import '../../../../../core/localization/app_localizations.dart';
+import '../../../../../core/widgets/translated_text.dart';
 import '../../../../chat/presentation/providers/chat_provider.dart';
 import '../../../../../features/listings/data/models/jobs_listing_model.dart';
 
@@ -182,7 +183,7 @@ class _JobsDetailScreenState extends ConsumerState<JobsDetailScreen> {
                       ),
                     ),
                   ),
-                  Text(
+                  TranslatedText(
                     item.title,
                     style: GoogleFonts.poppins(
                       fontSize: 17.24,
@@ -193,8 +194,10 @@ class _JobsDetailScreenState extends ConsumerState<JobsDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    'Jobs${item.subcategory.isNotEmpty ? ' / ${item.subcategoryLabel}' : ''}',
+                  TranslatedText(
+                    item.subcategory.isNotEmpty
+                        ? '${context.l10n.t('category_jobs')} / ${item.subcategoryLabel}'
+                        : context.l10n.t('category_jobs'),
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       fontWeight: FontWeight.w400,
@@ -208,7 +211,7 @@ class _JobsDetailScreenState extends ConsumerState<JobsDetailScreen> {
                       const Icon(Icons.location_on_outlined,
                           size: 15, color: Color(0xFF505050)),
                       const SizedBox(width: 5),
-                      Text(
+                      TranslatedText(
                         item.location,
                         style: GoogleFonts.poppins(
                           fontSize: 11.62,
@@ -236,7 +239,7 @@ class _JobsDetailScreenState extends ConsumerState<JobsDetailScreen> {
                           height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
                       const SizedBox(height: 14),
                       if (item.description.isNotEmpty)
-                        Text(
+                        TranslatedText(
                           item.description,
                           style: GoogleFonts.poppins(
                             fontSize: 14,
@@ -257,7 +260,7 @@ class _JobsDetailScreenState extends ConsumerState<JobsDetailScreen> {
                       if (item.jobType.isNotEmpty)
                         _overviewRow('Job Type', item.jobType),
                       if (item.experience.isNotEmpty)
-                        _overviewRow('Experience', item.experience),
+                        _overviewRow(context.l10n.t('experience'), item.experience),
                       if (item.industry.isNotEmpty)
                         _overviewRow('Industry', item.industry),
                       if (item.education.isNotEmpty)
@@ -279,7 +282,7 @@ class _JobsDetailScreenState extends ConsumerState<JobsDetailScreen> {
               child: Row(
                 children: [
                   Expanded(
-                      child: _detailAction(Icons.phone_outlined, 'Call',
+                      child: _detailAction(Icons.phone_outlined, context.l10n.t('call'),
                           onTap: () => _launch('tel:${item.phone}'))),
                   const SizedBox(width: 8),
                   Expanded(
@@ -288,7 +291,7 @@ class _JobsDetailScreenState extends ConsumerState<JobsDetailScreen> {
                               'https://wa.me/${item.phone.replaceAll(RegExp(r'[^0-9]'), '')}'))),
                   const SizedBox(width: 8),
                   Expanded(
-                      child: _detailAction(Icons.message_outlined, 'Chat',
+                      child: _detailAction(Icons.message_outlined, context.l10n.t('chat'),
                           onTap: _openChat)),
                 ],
               ),
@@ -306,7 +309,7 @@ class _JobsDetailScreenState extends ConsumerState<JobsDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            child: Text(
+            child: TranslatedText(
               k,
               style: GoogleFonts.poppins(
                 fontSize: 17.24,
@@ -319,7 +322,7 @@ class _JobsDetailScreenState extends ConsumerState<JobsDetailScreen> {
           ),
           SizedBox(
             width: 132,
-            child: Text(
+            child: TranslatedText(
               v,
               textAlign: TextAlign.left,
               style: GoogleFonts.poppins(

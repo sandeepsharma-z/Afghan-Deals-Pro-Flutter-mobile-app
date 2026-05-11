@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
+import '../../../../core/widgets/translated_text.dart';
 import '../../data/models/notification_model.dart';
 import '../providers/notifications_provider.dart';
 
@@ -43,7 +45,7 @@ class NotificationsScreen extends ConsumerWidget {
           ),
         ),
         title: Text(
-          'Notifications',
+          context.l10n.t('notifications'),
           style: GoogleFonts.poppins(
             fontSize: 15,
             fontWeight: FontWeight.w600,
@@ -61,7 +63,7 @@ class NotificationsScreen extends ConsumerWidget {
                   .markAllAsRead(userId);
               ref.invalidate(notificationsProvider);
             },
-            child: Text(
+            child: TranslatedText(
               'Mark all read',
               style: GoogleFonts.montserrat(
                   fontSize: 13,
@@ -85,7 +87,7 @@ class NotificationsScreen extends ConsumerWidget {
               children: [
                 const Icon(Icons.error_outline, size: 48, color: Colors.red),
                 const SizedBox(height: 16),
-                Text(
+                TranslatedText(
                   'Error loading notifications',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.montserrat(
@@ -104,7 +106,7 @@ class NotificationsScreen extends ConsumerWidget {
                       border: Border.all(color: Colors.blue),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: Text(
+                    child: TranslatedText(
                       'Retry',
                       style: GoogleFonts.montserrat(
                         fontSize: 14,
@@ -156,13 +158,13 @@ class NotificationsScreen extends ConsumerWidget {
                   size: 40, color: Color(0xFF1E56A6)),
             ),
             const SizedBox(height: 16),
-            Text('No notifications yet',
+            TranslatedText('No notifications yet',
                 style: GoogleFonts.montserrat(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.black87)),
             const SizedBox(height: 8),
-            Text("You're all caught up!",
+            TranslatedText("You're all caught up!",
                 style: GoogleFonts.montserrat(
                     fontSize: 14, color: Colors.black45)),
           ],
@@ -276,7 +278,7 @@ class _NotifTile extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: Text(
+                          child: TranslatedText(
                             notification.title,
                             style: GoogleFonts.montserrat(
                               fontSize: 14,
@@ -299,7 +301,7 @@ class _NotifTile extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Text(
+                    TranslatedText(
                       notification.subtitle,
                       style: GoogleFonts.montserrat(
                           fontSize: 13, color: Colors.black54, height: 1.4),

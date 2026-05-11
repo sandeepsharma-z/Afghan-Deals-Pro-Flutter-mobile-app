@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../../core/localization/app_localizations.dart';
+import '../../../../../core/localization/localized_lookup.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -130,6 +132,47 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
     ('City', Icons.location_city_outlined),
     ('Price Range', Icons.attach_money_outlined),
   ];
+
+  String _sectionLabel(BuildContext context, int i) {
+    switch (i) {
+      case 0:
+        return context.l10n.t('makes');
+      case 1:
+        return context.l10n.t('models');
+      case 2:
+        return context.l10n.t('sub_models');
+      case 3:
+        return context.l10n.t('year_range');
+      case 4:
+        return context.l10n.t('specs');
+      case 5:
+        return context.l10n.t('deal_type');
+      case 6:
+        return context.l10n.t('Transmission');
+      case 7:
+        return context.l10n.t('Fuel Type');
+      case 8:
+        return context.l10n.t('ext_color');
+      case 9:
+        return context.l10n.t('driveline');
+      case 10:
+        return context.l10n.t('cylinders');
+      case 11:
+        return context.l10n.t('int_color');
+      case 12:
+        return context.l10n.t('region');
+      case 13:
+        return context.l10n.t('City');
+      case 14:
+        return context.l10n.t('price_range');
+      default:
+        return _kSections[i].$1;
+    }
+  }
+
+  String _valueLabel(BuildContext context, String value) {
+    return localizedCarSortLabel(context.l10n, value);
+  }
 
   late Set<String> _makes;
   late Set<String> _models;
@@ -445,7 +488,7 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
               size: 16, color: Colors.black87),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text('Filter',
+        title: Text(context.l10n.t('filter'),
             style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -530,7 +573,7 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                _kSections[i].$1,
+                _sectionLabel(context, i),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.poppins(
@@ -562,7 +605,7 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
               Expanded(
                 child: OutlinedButton(
                   onPressed: _reset,
-                  child: Text('Reset',
+                  child: Text(context.l10n.t('clear_all'),
                       style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -578,7 +621,7 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8)),
                   ),
-                  child: Text('Apply',
+                  child: Text(context.l10n.t('apply'),
                       style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -685,7 +728,9 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
         final isChecked =
             selected.any((s) => s.toLowerCase() == item.toLowerCase());
         return _CheckRow(
-            label: item, selected: isChecked, onTap: () => onToggle(item));
+            label: _valueLabel(context, item),
+            selected: isChecked,
+            onTap: () => onToggle(item));
       }).toList(),
     );
   }
@@ -695,14 +740,14 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          Text('From',
+          Text(context.l10n.t('from'),
               style: GoogleFonts.poppins(
                   fontSize: 12, fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
           _yearDropdown(_fromYear, _availableMinYear, _availableMaxYear,
               (v) => setState(() => _fromYear = v)),
           const SizedBox(height: 16),
-          Text('To',
+          Text(context.l10n.t('to'),
               style: GoogleFonts.poppins(
                   fontSize: 12, fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
@@ -802,7 +847,7 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
           ),
           const SizedBox(height: 18),
           _priceInput(
-            label: 'Max price AED',
+            label: context.l10n.t('max_price_aed'),
             value: _maxPrice,
             onChanged: (v) => setState(() {
               _maxPrice = v.clamp(_minPrice, sliderMax).toDouble();
@@ -810,7 +855,7 @@ class _CarsFilterScreenState extends ConsumerState<CarsFilterScreen> {
           ),
           const SizedBox(height: 14),
           _priceInput(
-            label: 'Min price AED',
+            label: context.l10n.t('min_price_aed'),
             value: _minPrice,
             onChanged: (v) => setState(() {
               _minPrice = v.clamp(sliderMin, _maxPrice).toDouble();

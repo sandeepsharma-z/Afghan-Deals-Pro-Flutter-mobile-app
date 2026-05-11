@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/router/route_names.dart';
+import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/localized_lookup.dart';
 import '../../../home/presentation/providers/home_provider.dart';
 import '../../../home/data/models/home_category_model.dart';
 
@@ -90,7 +92,7 @@ class SellScreen extends ConsumerWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         title: Text(
-          'Post an Ad',
+          context.l10n.t('post_an_ad'),
           style: GoogleFonts.poppins(
             fontSize: 15,
             fontWeight: FontWeight.w600,
@@ -113,7 +115,7 @@ class SellScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
             child: Text(
-              'Choose a category',
+              context.l10n.t('choose_category'),
               style: GoogleFonts.montserrat(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -131,7 +133,9 @@ class SellScreen extends ConsumerWidget {
                     .toList();
                 final categories = supportedItems.isEmpty
                     ? _fallbackCategories
-                    : supportedItems.map(_fromHomeCategory).toList();
+                    : supportedItems
+                        .map((item) => _fromHomeCategory(context, item))
+                        .toList();
                 return _buildGrid(context, categories);
               },
             ),
@@ -155,10 +159,11 @@ class SellScreen extends ConsumerWidget {
     );
   }
 
-  _SellCategory _fromHomeCategory(HomeCategoryModel item) {
+  _SellCategory _fromHomeCategory(BuildContext context, HomeCategoryModel item) {
     final slug = item.slug == 'spare_parts' ? 'spare-parts' : item.slug;
     return _SellCategory(
-      item.name,
+      localizedCategoryName(AppLocalizations.of(context), slug,
+          fallbackName: item.name),
       _iconForCategory(slug),
       slug,
       _bgForCategory(slug),
@@ -260,7 +265,11 @@ class SellScreen extends ConsumerWidget {
             _buildCategoryVisual(cat),
             const SizedBox(height: 8),
             Text(
-              cat.name,
+              localizedCategoryName(
+                AppLocalizations.of(context),
+                cat.key,
+                fallbackName: cat.name,
+              ),
               textAlign: TextAlign.center,
               style: GoogleFonts.montserrat(
                   fontSize: 13,

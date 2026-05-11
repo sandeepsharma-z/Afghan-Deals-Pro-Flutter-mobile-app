@@ -9,6 +9,7 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/localization/app_language_provider.dart';
+import '../../../../core/localization/localized_lookup.dart';
 import '../../../chat/presentation/providers/chat_provider.dart';
 import '../../../chat/presentation/screens/chats_screen.dart';
 import '../../../profile/presentation/screens/account_screen.dart';
@@ -194,7 +195,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return items
         .map(
           (item) => _CategoryTile(
-            name: _normalizeCategoryName(item.name, item.slug),
+            name: item.name,
             slug: item.slug,
             icon: _iconForCategory(item.slug),
             imageUrl: item.imageUrl,
@@ -205,11 +206,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   String _normalizeCategoryName(String name, String slug) {
+    final localized = localizedCategoryName(context.l10n, slug);
+    if (localized != context.l10n.t('category')) return localized;
+
     final trimmed = name.trim();
     if (trimmed.isNotEmpty) return trimmed;
 
     final source = slug.replaceAll('-', ' ').replaceAll('_', ' ').trim();
-    if (source.isEmpty) return 'Category';
+    if (source.isEmpty) return context.l10n.t('category');
 
     return source
         .split(' ')
@@ -290,7 +294,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          '$slug category screen will be enabled soon.',
+          context.l10n
+              .t('category_coming_soon')
+              .replaceAll('{category}', _normalizeCategoryName(slug, slug)),
           style: GoogleFonts.montserrat(),
         ),
         behavior: SnackBarBehavior.floating,
@@ -378,7 +384,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           style: const TextStyle(fontSize: 15)),
                   const SizedBox(width: 5),
                   Text(
-                    ref.watch(selectedCountryProvider),
+                    localizedCountryName(
+                      context.l10n,
+                      ref.watch(selectedCountryProvider),
+                    ),
                     style: GoogleFonts.montserrat(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -509,7 +518,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 2, 8, 10),
               child: Text(
-                cat.name,
+                _normalizeCategoryName(cat.name, cat.slug),
                 textAlign: TextAlign.center,
                 style: GoogleFonts.montserrat(
                   fontSize: 13,
@@ -645,7 +654,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return GestureDetector(
       onTap: () {
         final isGuest = Supabase.instance.client.auth.currentUser == null;
-        final requiresAuth = index == 1 || index == 4; // CHATS / ACCOUNT tabs
+        final requiresAuth = index == 1 || index == 3; // CHATS / MY ADS tabs
         if (isGuest && requiresAuth) {
           context.push(RouteNames.onboarding);
           return;
@@ -817,7 +826,7 @@ class _CountrySheet extends StatelessWidget {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            c.name,
+                            localizedCountryName(context.l10n, c.name),
                             style: GoogleFonts.montserrat(
                               fontSize: 15,
                               fontWeight: FontWeight.w500,
@@ -941,7 +950,7 @@ class _HelpSheet extends StatelessWidget {
                   Expanded(
                     child: _actionButton(
                       icon: Icons.call_outlined,
-                      label: 'Call',
+                      label: context.l10n.t('call'),
                       onTap: () => _launch('tel:+93700000000'),
                     ),
                   ),

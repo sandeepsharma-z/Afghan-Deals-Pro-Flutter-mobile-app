@@ -6,8 +6,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../../core/localization/app_localizations.dart';
+import '../../../../../core/localization/localized_lookup.dart';
 import '../../../../../core/router/route_names.dart';
 import '../../../../../core/widgets/favorite_button.dart';
+import '../../../../../core/widgets/translated_text.dart';
 import '../providers/electronics_provider.dart';
 import '../../../../../features/listings/data/models/electronics_listing_model.dart';
 import '../../../../../features/home/presentation/providers/country_provider.dart';
@@ -140,7 +143,7 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
               child: listingsAsync.when(
                 loading: () => const Center(
                     child: CircularProgressIndicator(color: _kBlue)),
-                error: (e, _) => Center(child: Text('Error: $e')),
+                error: (e, _) => Center(child: Text('${context.l10n.t('error')}: $e')),
                 data: (listings) => _buildBody(listings, subcategoriesAsync),
               ),
             ),
@@ -178,10 +181,10 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
             _buildTopDealsHeader(filtered),
             const SizedBox(height: 12),
             if (filtered.isEmpty)
-              const SizedBox(
+              SizedBox(
                 height: 280,
                 child: Center(
-                  child: Text('No listings',
+                  child: Text(context.l10n.t('no_listings'),
                       style: TextStyle(color: Colors.black45)),
                 ),
               )
@@ -239,7 +242,7 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
                   child: GestureDetector(
                     onTap: () => _openMoreCategories(subs),
                     child: _subcategoryCircle(
-                      label: 'More',
+                      label: context.l10n.t('more'),
                       iconUrl: null,
                       slug: 'more',
                       isMore: true,
@@ -351,7 +354,7 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
             height: 34,
             child: Align(
               alignment: Alignment.topCenter,
-              child: Text(
+              child: TranslatedText(
                 label,
                 maxLines: 2,
                 textAlign: TextAlign.center,
@@ -371,7 +374,7 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         children: [
-          Text('Top Deals',
+          Text(context.l10n.t('top_deals'),
               style: GoogleFonts.poppins(
                   fontSize: 14.75, fontWeight: FontWeight.w600)),
           const Spacer(),
@@ -382,7 +385,7 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
                 subcategoryLabel: 'All Electronics',
               ),
             )),
-            child: Text('See All',
+            child: Text(context.l10n.t('see_all'),
                 style: GoogleFonts.poppins(
                     fontSize: 11, fontWeight: FontWeight.w500)),
           ),
@@ -479,7 +482,7 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
                       : Text(_flagFor(selectedCountry),
                           style: const TextStyle(fontSize: 15)),
                   const SizedBox(width: 5),
-                  Text(selectedCountry,
+                  Text(localizedCountryName(context.l10n, selectedCountry),
                       style: GoogleFonts.montserrat(
                           fontSize: 12, fontWeight: FontWeight.w500)),
                 ],
@@ -529,7 +532,7 @@ class _ElectronicsScreenState extends ConsumerState<ElectronicsScreen> {
                   isCollapsed: true,
                   filled: false,
                   fillColor: Colors.transparent,
-                  hintText: 'Search electronics',
+                  hintText: context.l10n.t('search'),
                   hintStyle: GoogleFonts.poppins(
                       fontSize: 11,
                       fontWeight: FontWeight.w400,
@@ -700,7 +703,7 @@ class _ElectronicsCard extends StatelessWidget {
                     decoration: BoxDecoration(
                         color: const Color(0xFFFF6B00),
                         borderRadius: BorderRadius.circular(4)),
-                    child: Text('Featured',
+                    child: Text(context.l10n.t('featured'),
                         style: GoogleFonts.poppins(
                             fontSize: 9,
                             fontWeight: FontWeight.w600,
@@ -729,7 +732,7 @@ class _ElectronicsCard extends StatelessWidget {
                       height: 1.3,
                       color: _kBlue)),
               const SizedBox(height: 4),
-              Text(item.title,
+              TranslatedText(item.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.poppins(
@@ -743,7 +746,7 @@ class _ElectronicsCard extends StatelessWidget {
                     size: 12, color: Color(0xFF505050)),
                 const SizedBox(width: 3),
                 Expanded(
-                    child: Text(item.location,
+                    child: TranslatedText(item.location,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
@@ -899,7 +902,7 @@ class _CountrySheet extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                Text('Select Country',
+                Text(context.l10n.t('select_country'),
                     style: GoogleFonts.montserrat(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,

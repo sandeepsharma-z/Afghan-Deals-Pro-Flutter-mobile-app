@@ -4,7 +4,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../../core/localization/app_localizations.dart';
 import '../../../../../core/router/route_names.dart';
+import '../../../../../core/widgets/translated_text.dart';
 import '../../../../../core/widgets/favorite_button.dart';
 import '../providers/spare_parts_provider.dart';
 import 'spare_parts_detail_screen.dart';
@@ -39,7 +41,7 @@ class _SparePartsScreenState extends ConsumerState<SparePartsScreen> {
         elevation: 0,
         centerTitle: true,
         title: Text(
-          'Spare Parts',
+          context.l10n.t('category_spare_parts'),
           style: GoogleFonts.poppins(
             fontSize: 30 / 2,
             fontWeight: FontWeight.w600,
@@ -75,7 +77,7 @@ class _SparePartsScreenState extends ConsumerState<SparePartsScreen> {
                           size: 14, color: _kBlue),
                       const SizedBox(width: 5),
                       Text(
-                        'Add Shop',
+                        context.l10n.t('add_option'),
                         style: GoogleFonts.poppins(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
@@ -99,7 +101,7 @@ class _SparePartsScreenState extends ConsumerState<SparePartsScreen> {
             const Center(child: CircularProgressIndicator(color: _kBlue)),
         error: (e, _) => Center(
           child: Text(
-            'Error: $e',
+            '${context.l10n.t('error')}: $e',
             style: GoogleFonts.poppins(color: Colors.red, fontSize: 12),
           ),
         ),
@@ -120,7 +122,7 @@ class _SparePartsScreenState extends ConsumerState<SparePartsScreen> {
             loading: () =>
                 const Center(child: CircularProgressIndicator(color: _kBlue)),
             error: (e, _) => Center(
-              child: Text('Error: $e',
+              child: Text('${context.l10n.t('error')}: $e',
                   style: GoogleFonts.poppins(color: Colors.red, fontSize: 12)),
             ),
             data: (listings) {
@@ -131,7 +133,7 @@ class _SparePartsScreenState extends ConsumerState<SparePartsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Select Make',
+                      context.l10n.t('Make (Brand)'),
                       style: GoogleFonts.poppins(
                         fontSize: 30 / 2,
                         fontWeight: FontWeight.w600,
@@ -157,7 +159,7 @@ class _SparePartsScreenState extends ConsumerState<SparePartsScreen> {
                       itemBuilder: (_, i) {
                         if (i == topBrands.length) {
                           return _BrandTile(
-                            label: 'More',
+                            label: context.l10n.t('more'),
                             selected: false,
                             onTap: () {},
                             child: const Icon(Icons.more_horiz,
@@ -193,7 +195,7 @@ class _SparePartsScreenState extends ConsumerState<SparePartsScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 24),
                         child: Center(
-                          child: Text('No spare parts found',
+                          child: Text(context.l10n.t('no_listings'),
                               style: GoogleFonts.poppins(
                                   fontSize: 13, color: Colors.black45)),
                         ),
@@ -241,7 +243,7 @@ class _TopDealsHeader extends StatelessWidget {
           onTap: onSeeAll,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-            child: Text('See All',
+            child: Text(context.l10n.t('see_all'),
                 style: GoogleFonts.poppins(
                     fontSize: 11, fontWeight: FontWeight.w500)),
           ),
@@ -464,7 +466,7 @@ class _BrandTile extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          Text(
+          TranslatedText(
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

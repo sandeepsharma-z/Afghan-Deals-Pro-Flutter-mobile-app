@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../../core/localization/app_localizations.dart';
+import '../../../../../core/localization/localized_lookup.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/favorite_button.dart';
 import '../../../../../core/widgets/translated_text.dart';
@@ -46,6 +48,11 @@ class _CarListingsScreenState extends ConsumerState<CarListingsScreen> {
   String get _supabaseSubcategory =>
       _subcategoryMap[widget.subcategory] ?? widget.subcategory.toLowerCase();
 
+  String _label(BuildContext context, String value) {
+    if (value == 'All') return context.l10n.t('all');
+    return localizedCarSortLabel(context.l10n, value);
+  }
+
   List<CarSaleModel> _applyFilters(List<CarSaleModel> cars) {
     return cars.where((c) {
       final bodyType = c.bodyType.trim().toLowerCase();
@@ -80,32 +87,32 @@ class _CarListingsScreenState extends ConsumerState<CarListingsScreen> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Center(child: Container(width: 40, height: 5, decoration: BoxDecoration(color: const Color(0xFFCFCFCF), borderRadius: BorderRadius.circular(999)))),
             const SizedBox(height: 12),
-            Text('Filter', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600)),
+            Text(context.l10n.t('filter'), style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600)),
             const SizedBox(height: 14),
-            Text('Body Type', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500)),
+            Text(context.l10n.t('body_type'), style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500)),
             const SizedBox(height: 6),
             _dropdown(value: tempBody, items: ['All', ...bodyTypes], onChanged: (v) => setModalState(() => tempBody = v)),
             const SizedBox(height: 12),
-            Text('Condition', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500)),
+            Text(context.l10n.t('Condition'), style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500)),
             const SizedBox(height: 6),
             _dropdown(value: tempCondition, items: ['All', ...conditions], onChanged: (v) => setModalState(() => tempCondition = v)),
             const SizedBox(height: 12),
-            Text('Year Range', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500)),
+            Text(context.l10n.t('year_range'), style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
             Row(children: [
-              Expanded(child: _yearField(label: 'From', value: tempFrom, min: minYear, max: maxYear, onChanged: (v) => setModalState(() => tempFrom = v))),
+              Expanded(child: _yearField(label: context.l10n.t('from'), value: tempFrom, min: minYear, max: maxYear, onChanged: (v) => setModalState(() => tempFrom = v))),
               const SizedBox(width: 10),
-              Expanded(child: _yearField(label: 'To', value: tempTo, min: minYear, max: maxYear, onChanged: (v) => setModalState(() => tempTo = v))),
+              Expanded(child: _yearField(label: context.l10n.t('to'), value: tempTo, min: minYear, max: maxYear, onChanged: (v) => setModalState(() => tempTo = v))),
             ]),
             const SizedBox(height: 20),
             Row(children: [
-              Expanded(child: OutlinedButton(onPressed: () => setModalState(() {tempBody = 'All'; tempCondition = 'All'; tempFrom = minYear; tempTo = maxYear;}), child: const Text('Reset'))),
+              Expanded(child: OutlinedButton(onPressed: () => setModalState(() {tempBody = 'All'; tempCondition = 'All'; tempFrom = minYear; tempTo = maxYear;}), child: Text(context.l10n.t('clear_all')))),
               const SizedBox(width: 10),
               Expanded(child: ElevatedButton(onPressed: () {
                 if (tempFrom > tempTo) {final swap = tempFrom; tempFrom = tempTo; tempTo = swap;}
                 setState(() {_selectedBodyType = tempBody; _selectedCondition = tempCondition; _fromYear = tempFrom; _toYear = tempTo;});
                 context.pop();
-              }, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2258A8), foregroundColor: Colors.white), child: const Text('Apply'))),
+              }, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2258A8), foregroundColor: Colors.white), child: Text(context.l10n.t('apply')))),
             ]),
           ])))))));
   }
@@ -115,7 +122,7 @@ class _CarListingsScreenState extends ConsumerState<CarListingsScreen> {
     return Container(height: 42, padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(border: Border.all(color: const Color(0xFFC4C4C4)), borderRadius: BorderRadius.circular(8)),
       child: DropdownButtonHideUnderline(child: DropdownButton<String>(value: selected, isExpanded: true,
-        items: items.map((e) => DropdownMenuItem<String>(value: e, child: Text(e))).toList(),
+        items: items.map((e) => DropdownMenuItem<String>(value: e, child: Text(_label(context, e)))).toList(),
         onChanged: (v) { if (v != null) onChanged(v); })));
   }
 
@@ -165,7 +172,11 @@ class _CarListingsScreenState extends ConsumerState<CarListingsScreen> {
           onPressed: () => context.pop(),
         ),
         title: Text(
-          widget.subcategory,
+          localizedCarSubcategoryName(
+            context.l10n,
+            _supabaseSubcategory,
+            fallbackName: widget.subcategory,
+          ),
           style: GoogleFonts.poppins(
             fontSize: 15,
             fontWeight: FontWeight.w600,
@@ -204,7 +215,7 @@ class _CarListingsScreenState extends ConsumerState<CarListingsScreen> {
                     horizontal: 12, vertical: 8),
                 child: Row(
                   children: [
-                    _filterChip(Icons.tune, 'Filter', () {}),
+                    _filterChip(Icons.tune, context.l10n.t('filter'), () {}),
                     const SizedBox(width: 8),
                     GestureDetector(
                       onTap: () => _showSortSheet(sorted),
@@ -219,7 +230,7 @@ class _CarListingsScreenState extends ConsumerState<CarListingsScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(_sortBy,
+                            Text(_label(context, _sortBy),
                                 style: GoogleFonts.montserrat(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500)),
@@ -231,7 +242,7 @@ class _CarListingsScreenState extends ConsumerState<CarListingsScreen> {
                       ),
                     ),
                     const Spacer(),
-                    Text('${sorted.length} results',
+                    Text('${sorted.length} ${context.l10n.t('results')}',
                         style: GoogleFonts.montserrat(
                             fontSize: 12, color: Colors.black45)),
                     const SizedBox(width: 8),
@@ -257,7 +268,7 @@ class _CarListingsScreenState extends ConsumerState<CarListingsScreen> {
                             const Icon(Icons.directions_car_outlined,
                                 size: 64, color: Colors.black26),
                             const SizedBox(height: 12),
-                            Text('No listings',
+                            Text(context.l10n.t('no_listings'),
                                 style: GoogleFonts.montserrat(
                                     fontSize: 16,
                                     color: Colors.black45)),
@@ -338,7 +349,7 @@ class _CarListingsScreenState extends ConsumerState<CarListingsScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Sort By',
+                Text(context.l10n.t('sort_by'),
                     style: GoogleFonts.montserrat(
                         fontSize: 18, fontWeight: FontWeight.w700)),
                 IconButton(
@@ -351,7 +362,7 @@ class _CarListingsScreenState extends ConsumerState<CarListingsScreen> {
           ..._sortOptions.map((opt) => Column(
                 children: [
                   ListTile(
-                    title: Text(opt,
+                    title: Text(_label(context, opt),
                         style: GoogleFonts.montserrat(
                             fontSize: 15,
                             fontWeight: opt == _sortBy
@@ -432,7 +443,7 @@ class _ListingCard extends ConsumerWidget {
                         color: const Color(0xFFFFA000),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: Text('Featured',
+                      child: Text(context.l10n.t('featured'),
                           style: GoogleFonts.montserrat(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
@@ -480,7 +491,7 @@ class _ListingCard extends ConsumerWidget {
                         const Icon(Icons.location_on_outlined,
                             size: 12, color: Colors.black38),
                         const SizedBox(width: 2),
-                        Text(listing.location,
+                        TranslatedText(listing.location,
                             style: GoogleFonts.montserrat(
                                 fontSize: 11, color: Colors.black38)),
                         const Spacer(),
@@ -562,7 +573,7 @@ class _GridCard extends ConsumerWidget {
                       decoration: BoxDecoration(
                           color: const Color(0xFFFFA000),
                           borderRadius: BorderRadius.circular(4)),
-                      child: Text('Featured',
+                      child: Text(context.l10n.t('featured'),
                           style: GoogleFonts.montserrat(
                               fontSize: 9,
                               fontWeight: FontWeight.w600,
@@ -608,7 +619,7 @@ class _GridCard extends ConsumerWidget {
                           size: 11, color: Colors.black38),
                       const SizedBox(width: 2),
                       Expanded(
-                        child: Text(listing.location,
+                        child: TranslatedText(listing.location,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.montserrat(
                                 fontSize: 10, color: Colors.black38)),

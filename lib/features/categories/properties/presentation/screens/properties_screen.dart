@@ -7,8 +7,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../../core/localization/app_localizations.dart';
+import '../../../../../core/localization/localized_lookup.dart';
 import '../../../../../core/router/route_names.dart';
 import '../../../../../core/localization/app_language_provider.dart';
+import '../../../../../core/widgets/translated_text.dart';
 import '../../../../../features/home/presentation/providers/country_provider.dart';
 import '../../../../../core/widgets/favorite_button.dart';
 import '../../../cars/data/models/subcategory_model.dart';
@@ -78,7 +81,7 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
               child: listingsAsync.when(
                 loading: () => const Center(
                     child: CircularProgressIndicator(color: _kBlue)),
-                error: (e, _) => Center(child: Text('Error: $e')),
+                error: (e, _) => Center(child: Text('${context.l10n.t('error')}: $e')),
                 data: (listings) {
                   return subcatsAsync.when(
                     loading: () => const Center(
@@ -138,10 +141,10 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
             _buildTypeChips(chips),
             const SizedBox(height: 12),
             if (filtered.isEmpty)
-              const SizedBox(
+              SizedBox(
                 height: 280,
                 child: Center(
-                  child: Text('No properties yet',
+                  child: Text(context.l10n.t('no_listings'),
                       style: TextStyle(color: Colors.black45)),
                 ),
               )
@@ -195,7 +198,7 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
               if (slot == 'more') {
                 return Expanded(
                   child: _subcategoryCircle(
-                      name: 'More', iconUrl: null, isMore: true),
+                      name: context.l10n.t('more'), iconUrl: null, isMore: true),
                 );
               }
               final item = slot as SubcategoryModel;
@@ -266,7 +269,7 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
           ),
         ),
         const SizedBox(height: 4),
-        Text(
+        TranslatedText(
           name,
           maxLines: 2,
           textAlign: TextAlign.center,
@@ -296,7 +299,7 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
                 borderRadius: BorderRadius.circular(23),
                 border: Border.all(color: _kBlue),
               ),
-              child: Text(
+              child: TranslatedText(
                 chip,
                 style: GoogleFonts.poppins(
                   fontSize: 11.6,
@@ -318,7 +321,7 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         children: [
-          Text('Top Deals',
+          Text(context.l10n.t('top_deals'),
               style: GoogleFonts.poppins(
                   fontSize: 29.5 / 2, fontWeight: FontWeight.w600)),
           const Spacer(),
@@ -334,7 +337,7 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-              child: Text('See All',
+              child: Text(context.l10n.t('see_all'),
                   style: GoogleFonts.poppins(
                       fontSize: 11, fontWeight: FontWeight.w500)),
             ),
@@ -432,7 +435,7 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
                       : Text(_flagFor(selectedCountry),
                           style: const TextStyle(fontSize: 15)),
                   const SizedBox(width: 5),
-                  Text(selectedCountry,
+                  Text(localizedCountryName(context.l10n, selectedCountry),
                       style: GoogleFonts.montserrat(
                           fontSize: 12, fontWeight: FontWeight.w500)),
                 ],
@@ -480,7 +483,7 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
               child: TextField(
                 controller: _searchCtrl,
                 decoration: InputDecoration(
-                  hintText: 'Search properties...',
+                  hintText: context.l10n.t('search'),
                   hintStyle: GoogleFonts.poppins(
                       fontSize: 11,
                       fontWeight: FontWeight.w400,
@@ -768,7 +771,7 @@ class _PropertyCardState extends State<_PropertyCard> {
                           height: 1.3,
                           color: _kBlue)),
                   const SizedBox(height: 4),
-                  Text(item.title,
+                  TranslatedText(item.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
@@ -783,7 +786,7 @@ class _PropertyCardState extends State<_PropertyCard> {
                           size: 12, color: Color(0xFF505050)),
                       const SizedBox(width: 3),
                       Expanded(
-                        child: Text(
+                        child: TranslatedText(
                           item.location,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -881,7 +884,7 @@ class _CountrySheet extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                Text('Select Country',
+                Text(context.l10n.t('select_country'),
                     style: GoogleFonts.montserrat(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,

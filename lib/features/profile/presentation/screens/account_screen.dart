@@ -6,7 +6,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/localization/app_language_provider.dart';
 import '../../../../core/widgets/app_bottom_nav.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../auth/presentation/screens/onboarding_screen.dart';
 import '../../../home/presentation/providers/country_provider.dart';
 import '../providers/profile_provider.dart';
 import '../providers/profile_options_provider.dart';
@@ -53,6 +52,9 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
     String? country,
     String? language,
   }) async {
+    final currentUser = Supabase.instance.client.auth.currentUser;
+    if (currentUser == null) return;
+
     final updates = <String, dynamic>{};
     if (country != null) updates['country'] = country;
 
@@ -293,29 +295,165 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
     final authState = ref.watch(authStateProvider);
     final user = authState.valueOrNull;
 
-    if (authState.hasValue && user == null) {
-      return const OnboardingScreen();
+    if (authState.isLoading && !authState.hasValue) {
+      return const Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(child: CircularProgressIndicator()),
+      );
     }
 
-    final profile = ref.watch(profileProvider).valueOrNull;
     final countries =
         ref.watch(profileCountriesProvider).valueOrNull ?? const <String>[];
     final languages =
         ref.watch(profileLanguagesProvider(_selectedCountry)).valueOrNull ??
             const <String>['English'];
+
+    if (user == null) {
+      _loadPreferences(null, languages);
+      final topInset =
+          widget.embedded ? 0.0 : MediaQuery.of(context).padding.top;
+      return Scaffold(
+        backgroundColor: Colors.white,
+        floatingActionButtonLocation:
+            widget.embedded ? null : FloatingActionButtonLocation.centerDocked,
+        floatingActionButton: widget.embedded ? null : const AppSellFab(),
+        bottomNavigationBar:
+            widget.embedded ? null : const AppBottomNav(activeIndex: 4),
+        body: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      margin: EdgeInsets.fromLTRB(14, 14 + topInset, 14, 0),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(7),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x40000000),
+                            blurRadius: 3,
+                            offset: Offset(0, 0),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 59,
+                            height: 59,
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Color(0x40000000),
+                                  blurRadius: 1,
+                                ),
+                              ],
+                            ),
+                            child: ClipOval(child: _avatarFallback()),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  context.l10n.t('guest'),
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  context.l10n.t('sign_in'),
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 14,
+                                    color: _grey,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                GestureDetector(
+                                  onTap: () => context.push(RouteNames.onboarding),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF1E56A6),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      context.l10n.t('sign_in'),
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _flatItem(
+                      Icons.location_city_outlined,
+                      context.l10n.t('country'),
+                      _selectedCountry,
+                      onTap: () => _showCountryPicker(countries, languages),
+                    ),
+                    _flatItem(
+                      Icons.translate_outlined,
+                      context.l10n.t('language'),
+                      _selectedLanguage,
+                      onTap: _showLanguagePicker,
+                    ),
+                    _line(),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      child: Text(
+                        context.l10n.t('sign_in'),
+                        style: GoogleFonts.montserrat(
+                          fontSize: 12,
+                          color: _grey,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final profile = ref.watch(profileProvider).valueOrNull;
     _loadPreferences(profile, languages);
 
     final displayName = profile?.name?.isNotEmpty == true
         ? profile!.name!
-        : (user?.name?.isNotEmpty == true
-            ? user!.name!
-            : (user?.email ?? user?.phone ?? context.l10n.t('guest')));
+        : (user.name?.isNotEmpty == true
+            ? user.name!
+            : (user.email ?? user.phone ?? context.l10n.t('guest')));
     final avatarUrl = _displayAvatarUrl(profile, user);
     final isVerified = profile?.isVerified ?? false;
-    final joinedDate = user?.createdAt != null
+    final joinedDate = user.createdAt != null
         ? context.l10n
             .t('joined_on')
-            .replaceAll('{date}', _formatDate(user!.createdAt!))
+            .replaceAll('{date}', _formatDate(user.createdAt!))
         : '';
     final topInset = widget.embedded ? 0.0 : MediaQuery.of(context).padding.top;
 

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/translated_text.dart';
 import '../providers/notification_settings_provider.dart';
 
 class NotificationSettingsScreen extends ConsumerWidget {
@@ -42,7 +43,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
             ),
           ),
         ),
-        title: Text(
+        title: TranslatedText(
           'Notification Settings',
           style: GoogleFonts.poppins(
             fontSize: 15,
@@ -68,7 +69,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
               children: [
                 const Icon(Icons.error_outline, size: 48, color: Colors.red),
                 const SizedBox(height: 16),
-                Text(
+                TranslatedText(
                   'Error loading settings',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.montserrat(
@@ -87,7 +88,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                       border: Border.all(color: Colors.blue),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: Text(
+                    child: TranslatedText(
                       'Retry',
                       style: GoogleFonts.montserrat(
                         fontSize: 14,
@@ -260,12 +261,12 @@ class _MasterToggle extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Push Notifications',
+                TranslatedText('Push Notifications',
                     style: GoogleFonts.montserrat(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                         color: Colors.black87)),
-                Text('Enable all push notifications',
+                TranslatedText('Enable all push notifications',
                     style: GoogleFonts.montserrat(
                         fontSize: 12, color: Colors.black45)),
               ],
@@ -320,12 +321,12 @@ class _ToggleTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
+                  TranslatedText(title,
                       style: GoogleFonts.montserrat(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: Colors.black87)),
-                  Text(subtitle,
+                  TranslatedText(subtitle,
                       style: GoogleFonts.montserrat(
                           fontSize: 12, color: Colors.black45)),
                 ],
@@ -351,7 +352,7 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-      child: Text(title,
+      child: TranslatedText(title,
           style: GoogleFonts.montserrat(
               fontSize: 12,
               fontWeight: FontWeight.w600,

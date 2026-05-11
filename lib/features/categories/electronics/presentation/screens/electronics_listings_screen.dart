@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../../core/localization/app_localizations.dart';
 import '../../../../../core/widgets/favorite_button.dart';
 import '../../../../../core/widgets/translated_text.dart';
 import '../../../../../features/listings/data/models/electronics_listing_model.dart';
@@ -33,6 +34,21 @@ class _ElectronicsListingsScreenState
     extends ConsumerState<ElectronicsListingsScreen> {
   String _sortBy = 'newest';
 
+  String _sortLabel(BuildContext context, String key) {
+    switch (key) {
+      case 'newest':
+        return context.l10n.t('newest_to_oldest');
+      case 'oldest':
+        return context.l10n.t('oldest_to_newest');
+      case 'price_high':
+        return context.l10n.t('price_highest_to_lowest');
+      case 'price_low':
+        return context.l10n.t('price_lowest_to_highest');
+      default:
+        return key;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final listingsAsync =
@@ -49,7 +65,7 @@ class _ElectronicsListingsScreenState
           child: const Icon(Icons.arrow_back_ios_new,
               size: 18, color: Colors.black87),
         ),
-        title: Text(
+        title: TranslatedText(
           widget.subcategoryLabel,
           style: GoogleFonts.poppins(
               fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black),
@@ -106,11 +122,11 @@ class _ElectronicsListingsScreenState
       body: listingsAsync.when(
         loading: () =>
             const Center(child: CircularProgressIndicator(color: _kBlue)),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => Center(child: Text('${context.l10n.t('error')}: $e')),
         data: (listings) {
           if (listings.isEmpty) {
-            return const Center(
-              child: Text('No listings',
+            return Center(
+              child: Text(context.l10n.t('no_listings'),
                   style: TextStyle(color: Colors.black45)),
             );
           }
@@ -158,13 +174,13 @@ class _ElectronicsListingsScreenState
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-              child: Text('Sort',
+              child: Text(context.l10n.t('sort'),
                   style: GoogleFonts.poppins(
                       fontSize: 18, fontWeight: FontWeight.w600)),
             ),
             ...options.map(
               (opt) => ListTile(
-                title: Text(opt.$2, style: GoogleFonts.poppins(fontSize: 14)),
+                title: Text(_sortLabel(context, opt.$1), style: GoogleFonts.poppins(fontSize: 14)),
                 trailing: currentSort == opt.$1 || _sortBy == opt.$1
                     ? const Icon(Icons.check, color: _kBlue)
                     : null,
@@ -301,7 +317,7 @@ class _ListingCard extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      'Featured',
+                      context.l10n.t('featured'),
                       style: GoogleFonts.poppins(
                         fontSize: 7,
                         fontWeight: FontWeight.w600,

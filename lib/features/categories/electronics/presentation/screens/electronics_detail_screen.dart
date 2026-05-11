@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../core/widgets/favorite_button.dart';
 import '../../../../../core/localization/app_localizations.dart';
+import '../../../../../core/widgets/translated_text.dart';
 import '../../../../chat/presentation/providers/chat_provider.dart';
 import '../../../../../features/listings/data/models/electronics_listing_model.dart';
 
@@ -183,7 +184,7 @@ class _ElectronicsDetailScreenState
                       ),
                     ),
                   ),
-                  Text(
+                  TranslatedText(
                     item.title,
                     style: GoogleFonts.poppins(
                       fontSize: 17.24,
@@ -194,8 +195,10 @@ class _ElectronicsDetailScreenState
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    'Electronics${item.subcategory.isNotEmpty ? ' / ${item.subcategoryLabel}' : ''}',
+                  TranslatedText(
+                    item.subcategory.isNotEmpty
+                        ? '${context.l10n.t('category_electronics')} / ${item.subcategoryLabel}'
+                        : context.l10n.t('category_electronics'),
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       fontWeight: FontWeight.w400,
@@ -209,7 +212,7 @@ class _ElectronicsDetailScreenState
                       const Icon(Icons.location_on_outlined,
                           size: 15, color: Color(0xFF505050)),
                       const SizedBox(width: 5),
-                      Text(
+                      TranslatedText(
                         item.location,
                         style: GoogleFonts.poppins(
                           fontSize: 11.62,
@@ -237,7 +240,7 @@ class _ElectronicsDetailScreenState
                           height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
                       const SizedBox(height: 14),
                       if (item.description.isNotEmpty)
-                        Text(
+                        TranslatedText(
                           item.description,
                           style: GoogleFonts.poppins(
                             fontSize: 14,
@@ -254,11 +257,11 @@ class _ElectronicsDetailScreenState
                       if (item.description.isNotEmpty)
                         const SizedBox(height: 14),
                       if (item.brand.isNotEmpty)
-                        _overviewRow('Brand', item.brand),
+                        _overviewRow(context.l10n.t('Brand'), item.brand),
                       if (item.model.isNotEmpty)
-                        _overviewRow('Model', item.model),
+                        _overviewRow(context.l10n.t('Model'), item.model),
                       if (item.condition.isNotEmpty)
-                        _overviewRow('Condition', item.condition),
+                        _overviewRow(context.l10n.t('Condition'), item.condition),
                       if (item.age.isNotEmpty) _overviewRow('Age', item.age),
                       if (item.usage.isNotEmpty)
                         _overviewRow('Usage', item.usage),
@@ -281,13 +284,13 @@ class _ElectronicsDetailScreenState
               child: Row(
                 children: [
                   Expanded(
-                      child: _detailAction(Icons.phone_outlined, 'Call',
+                      child: _detailAction(Icons.phone_outlined, context.l10n.t('call'),
                           onTap: () => _launch('tel:${item.phone}'))),
                   const SizedBox(width: 8),
                   Expanded(child: _whatsAppAction(onTap: () => _openChat())),
                   const SizedBox(width: 8),
                   Expanded(
-                      child: _detailAction(Icons.message_outlined, 'Chat',
+                      child: _detailAction(Icons.message_outlined, context.l10n.t('chat'),
                           onTap: _openChat)),
                 ],
               ),
@@ -305,7 +308,7 @@ class _ElectronicsDetailScreenState
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            child: Text(
+            child: TranslatedText(
               k,
               style: GoogleFonts.poppins(
                 fontSize: 17.24,
@@ -318,7 +321,7 @@ class _ElectronicsDetailScreenState
           ),
           SizedBox(
             width: 132,
-            child: Text(
+            child: TranslatedText(
               v,
               textAlign: TextAlign.left,
               style: GoogleFonts.poppins(

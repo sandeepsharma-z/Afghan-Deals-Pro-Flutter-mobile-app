@@ -5,8 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../../core/localization/app_localizations.dart';
 import '../../../../../core/router/route_names.dart';
+import '../../../../../core/localization/localized_lookup.dart';
 import '../../../../../core/widgets/favorite_button.dart';
+import '../../../../../core/widgets/translated_text.dart';
 import '../../../../../core/localization/app_language_provider.dart';
 import '../../../../../features/home/presentation/providers/country_provider.dart';
 import '../../../../../features/listings/data/models/car_sale_model.dart';
@@ -215,6 +218,14 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
     'Price Lowest to Highest',
   ];
 
+  String _sortLabel(BuildContext context, String value) =>
+      localizedCarSortLabel(context.l10n, value);
+
+  String _valueLabel(BuildContext context, String value) {
+    if (value == 'All') return context.l10n.t('all');
+    return value;
+  }
+
   String _flagFor(String country) {
     switch (country) {
       case 'Afghanistan':
@@ -350,7 +361,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
                                 _buildTopDealsHeader(),
                                 const SizedBox(height: 12),
                                 if (cars.isEmpty)
-                                  const SizedBox(
+                                  SizedBox(
                                     height: 320,
                                     child: Center(
                                       child: Column(
@@ -360,13 +371,13 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
                                               size: 64,
                                               color: Color(0xFFCCCCCC)),
                                           SizedBox(height: 12),
-                                          Text('No listings',
+                                          Text(context.l10n.t('no_listings'),
                                               style: TextStyle(
                                                   fontSize: 15,
                                                   color: Colors.black45)),
                                           SizedBox(height: 4),
                                           Text(
-                                              'Add listings from admin dashboard',
+                                              context.l10n.t('add_listings_from_admin_dashboard'),
                                               style: TextStyle(
                                                   fontSize: 12,
                                                   color: Colors.black38)),
@@ -420,7 +431,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
                       : Text(_flagFor(selectedCountry),
                           style: const TextStyle(fontSize: 15)),
                   const SizedBox(width: 5),
-                  Text(selectedCountry,
+                  Text(localizedCountryName(context.l10n, selectedCountry),
                       style: GoogleFonts.montserrat(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
@@ -473,7 +484,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
               child: TextField(
                 controller: _searchCtrl,
                 decoration: InputDecoration(
-                  hintText: 'Search cars...',
+                  hintText: context.l10n.t('search_cars'),
                   hintStyle: GoogleFonts.poppins(
                       fontSize: 11,
                       fontWeight: FontWeight.w400,
@@ -510,7 +521,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          Text('Top Deals',
+          Text(context.l10n.t('top_deals'),
               style: GoogleFonts.poppins(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
@@ -529,7 +540,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
                 ),
               ),
             ),
-            child: Text('See All',
+            child: Text(context.l10n.t('see_all'),
                 style: GoogleFonts.poppins(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
@@ -561,7 +572,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
                 border: active ? null : Border.all(color: _kBlue),
                 borderRadius: BorderRadius.circular(23),
               ),
-              child: Text(opt,
+              child: Text(_valueLabel(context, opt),
                   style: GoogleFonts.poppins(
                       fontSize: 11.6,
                       fontWeight: FontWeight.w400,
@@ -584,7 +595,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
               const Icon(Icons.directions_car_outlined,
                   size: 64, color: Colors.black26),
               const SizedBox(height: 12),
-              Text('No listings',
+              Text(context.l10n.t('no_listings'),
                   style:
                       GoogleFonts.poppins(fontSize: 14, color: Colors.black45)),
             ],
@@ -710,7 +721,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Text('Sort',
+                child: Text(context.l10n.t('sort'),
                     style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -734,7 +745,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
                   child: Row(
                     children: [
                       Expanded(
-                        child: Text(item,
+                        child: Text(_sortLabel(context, item),
                             style: GoogleFonts.poppins(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
@@ -819,11 +830,11 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Text('Filter',
+                      Text(context.l10n.t('filter'),
                           style: GoogleFonts.poppins(
                               fontSize: 18, fontWeight: FontWeight.w600)),
                       const SizedBox(height: 14),
-                      Text('Body Type',
+                      Text(context.l10n.t('body_type'),
                           style: GoogleFonts.poppins(
                               fontSize: 13, fontWeight: FontWeight.w500)),
                       const SizedBox(height: 6),
@@ -833,7 +844,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
                         onChanged: (v) => setModalState(() => tempBody = v),
                       ),
                       const SizedBox(height: 12),
-                      Text('Condition',
+                      Text(context.l10n.t('Condition'),
                           style: GoogleFonts.poppins(
                               fontSize: 13, fontWeight: FontWeight.w500)),
                       const SizedBox(height: 6),
@@ -844,7 +855,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
                             setModalState(() => tempCondition = v),
                       ),
                       const SizedBox(height: 12),
-                      Text('Year Range',
+                      Text(context.l10n.t('year_range'),
                           style: GoogleFonts.poppins(
                               fontSize: 13, fontWeight: FontWeight.w500)),
                       const SizedBox(height: 8),
@@ -852,7 +863,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
                         children: [
                           Expanded(
                             child: _yearField(
-                              label: 'From',
+                              label: context.l10n.t('from'),
                               value: tempFrom,
                               min: minYear,
                               max: maxYear,
@@ -863,7 +874,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
                           const SizedBox(width: 10),
                           Expanded(
                             child: _yearField(
-                              label: 'To',
+                              label: context.l10n.t('to'),
                               value: tempTo,
                               min: minYear,
                               max: maxYear,
@@ -886,7 +897,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
                                 });
                                 context.pop();
                               },
-                              child: const Text('Reset'),
+                              child: Text(context.l10n.t('clear_all')),
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -910,7 +921,7 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
                                 backgroundColor: _kBlue,
                                 foregroundColor: Colors.white,
                               ),
-                              child: const Text('Apply'),
+                              child: Text(context.l10n.t('apply')),
                             ),
                           ),
                         ],
@@ -967,7 +978,10 @@ class _NormalCarsScreenState extends ConsumerState<NormalCarsScreen> {
           value: selected,
           isExpanded: true,
           items: items
-              .map((e) => DropdownMenuItem<String>(value: e, child: Text(e)))
+              .map((e) => DropdownMenuItem<String>(
+                    value: e,
+                    child: Text(_valueLabel(context, e)),
+                  ))
               .toList(),
           onChanged: (v) {
             if (v != null) onChanged(v);
@@ -1382,7 +1396,7 @@ class _CarCardState extends State<_CarCard> {
                           height: 1.3,
                           color: _kBlue)),
                   const SizedBox(height: 4),
-                  Text(car.title,
+                  TranslatedText(car.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
@@ -1397,10 +1411,10 @@ class _CarCardState extends State<_CarCard> {
                           size: 12, color: Color(0xFF505050)),
                       const SizedBox(width: 3),
                       Expanded(
-                        child: Text(
+                        child: TranslatedText(
                           car.location.isNotEmpty
                               ? car.location
-                              : 'Afghanistan',
+                              : context.l10n.t('afghanistan'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.poppins(
@@ -1559,7 +1573,7 @@ class _CountrySheet extends StatelessWidget {
                                 style: const TextStyle(fontSize: 26)),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: Text(c.name,
+                          child: Text(localizedCountryName(context.l10n, c.name),
                               style: GoogleFonts.montserrat(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w500,
@@ -1626,7 +1640,7 @@ class _YearPickerDialogState extends State<_YearPickerDialog> {
               child: Row(
                 children: [
                   Text(
-                    'Select Year',
+                    context.l10n.t('Year'),
                     style: GoogleFonts.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -1672,7 +1686,7 @@ class _YearPickerDialogState extends State<_YearPickerDialog> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => context.pop(),
-                      child: const Text('Cancel'),
+                      child: Text(context.l10n.t('cancel')),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -1683,7 +1697,7 @@ class _YearPickerDialogState extends State<_YearPickerDialog> {
                         backgroundColor: _kBlue,
                         foregroundColor: Colors.white,
                       ),
-                      child: const Text('Done'),
+                      child: Text(context.l10n.t('done')),
                     ),
                   ),
                 ],
@@ -1723,6 +1737,9 @@ class _AllCarsScreenState extends ConsumerState<_AllCarsScreen> {
     'Price Highest to Lowest',
     'Price Lowest to Highest',
   ];
+
+  String _sortLabel(BuildContext context, String value) =>
+      localizedCarSortLabel(context.l10n, value);
 
   @override
   void initState() {
@@ -1861,11 +1878,11 @@ class _AllCarsScreenState extends ConsumerState<_AllCarsScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Text('Filter',
+                      Text(context.l10n.t('filter'),
                           style: GoogleFonts.poppins(
                               fontSize: 18, fontWeight: FontWeight.w600)),
                       const SizedBox(height: 14),
-                      Text('Body Type',
+                      Text(context.l10n.t('body_type'),
                           style: GoogleFonts.poppins(
                               fontSize: 13, fontWeight: FontWeight.w500)),
                       const SizedBox(height: 6),
@@ -1875,7 +1892,7 @@ class _AllCarsScreenState extends ConsumerState<_AllCarsScreen> {
                         onChanged: (v) => setModalState(() => tempBody = v),
                       ),
                       const SizedBox(height: 12),
-                      Text('Condition',
+                      Text(context.l10n.t('Condition'),
                           style: GoogleFonts.poppins(
                               fontSize: 13, fontWeight: FontWeight.w500)),
                       const SizedBox(height: 6),
@@ -1886,7 +1903,7 @@ class _AllCarsScreenState extends ConsumerState<_AllCarsScreen> {
                             setModalState(() => tempCondition = v),
                       ),
                       const SizedBox(height: 12),
-                      Text('Year Range',
+                      Text(context.l10n.t('year_range'),
                           style: GoogleFonts.poppins(
                               fontSize: 13, fontWeight: FontWeight.w500)),
                       const SizedBox(height: 8),
@@ -1894,7 +1911,7 @@ class _AllCarsScreenState extends ConsumerState<_AllCarsScreen> {
                         children: [
                           Expanded(
                             child: _yearField(
-                              label: 'From',
+                              label: context.l10n.t('from'),
                               value: tempFrom,
                               min: minYear,
                               max: maxYear,
@@ -1905,7 +1922,7 @@ class _AllCarsScreenState extends ConsumerState<_AllCarsScreen> {
                           const SizedBox(width: 10),
                           Expanded(
                             child: _yearField(
-                              label: 'To',
+                              label: context.l10n.t('to'),
                               value: tempTo,
                               min: minYear,
                               max: maxYear,
@@ -1927,7 +1944,7 @@ class _AllCarsScreenState extends ConsumerState<_AllCarsScreen> {
                                   tempTo = maxYear;
                                 });
                               },
-                              child: const Text('Reset'),
+                              child: Text(context.l10n.t('clear_all')),
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -1951,7 +1968,7 @@ class _AllCarsScreenState extends ConsumerState<_AllCarsScreen> {
                                 backgroundColor: _kBlue,
                                 foregroundColor: Colors.white,
                               ),
-                              child: const Text('Apply'),
+                              child: Text(context.l10n.t('apply')),
                             ),
                           ),
                         ],
@@ -2007,7 +2024,10 @@ class _AllCarsScreenState extends ConsumerState<_AllCarsScreen> {
           value: selected,
           isExpanded: true,
           items: items
-              .map((e) => DropdownMenuItem<String>(value: e, child: Text(e)))
+              .map((e) => DropdownMenuItem<String>(
+                    value: e,
+                    child: Text(e == 'All' ? context.l10n.t('all') : e),
+                  ))
               .toList(),
           onChanged: (v) {
             if (v != null) onChanged(v);
@@ -2072,7 +2092,7 @@ class _AllCarsScreenState extends ConsumerState<_AllCarsScreen> {
         ),
         title: Column(
           children: [
-            Text('All Cars',
+            Text(context.l10n.t('all_cars'),
                 style: GoogleFonts.poppins(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -2122,7 +2142,7 @@ class _AllCarsScreenState extends ConsumerState<_AllCarsScreen> {
                       child: TextField(
                         controller: _searchCtrl,
                         decoration: InputDecoration(
-                          hintText: 'Search cars...',
+                          hintText: context.l10n.t('search_cars'),
                           hintStyle: GoogleFonts.poppins(
                               fontSize: 11,
                               fontWeight: FontWeight.w400,
@@ -2162,7 +2182,7 @@ class _AllCarsScreenState extends ConsumerState<_AllCarsScreen> {
                           const Icon(Icons.directions_car_outlined,
                               size: 64, color: Colors.black26),
                           const SizedBox(height: 12),
-                          Text('No listings',
+                          Text(context.l10n.t('no_listings'),
                               style: GoogleFonts.poppins(
                                   fontSize: 14, color: Colors.black45)),
                         ],
@@ -2235,7 +2255,7 @@ class _AllCarsScreenState extends ConsumerState<_AllCarsScreen> {
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Text('Sort',
+                child: Text(context.l10n.t('sort'),
                     style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -2259,7 +2279,7 @@ class _AllCarsScreenState extends ConsumerState<_AllCarsScreen> {
                   child: Row(
                     children: [
                       Expanded(
-                        child: Text(item,
+                        child: Text(_sortLabel(context, item),
                             style: GoogleFonts.poppins(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,

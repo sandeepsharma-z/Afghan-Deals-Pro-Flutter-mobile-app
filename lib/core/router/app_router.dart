@@ -102,7 +102,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           location == RouteNames.myAds ||
           location == RouteNames.favorites ||
           location == RouteNames.profile ||
-          location == RouteNames.account ||
           location == RouteNames.accountSettings ||
           location == RouteNames.notifications ||
           location.startsWith('/post-ad') ||

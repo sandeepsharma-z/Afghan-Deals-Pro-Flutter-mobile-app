@@ -10,6 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/router/route_names.dart';
 import '../../../../../core/widgets/favorite_button.dart';
 import '../../../../../core/localization/app_localizations.dart';
+import '../../../../../core/widgets/translated_text.dart';
 import '../../../../chat/presentation/providers/chat_provider.dart';
 import '../../../../../features/listings/data/models/car_sale_model.dart';
 
@@ -189,7 +190,7 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
+                    TranslatedText(
                       car.title,
                       style: GoogleFonts.poppins(
                         fontSize: 17.24,
@@ -222,10 +223,10 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
                         const Icon(Icons.location_on_outlined,
                             size: 15, color: Color(0xFF505050)),
                         const SizedBox(width: 5),
-                        Text(
+                        TranslatedText(
                           car.location.isNotEmpty
                               ? car.location
-                              : 'Afghanistan',
+                              : context.l10n.t('afghanistan'),
                           style: GoogleFonts.poppins(
                             fontSize: 11.62,
                             fontWeight: FontWeight.w400,
@@ -264,7 +265,7 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
                     const SizedBox(height: 14),
                     Row(
                       children: [
-                        Expanded(child: _detailAction(Icons.message_outlined, 'Chat', onTap: _openChat)),
+                        Expanded(child: _detailAction(Icons.message_outlined, context.l10n.t('chat'), onTap: _openChat)),
                         const SizedBox(width: 8),
                         Expanded(child: _whatsAppAction(onTap: _openChat)),
                       ],
@@ -281,7 +282,9 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
 
   void _shareItem() {
     final itemName = widget.car.title;
-    final shareText = 'Check out this car: $itemName - ${widget.car.formattedPrice} on Afghan Deals Pro';
+    final shareText = context.l10n.t('check_out_listing')
+        .replaceAll('{text}', itemName)
+        .replaceAll('{price}', widget.car.formattedPrice);
 
     showModalBottomSheet(
       context: context,
@@ -394,7 +397,7 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            child: Text(
+            child: TranslatedText(
               k,
               style: GoogleFonts.poppins(
                 fontSize: 17.24,
@@ -406,7 +409,7 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
           ),
           SizedBox(
             width: 132,
-            child: Text(
+            child: TranslatedText(
               v,
               textAlign: TextAlign.left,
               style: GoogleFonts.poppins(

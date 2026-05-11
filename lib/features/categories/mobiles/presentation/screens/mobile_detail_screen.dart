@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/router/route_names.dart';
 import '../../../../../core/widgets/favorite_button.dart';
 import '../../../../../core/localization/app_localizations.dart';
+import '../../../../../core/widgets/translated_text.dart';
 import '../../../../chat/presentation/providers/chat_provider.dart';
 import '../../../../../features/listings/data/models/mobile_listing_model.dart';
 
@@ -182,7 +183,7 @@ class _MobileDetailScreenState extends ConsumerState<MobileDetailScreen> {
                       ),
                     ),
                   ),
-                  Text(
+                  TranslatedText(
                     mobile.title,
                     style: GoogleFonts.poppins(
                       fontSize: 17.24,
@@ -193,8 +194,10 @@ class _MobileDetailScreenState extends ConsumerState<MobileDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    'Mobiles${mobile.subcategory.isNotEmpty ? ' / ${mobile.subcategory}' : ''}',
+                  TranslatedText(
+                    mobile.subcategory.isNotEmpty
+                        ? '${context.l10n.t('category_mobiles')} / ${mobile.subcategory}'
+                        : context.l10n.t('category_mobiles'),
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       fontWeight: FontWeight.w400,
@@ -208,7 +211,7 @@ class _MobileDetailScreenState extends ConsumerState<MobileDetailScreen> {
                       const Icon(Icons.location_on_outlined,
                           size: 15, color: Color(0xFF505050)),
                       const SizedBox(width: 5),
-                      Text(
+                      TranslatedText(
                         mobile.location,
                         style: GoogleFonts.poppins(
                           fontSize: 11.62,
@@ -236,7 +239,7 @@ class _MobileDetailScreenState extends ConsumerState<MobileDetailScreen> {
                           height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
                       const SizedBox(height: 14),
                       if (mobile.description.isNotEmpty)
-                        Text(
+                        TranslatedText(
                           mobile.description,
                           style: GoogleFonts.poppins(
                             fontSize: 14,
@@ -253,27 +256,27 @@ class _MobileDetailScreenState extends ConsumerState<MobileDetailScreen> {
                       if (mobile.description.isNotEmpty)
                         const SizedBox(height: 14),
                       if (mobile.brand.isNotEmpty)
-                        _overviewRow('Brand', mobile.brand),
+                        _overviewRow(context.l10n.t('Brand'), mobile.brand),
                       if (mobile.model.isNotEmpty)
-                        _overviewRow('Model', mobile.model),
+                        _overviewRow(context.l10n.t('Model'), mobile.model),
                       if (mobile.storage.isNotEmpty)
-                        _overviewRow('Storage', mobile.storage),
+                        _overviewRow(context.l10n.t('Storage'), mobile.storage),
                       if (mobile.color.isNotEmpty)
-                        _overviewRow('Color', mobile.color),
+                        _overviewRow(context.l10n.t('Color'), mobile.color),
                       if (mobile.condition.isNotEmpty)
-                        _overviewRow('Condition', mobile.condition),
+                        _overviewRow(context.l10n.t('Condition'), mobile.condition),
                       if (mobile.age.isNotEmpty)
-                        _overviewRow('Age', mobile.age),
+                        _overviewRow(context.l10n.t('Age'), mobile.age),
                       if (mobile.warranty.isNotEmpty)
-                        _overviewRow('Warranty', mobile.warranty),
+                        _overviewRow(context.l10n.t('Warranty'), mobile.warranty),
                       if (mobile.batteryHealth.isNotEmpty)
-                        _overviewRow('Battery Health', mobile.batteryHealth),
+                        _overviewRow(context.l10n.t('Battery Health'), mobile.batteryHealth),
                       if (mobile.version.isNotEmpty)
-                        _overviewRow('Version', mobile.version),
+                        _overviewRow(context.l10n.t('Version'), mobile.version),
                       if (mobile.damageDetails.isNotEmpty)
-                        _overviewRow('Damages', mobile.damageDetails),
+                        _overviewRow(context.l10n.t('Damage / Defects'), mobile.damageDetails),
                       if (mobile.screenSize.isNotEmpty)
-                        _overviewRow('Screen Size', mobile.screenSize),
+                        _overviewRow(context.l10n.t('Screen Size'), mobile.screenSize),
                       _overviewRow('Posted', mobile.formattedDate),
                       const SizedBox(height: 14),
                       const Divider(
@@ -291,13 +294,13 @@ class _MobileDetailScreenState extends ConsumerState<MobileDetailScreen> {
               child: Row(
                 children: [
                   Expanded(
-                      child: _detailAction(Icons.phone_outlined, 'Call',
+                      child: _detailAction(Icons.phone_outlined, context.l10n.t('call'),
                           onTap: () => _launch('tel:${mobile.phone}'))),
                   const SizedBox(width: 8),
                   Expanded(child: _whatsAppAction(onTap: () => _openChat())),
                   const SizedBox(width: 8),
                   Expanded(
-                      child: _detailAction(Icons.message_outlined, 'Chat',
+                      child: _detailAction(Icons.message_outlined, context.l10n.t('chat'),
                           onTap: _openChat)),
                 ],
               ),
@@ -315,7 +318,7 @@ class _MobileDetailScreenState extends ConsumerState<MobileDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            child: Text(
+            child: TranslatedText(
               k,
               style: GoogleFonts.poppins(
                 fontSize: 17.24,
@@ -328,7 +331,7 @@ class _MobileDetailScreenState extends ConsumerState<MobileDetailScreen> {
           ),
           SizedBox(
             width: 132,
-            child: Text(
+            child: TranslatedText(
               v,
               textAlign: TextAlign.left,
               style: GoogleFonts.poppins(

@@ -8,6 +8,7 @@ class TranslatedText extends ConsumerStatefulWidget {
   final TextStyle? style;
   final int? maxLines;
   final TextOverflow? overflow;
+  final TextAlign? textAlign;
 
   const TranslatedText(
     this.text, {
@@ -15,6 +16,7 @@ class TranslatedText extends ConsumerStatefulWidget {
     this.style,
     this.maxLines,
     this.overflow,
+    this.textAlign,
   });
 
   @override
@@ -71,6 +73,7 @@ class _TranslatedTextState extends ConsumerState<TranslatedText> {
       style: widget.style,
       maxLines: widget.maxLines,
       overflow: widget.overflow,
+      textAlign: widget.textAlign,
     );
   }
 }

@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../providers/brand_listings_provider.dart';
 import '../../../../../features/listings/data/models/car_sale_model.dart';
 import '../../../../../core/widgets/favorite_button.dart';
+import '../../../../../core/widgets/translated_text.dart';
 import 'car_sale_detail_screen.dart';
 import 'cars_filter_screen.dart';
 
@@ -631,7 +632,7 @@ class _CarCardState extends ConsumerState<_CarCard> {
                               color: const Color(0xFF505050))),
                     ],
                   ),
-                  Text(car.title,
+                  TranslatedText(car.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
@@ -799,4 +800,3 @@ class _ActionBtn extends StatelessWidget {
     );
   }
 }
-

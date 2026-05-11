@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../../core/localization/app_localizations.dart';
+import '../../../../../core/widgets/translated_text.dart';
 import '../providers/spare_parts_provider.dart';
 import 'spare_parts_results_screen.dart';
 
@@ -222,7 +224,7 @@ class _SparePartsModelsScreenState
                   itemBuilder: (_, i) {
                     if (i == topModels.length) {
                       return _ModelTile(
-                        label: 'More',
+                        label: context.l10n.t('more'),
                         selected: false,
                         onTap: () {},
                         child: const Icon(Icons.more_horiz,
@@ -366,7 +368,7 @@ class _ModelTile extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          Text(
+          TranslatedText(
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
