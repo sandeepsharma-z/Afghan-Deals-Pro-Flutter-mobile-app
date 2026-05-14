@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -8,6 +10,8 @@ import '../../../../core/error/app_exception.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final SupabaseClient _client;
+  static const _googleServerClientId =
+      '856987295621-qe6pgebeugaerk2s4qdqckcr24qfjeel.apps.googleusercontent.com';
 
   AuthRepositoryImpl(this._client);
 
@@ -141,6 +145,11 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       await _client.auth.signInWithOtp(phone: phone);
     } on AuthException catch (e) {
+      if (e.message.toLowerCase().contains('unsupported phone provider')) {
+        throw const AppAuthException(
+          'Phone login is not enabled yet. Please try Google or email login.',
+        );
+      }
       throw AppAuthException(e.message, code: e.statusCode);
     } catch (_) {
       throw const AppAuthException('Failed to send OTP. Please try again.');
@@ -277,29 +286,32 @@ class AuthRepositoryImpl implements AuthRepository {
         if (!_isInvalidRefreshToken(e)) rethrow;
       }
 
-      final launched = await _client.auth.signInWithOAuth(
-        OAuthProvider.google,
-        redirectTo: 'io.supabase.flutter://login-callback/',
-        authScreenLaunchMode: LaunchMode.externalApplication,
+      final googleSignIn = GoogleSignIn(
+        scopes: const ['email', 'profile'],
+        serverClientId: _googleServerClientId,
       );
-      if (!launched) {
+
+      await googleSignIn.signOut();
+      final googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
         throw const AppAuthException('Google sign-in was cancelled.');
       }
 
-      final immediateUser = _client.auth.currentUser;
-      if (immediateUser != null) {
-        await _ensureProfile(immediateUser);
-        return UserModel.fromSupabaseUser(immediateUser);
+      final googleAuth = await googleUser.authentication;
+      final idToken = googleAuth.idToken;
+      if (idToken == null || idToken.isEmpty) {
+        throw const AppAuthException(
+          'Google sign-in did not return an ID token. Please try again.',
+        );
       }
 
-      final authEvent = await _client.auth.onAuthStateChange
-          .where((event) =>
-              event.session?.user != null &&
-              event.event != AuthChangeEvent.signedOut)
-          .first
-          .timeout(const Duration(minutes: 2));
+      final response = await _client.auth.signInWithIdToken(
+        provider: OAuthProvider.google,
+        idToken: idToken,
+        accessToken: googleAuth.accessToken,
+      );
 
-      final user = authEvent.session?.user;
+      final user = response.user;
       if (user == null) {
         throw const AppAuthException(
             'Google sign-in did not complete. Please try again.');
@@ -319,9 +331,13 @@ class AuthRepositoryImpl implements AuthRepository {
       throw const AppAuthException(
         'Google sign-in timed out. Please complete Google login and try again.',
       );
+    } on PlatformException catch (e) {
+      throw AppAuthException(
+        'Google sign-in config error (${e.code}): ${e.message ?? e.details ?? 'Unknown platform error'}',
+      );
     } catch (e) {
       if (e is AppAuthException) rethrow;
-      throw const AppAuthException('Google sign-in failed. Please try again.');
+      throw AppAuthException('Google sign-in failed: $e');
     }
   }
 

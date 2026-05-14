@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
@@ -9,6 +10,11 @@ import 'google_signin_dialog.dart';
 
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
+
+  bool get _showAppleSignIn =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.macOS);
 
   @override
   Widget build(BuildContext context) {
@@ -139,38 +145,39 @@ class OnboardingScreen extends StatelessWidget {
 
                     const SizedBox(height: 14),
 
-                    // Sign in with Apple
-                    GestureDetector(
-                      onTap: () {
-                        showAppleSignInSheet(context);
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.apple,
-                                size: 22, color: Colors.white),
-                            const SizedBox(width: 10),
-                            Text(
-                              'Sign in with Apple',
-                              style: GoogleFonts.montserrat(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
+                    if (_showAppleSignIn) ...[
+                      GestureDetector(
+                        onTap: () {
+                          showAppleSignInSheet(context);
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.apple,
+                                  size: 22, color: Colors.white),
+                              const SizedBox(width: 10),
+                              Text(
+                                'Sign in with Apple',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-
-                    const SizedBox(height: 20),
+                      const SizedBox(height: 20),
+                    ] else
+                      const SizedBox(height: 14),
 
                     // OR divider
                     Row(

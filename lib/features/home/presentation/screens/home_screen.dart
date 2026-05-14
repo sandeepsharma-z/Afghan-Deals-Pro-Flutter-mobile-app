@@ -951,7 +951,7 @@ class _HelpSheet extends StatelessWidget {
                     child: _actionButton(
                       icon: Icons.call_outlined,
                       label: context.l10n.t('call'),
-                      onTap: () => _launch('tel:+93700000000'),
+                      onTap: () => _launch('tel:+93748846117'),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -960,7 +960,7 @@ class _HelpSheet extends StatelessWidget {
                       icon: Icons.email_outlined,
                       label: context.l10n.t('email'),
                       onTap: () => _launch(
-                          'mailto:support@afghandealspro.com?subject=Afghan%20Deals%20Pro%20Support'),
+                          'mailto:admin@afghandeals.com?subject=Afghan%20Deals%20Pro%20Support'),
                     ),
                   ),
                 ],

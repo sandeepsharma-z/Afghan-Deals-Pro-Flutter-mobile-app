@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/router/app_router.dart';
+import 'core/router/route_names.dart';
 import 'core/localization/app_language_provider.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
@@ -48,11 +49,11 @@ Future<void> main() async {
   await _localNotifications.initialize(
     initSettings,
     onDidReceiveNotificationResponse: (response) {
-      final chatId = response.payload;
-      if (chatId != null && chatId.isNotEmpty) {
+      final route = response.payload;
+      if (route != null && route.startsWith('/')) {
         final ctx = appNavigatorKey.currentContext;
         if (ctx != null) {
-          ctx.go('/chat/$chatId');
+          ctx.go(route);
         }
       }
     },
@@ -101,11 +102,22 @@ Future<void> main() async {
 
 void _handleNotificationTap(RemoteMessage message) {
   final chatId = message.data['chat_id'] as String?;
+  final actionUrl = message.data['action_url'] as String?;
+  final type = message.data['type'] as String?;
+  final targetRoute =
+      actionUrl != null && actionUrl.startsWith('/') ? actionUrl : null;
+
   if (chatId != null && chatId.isNotEmpty) {
     final ctx = appNavigatorKey.currentContext;
     if (ctx != null) {
       ctx.go('/chat/$chatId');
     }
+    return;
+  }
+
+  final ctx = appNavigatorKey.currentContext;
+  if (ctx != null) {
+    ctx.go(targetRoute ?? (type == 'message' ? RouteNames.chats : RouteNames.notifications));
   }
 }
 
@@ -136,9 +148,19 @@ Future<void> _showForegroundLocalNotification(RemoteMessage message) async {
   final title = message.notification?.title?.trim();
   final body = message.notification?.body?.trim();
   final chatId = message.data['chat_id']?.toString() ?? '';
+  final actionUrl = message.data['action_url']?.toString() ?? '';
+  final type = message.data['type']?.toString() ?? '';
   if ((title == null || title.isEmpty) && (body == null || body.isEmpty)) {
     return;
   }
+
+  final payload = chatId.isNotEmpty
+      ? '/chat/$chatId'
+      : actionUrl.startsWith('/')
+          ? actionUrl
+          : type == 'message'
+              ? RouteNames.chats
+              : RouteNames.notifications;
 
   await _localNotifications.show(
     message.hashCode,
@@ -159,7 +181,7 @@ Future<void> _showForegroundLocalNotification(RemoteMessage message) async {
         presentSound: true,
       ),
     ),
-    payload: chatId.isEmpty ? null : chatId,
+    payload: payload,
   );
 }
 
@@ -273,7 +295,7 @@ class _AfghanDealsProState extends ConsumerState<AfghanDealsPro>
       theme: AppTheme.light,
       locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,
-      localizationsDelegates: [
+      localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

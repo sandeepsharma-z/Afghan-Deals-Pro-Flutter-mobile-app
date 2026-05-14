@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +15,11 @@ import '../providers/auth_provider.dart';
 
 class OnboardingScreen extends ConsumerWidget {
   const OnboardingScreen({super.key});
+
+  bool get _showAppleSignIn =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.macOS);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -135,22 +141,23 @@ class OnboardingScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: AppDimensions.md),
 
-                    // Sign in with Apple
-                    AppButton(
-                      label: context.l10n.t('sign_in_apple'),
-                      onTap: isLoading
-                          ? null
-                          : () async {
-                              await ref
-                                  .read(authNotifierProvider.notifier)
-                                  .signInWithApple();
-                            },
-                      isLoading: isLoading,
-                      prefixIcon: const Icon(Icons.apple,
-                          size: 22, color: AppColors.white),
-                    ),
-
-                    const SizedBox(height: 20),
+                    if (_showAppleSignIn) ...[
+                      AppButton(
+                        label: context.l10n.t('sign_in_apple'),
+                        onTap: isLoading
+                            ? null
+                            : () async {
+                                await ref
+                                    .read(authNotifierProvider.notifier)
+                                    .signInWithApple();
+                              },
+                        isLoading: isLoading,
+                        prefixIcon: const Icon(Icons.apple,
+                            size: 22, color: AppColors.white),
+                      ),
+                      const SizedBox(height: 20),
+                    ] else
+                      const SizedBox(height: AppDimensions.md),
 
                     // OR divider
                     Row(
