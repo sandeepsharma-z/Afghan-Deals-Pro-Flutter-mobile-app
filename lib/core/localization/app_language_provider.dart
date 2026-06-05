@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import '../auth/app_auth.dart';
 
 const supportedAppLanguages = <AppLanguage>[
   AppLanguage(name: 'English', code: 'en'),
@@ -33,8 +33,7 @@ class AppLanguageNotifier extends StateNotifier<Locale> {
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     final savedCode = prefs.getString(_prefKey);
-    final metaLanguage =
-        Supabase.instance.client.auth.currentUser?.userMetadata?['language'];
+    final metaLanguage = AppAuth.currentUserMetadata['language'];
     final code = savedCode ?? codeFromLanguageName(metaLanguage?.toString());
     if (code != null && _isSupported(code)) {
       state = Locale(code);

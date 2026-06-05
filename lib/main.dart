@@ -8,7 +8,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:async';
 
+import 'core/auth/app_auth.dart';
 import 'core/router/app_router.dart';
 import 'core/router/route_names.dart';
 import 'core/localization/app_language_provider.dart';
@@ -16,6 +18,10 @@ import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'features/chat/presentation/providers/chat_provider.dart';
 import 'firebase_options.dart';
+
+const _supabaseUrl = 'https://cmebycscxjeudegsqzmx.supabase.co';
+const _supabaseAnonKey =
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtZWJ5Y3NjeGpldWRlZ3Nxem14Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxMzEzNDIsImV4cCI6MjA5MzcwNzM0Mn0.K0dMmJ7Oi2RV-YfTNaHGhsUFySD_PatUBo2k0iYRJuQ';
 
 @pragma('vm:entry-point')
 Future<void> _onBackgroundMessage(RemoteMessage message) async {
@@ -64,13 +70,23 @@ Future<void> main() async {
       ?.createNotificationChannel(_chatNotificationChannel);
 
   await Supabase.initialize(
-    url: 'https://cmebycscxjeudegsqzmx.supabase.co',
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtZWJ5Y3NjeGpldWRlZ3Nxem14Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxMzEzNDIsImV4cCI6MjA5MzcwNzM0Mn0.K0dMmJ7Oi2RV-YfTNaHGhsUFySD_PatUBo2k0iYRJuQ',
+    url: _supabaseUrl,
+    anonKey: _supabaseAnonKey,
     authOptions: const FlutterAuthClientOptions(
       authFlowType: AuthFlowType.pkce,
     ),
   );
+
+  await AppAuth.initializeSupabaseForCurrentAuth();
+  if (AppAuth.isFirebaseAuthenticated) {
+    try {
+      await AppAuth.ensureFirebaseProfileId(
+        displayName: AppAuth.currentUserEntity?.name,
+        email: AppAuth.currentUserEmail,
+        phone: AppAuth.currentUserPhone,
+      );
+    } catch (_) {}
+  }
 
   final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
   if (initialMessage != null) {
@@ -194,21 +210,39 @@ class AfghanDealsPro extends ConsumerStatefulWidget {
 
 class _AfghanDealsProState extends ConsumerState<AfghanDealsPro>
     with WidgetsBindingObserver {
+  StreamSubscription<AuthState>? _supabaseAuthSub;
+  StreamSubscription? _firebaseAuthSub;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _setupFcm();
 
-    Supabase.instance.client.auth.onAuthStateChange.listen((data) {
-      if (data.event == AuthChangeEvent.signedIn) {
+    _firebaseAuthSub = AppAuth.firebase.authStateChanges().listen((user) {
+      if (user != null) {
         _saveFcmToken();
-      }
-      if (data.event == AuthChangeEvent.tokenRefreshed ||
-          data.event == AuthChangeEvent.signedIn) {
-        ref.invalidate(chatThreadsProvider);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            ref.invalidate(chatThreadsProvider);
+          }
+        });
       }
     });
+
+    if (!AppAuth.isFirebaseAuthenticated) {
+      _supabaseAuthSub = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+        if (data.event == AuthChangeEvent.signedIn ||
+            data.event == AuthChangeEvent.tokenRefreshed) {
+          _saveFcmToken();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              ref.invalidate(chatThreadsProvider);
+            }
+          });
+        }
+      });
+    }
   }
 
   Future<void> _setupFcm() async {
@@ -241,30 +275,42 @@ class _AfghanDealsProState extends ConsumerState<AfghanDealsPro>
   }
 
   Future<void> _saveFcmToken() async {
-    final me = Supabase.instance.client.auth.currentUser;
+    if (AppAuth.isFirebaseAuthenticated) {
+      await AppAuth.ensureFirebaseProfileId(
+        displayName: AppAuth.currentUserEntity?.name,
+        email: AppAuth.currentUserEmail,
+        phone: AppAuth.currentUserPhone,
+      );
+    }
+
+    final me = AppAuth.currentUserEntity;
     if (me == null) return;
     try {
       final token = await FirebaseMessaging.instance.getToken();
       if (token == null || token.isEmpty) return;
 
+      final lookupValue = AppAuth.currentProfileLookupValue;
+      if (lookupValue == null) return;
       final updated = await Supabase.instance.client
           .from('profiles')
           .update({'fcm_token': token})
-          .eq('id', me.id)
+          .eq(AppAuth.profileLookupColumn, lookupValue)
           .select('id')
           .maybeSingle();
 
       if (updated == null) {
-        final displayName =
-            (me.userMetadata?['name']?.toString().trim().isNotEmpty ?? false)
-                ? me.userMetadata!['name'].toString().trim()
-                : (me.email?.split('@').first ?? 'User');
+        final displayName = me.name?.trim().isNotEmpty == true
+            ? me.name!.trim()
+                : (me.email?.split('@').first ?? me.phone ?? 'User');
         await Supabase.instance.client.from('profiles').upsert({
-          'id': me.id,
+          if (AppAuth.isFirebaseAuthenticated) 'firebase_uid': AppAuth.currentAuthUid,
+          if (!AppAuth.isFirebaseAuthenticated) 'id': me.id,
           'name': displayName,
           'email': me.email,
+          'phone': me.phone,
+          'is_verified': me.isVerified,
           'fcm_token': token,
-        }, onConflict: 'id');
+        }, onConflict: AppAuth.profileLookupColumn);
       }
     } catch (e) {
       debugPrint('Failed to save FCM token: $e');
@@ -281,6 +327,8 @@ class _AfghanDealsProState extends ConsumerState<AfghanDealsPro>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _supabaseAuthSub?.cancel();
+    _firebaseAuthSub?.cancel();
     super.dispose();
   }
 

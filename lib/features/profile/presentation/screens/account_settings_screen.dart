@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/auth/app_auth.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../../core/localization/app_localizations.dart';
@@ -212,23 +213,34 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               height: 48,
               child: ElevatedButton(
                 onPressed: () {
+                  final messenger = ScaffoldMessenger.of(context);
+                  final l10n = context.l10n;
                   final password = newCtrl.text.trim();
                   final confirm = confirmCtrl.text.trim();
                   if (password.length < 6) {
-                    _snack(context.l10n.t('min_6_characters'),
+                    _snack(l10n.t('min_6_characters'),
                         error: true);
                     return;
                   }
                   if (password != confirm) {
-                    _snack(context.l10n.t('passwords_not_match'), error: true);
+                    _snack(l10n.t('passwords_not_match'), error: true);
                     return;
                   }
                   Navigator.pop(sheetContext);
                   _run(() async {
+                    if (AppAuth.isFirebaseAuthenticated) {
+                      throw Exception('Password change is only available for email login.');
+                    }
                     await _client.auth.updateUser(
                       UserAttributes(password: password),
                     );
-                    _snack(context.l10n.t('password_updated'));
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(l10n.t('password_updated')),
+                        backgroundColor: AppColors.success,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
                   });
                 },
                 style: ElevatedButton.styleFrom(
@@ -333,16 +345,16 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
   Future<void> _deactivateAccount() async {
     await _run(() async {
-      final me = _client.auth.currentUser;
-      if (me == null) throw Exception('Please login again.');
+      final me = AppAuth.currentUserId;
+      if (me == null || me.isEmpty) throw Exception('Please login again.');
       await _client.from('profiles').update({
         'is_active': false,
         'deactivated_at': DateTime.now().toIso8601String(),
-      }).eq('id', me.id);
+      }).eq(AppAuth.profileIdColumn, me);
       await _client
           .from('listings')
-          .update({'is_active': false}).eq('seller_id', me.id);
-      await _client.auth.signOut();
+          .update({'is_active': false}).eq('seller_id', me);
+      await AppAuth.signOutAll();
       if (!mounted) return;
       context.go(RouteNames.home);
     });
@@ -350,13 +362,16 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
   Future<void> _deleteAccount() async {
     await _run(() async {
+      if (AppAuth.isFirebaseAuthenticated) {
+        throw Exception('Delete account is not available for phone login yet.');
+      }
       try {
         await _client.rpc('delete_my_account');
       } catch (e) {
         throw Exception(
             'Delete account setup missing. Run ACCOUNT_SETTINGS_SQL_SETUP.sql in Supabase.');
       }
-      await _client.auth.signOut();
+      await AppAuth.signOutAll();
       if (!mounted) return;
       context.go(RouteNames.home);
     });
@@ -381,8 +396,8 @@ class _BlockedUsersSheetState extends State<_BlockedUsersSheet> {
   }
 
   Future<List<_BlockedUser>> _load() async {
-    final me = _client.auth.currentUser?.id;
-    if (me == null) return const [];
+    final me = AppAuth.currentUserId;
+    if (me == null || me.isEmpty) return const [];
 
     final rows = await _client
         .from('blocked_users')
@@ -399,7 +414,7 @@ class _BlockedUsersSheetState extends State<_BlockedUsersSheet> {
         profile = await _client
             .from('profiles')
             .select('name,email,phone,avatar_url')
-            .eq('id', blockedId)
+            .eq(AppAuth.profileIdColumn, blockedId)
             .maybeSingle();
       } catch (_) {}
       blocked.add(_BlockedUser(

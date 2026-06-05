@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/auth/app_auth.dart';
 import '../../../../core/localization/app_language_provider.dart';
 import '../../../../core/widgets/app_bottom_nav.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -34,7 +35,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
   void _loadPreferences(dynamic profile, List<String> languages) {
     if (_loadedPreferences) return;
     _loadedPreferences = true;
-    final meta = Supabase.instance.client.auth.currentUser?.userMetadata ?? {};
+    final meta = AppAuth.currentUserMetadata;
     final profileCountry = profile?.country?.toString().trim() ?? '';
     final metaCountry = meta['country']?.toString().trim() ?? '';
     final metaLanguage = meta['language']?.toString().trim() ?? '';
@@ -52,8 +53,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
     String? country,
     String? language,
   }) async {
-    final currentUser = Supabase.instance.client.auth.currentUser;
-    if (currentUser == null) return;
+    if (!AppAuth.isAuthenticated) return;
 
     final updates = <String, dynamic>{};
     if (country != null) updates['country'] = country;
@@ -67,9 +67,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
     if (country != null) metadata['country'] = country;
     if (language != null) metadata['language'] = language;
     if (metadata.isNotEmpty) {
-      await Supabase.instance.client.auth.updateUser(
-        UserAttributes(data: metadata),
-      );
+      await AppAuth.updateSupabaseUserMetadata(metadata);
       ref.invalidate(authStateProvider);
     }
   }
@@ -229,9 +227,9 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
     final userAvatar = user?.avatarUrl?.toString().trim() ?? '';
     if (userAvatar.isNotEmpty) return userAvatar;
 
-    final metadata = Supabase.instance.client.auth.currentUser?.userMetadata;
+    final metadata = AppAuth.currentUserMetadata;
     for (final key in const ['avatar_url', 'picture', 'photo_url', 'image']) {
-      final value = metadata?[key]?.toString().trim() ?? '';
+      final value = metadata[key]?.toString().trim() ?? '';
       if (value.isNotEmpty) return value;
     }
 
@@ -246,12 +244,12 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
 
     setState(() => _uploadingAvatar = true);
     try {
-      final user = Supabase.instance.client.auth.currentUser;
-      if (user == null) return;
+      final userId = AppAuth.currentUserId;
+      if (userId == null || userId.isEmpty) return;
 
       final bytes = await picked.readAsBytes();
       final ext = picked.path.split('.').last;
-      final path = 'avatars/${user.id}.$ext';
+      final path = 'avatars/$userId.$ext';
 
       await Supabase.instance.client.storage.from('avatars').uploadBinary(
           path, bytes,
@@ -263,8 +261,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
       await ref
           .read(profileNotifierProvider.notifier)
           .updateProfile({'avatar_url': url});
-      await Supabase.instance.client.auth
-          .updateUser(UserAttributes(data: {'avatar_url': url}));
+      await AppAuth.updateSupabaseUserMetadata({'avatar_url': url});
       ref.invalidate(profileProvider);
       ref.invalidate(authStateProvider);
     } catch (e) {

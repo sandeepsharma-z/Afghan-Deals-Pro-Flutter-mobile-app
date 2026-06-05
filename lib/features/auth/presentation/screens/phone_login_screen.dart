@@ -81,8 +81,28 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
   }
 
   Future<void> _sendOtp() async {
-    final phone = '$_countryCode${_phoneController.text.trim()}';
-    if (_phoneController.text.trim().isEmpty) return;
+    String phoneInput = _phoneController.text.trim();
+
+    if (phoneInput.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please enter a phone number'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+          ),
+        ),
+      );
+      return;
+    }
+
+    // Remove leading zero if present (common in some countries)
+    if (phoneInput.startsWith('0')) {
+      phoneInput = phoneInput.substring(1);
+    }
+
+    final phone = '$_countryCode$phoneInput';
 
     final success = await ref.read(authNotifierProvider.notifier).sendPhoneOtp(phone);
     if (success && mounted) {

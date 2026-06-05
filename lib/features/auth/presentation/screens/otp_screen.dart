@@ -88,23 +88,44 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   }
 
   Future<void> _verify() async {
-    if (_otp.length < 6) return;
-
-    bool success;
-    if (_isEmail) {
-      success = await ref.read(authNotifierProvider.notifier).verifyEmailOtp(
-            email: widget.email!,
-            otp: _otp,
-          );
-    } else {
-      success = await ref.read(authNotifierProvider.notifier).verifyPhoneOtp(
-            phone: widget.phoneNumber!,
-            otp: _otp,
-          );
+    if (_otp.isEmpty || _otp.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter the complete 6-digit code'),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
     }
 
-    if (success && mounted) {
-      context.go(RouteNames.home);
+    bool success;
+    try {
+      if (_isEmail) {
+        success = await ref.read(authNotifierProvider.notifier).verifyEmailOtp(
+              email: widget.email!,
+              otp: _otp,
+            );
+      } else {
+        success = await ref.read(authNotifierProvider.notifier).verifyPhoneOtp(
+              phone: widget.phoneNumber!,
+              otp: _otp,
+            );
+      }
+
+      if (success && mounted) {
+        context.go(RouteNames.home);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 

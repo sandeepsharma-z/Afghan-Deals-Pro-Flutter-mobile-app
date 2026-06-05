@@ -7,6 +7,7 @@ import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../../../core/error/app_exception.dart';
+import '../../../../core/auth/app_auth.dart';
 import '../../../../core/localization/app_language_provider.dart';
 
 // ── Supabase client provider ──────────────────────────────────────────────────
@@ -20,8 +21,9 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 });
 
 // ── Auth state stream (current user) ─────────────────────────────────────────
-final authStateProvider = StreamProvider<UserEntity?>((ref) {
-  return ref.read(authRepositoryProvider).authStateChanges;
+final authStateProvider = StreamProvider<UserEntity?>((ref) async* {
+  yield AppAuth.currentUserEntity;
+  yield* ref.read(authRepositoryProvider).authStateChanges;
 });
 
 // ── Auth actions notifier ─────────────────────────────────────────────────────
@@ -77,6 +79,7 @@ class AuthNotifier extends StateNotifier<AuthActionState> {
     state = const AuthActionLoading();
     try {
       await _repository.verifyPhoneOtp(phone: phone, otp: otp);
+      _ref.invalidate(authStateProvider);
       state = const AuthActionSuccess();
       return true;
     } on AppAuthException catch (e) {
@@ -104,6 +107,7 @@ class AuthNotifier extends StateNotifier<AuthActionState> {
         name: name, email: email, password: password,
         phone: phone, gender: gender, nationality: nationality, dob: dob,
       );
+      _ref.invalidate(authStateProvider);
       state = const AuthActionSuccess();
       return true;
     } on AppAuthException catch (e) {
@@ -122,6 +126,7 @@ class AuthNotifier extends StateNotifier<AuthActionState> {
     state = const AuthActionLoading();
     try {
       await _repository.signInWithEmail(email: email, password: password);
+      _ref.invalidate(authStateProvider);
       state = const AuthActionSuccess();
       return true;
     } on AppAuthException catch (e) {
@@ -156,6 +161,7 @@ class AuthNotifier extends StateNotifier<AuthActionState> {
     state = const AuthActionLoading();
     try {
       await _repository.verifyEmailOtp(email: email, otp: otp);
+      _ref.invalidate(authStateProvider);
       state = const AuthActionSuccess();
       return true;
     } on AppAuthException catch (e) {
@@ -172,6 +178,7 @@ class AuthNotifier extends StateNotifier<AuthActionState> {
     state = const AuthActionLoading();
     try {
       await _repository.signInWithGoogle();
+      _ref.invalidate(authStateProvider);
       state = const AuthActionSuccess();
       return true;
     } on AppAuthException catch (e) {
@@ -188,6 +195,7 @@ class AuthNotifier extends StateNotifier<AuthActionState> {
     state = const AuthActionLoading();
     try {
       await _repository.signInWithApple();
+      _ref.invalidate(authStateProvider);
       state = const AuthActionSuccess();
       return true;
     } on AppAuthException catch (e) {
@@ -205,9 +213,7 @@ class AuthNotifier extends StateNotifier<AuthActionState> {
     try {
       // Clear Supabase metadata language BEFORE logout (while still authenticated)
       try {
-        await Supabase.instance.client.auth.updateUser(
-          UserAttributes(data: {'language': null}),
-        );
+        await AppAuth.updateSupabaseUserMetadata({'language': null});
       } catch (_) {
         // Ignore if update fails
       }
@@ -221,6 +227,7 @@ class AuthNotifier extends StateNotifier<AuthActionState> {
       // Reset language provider state to English
       await _ref.read(appLanguageProvider.notifier).setLocale(const Locale('en'));
 
+      _ref.invalidate(authStateProvider);
       state = const AuthActionSuccess();
       // Clear auth state after successful signout
       // The authStateProvider will update via the stream automatically

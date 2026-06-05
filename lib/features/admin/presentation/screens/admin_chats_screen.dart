@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/auth/app_auth.dart';
 import '../../../chat/data/models/chat_message_model.dart';
 import '../../../chat/data/models/chat_thread_model.dart';
 import '../../../chat/presentation/providers/chat_provider.dart';
@@ -11,7 +12,7 @@ import '../../../chat/presentation/providers/chat_provider.dart';
 
 final adminAllChatsProvider = StreamProvider.autoDispose<List<ChatThreadModel>>((ref) {
   final client = Supabase.instance.client;
-  final me = client.auth.currentUser?.id ?? '';
+  final me = AppAuth.currentUserId ?? '';
 
   return client
       .from('chats')
@@ -238,7 +239,7 @@ class _AdminMessageView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final messagesAsync = ref.watch(chatMessagesProvider(thread.id));
-    final me = Supabase.instance.client.auth.currentUser?.id ?? '';
+    final me = AppAuth.currentUserId ?? '';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),

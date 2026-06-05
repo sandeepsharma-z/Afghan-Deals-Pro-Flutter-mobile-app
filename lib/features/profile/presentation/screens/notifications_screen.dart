@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
+import '../../../../core/auth/app_auth.dart';
 import '../../../../core/widgets/translated_text.dart';
 import '../../data/models/notification_model.dart';
 import '../providers/notifications_provider.dart';
@@ -24,7 +24,7 @@ class NotificationsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notificationsAsync = ref.watch(notificationsProvider);
-    final userId = Supabase.instance.client.auth.currentUser?.id ?? '';
+    final userId = AppAuth.currentUserId ?? '';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F8F8),

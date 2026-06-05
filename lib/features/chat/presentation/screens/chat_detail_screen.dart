@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../../core/auth/app_auth.dart';
 import '../../data/models/chat_message_model.dart';
 import '../../data/models/chat_thread_model.dart';
 import '../providers/chat_provider.dart';
@@ -89,7 +89,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
   Future<void> _send() async {
     final msg = _textCtrl.text.trim();
     if (msg.isEmpty || _sending) return;
-    final me = Supabase.instance.client.auth.currentUser?.id ?? '';
+    final me = AppAuth.currentUserId ?? '';
     if (me.isEmpty) return;
 
     final tempId = 'local-${DateTime.now().microsecondsSinceEpoch}';
@@ -139,7 +139,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
         source: ImageSource.gallery, imageQuality: 70, maxWidth: 1080);
     if (picked == null || !mounted) return;
 
-    final me = Supabase.instance.client.auth.currentUser?.id ?? '';
+    final me = AppAuth.currentUserId ?? '';
     final tempId = 'local-img-${DateTime.now().microsecondsSinceEpoch}';
     final optimistic = ChatMessageModel(
       id: tempId, chatId: widget.chatId,
@@ -181,7 +181,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final me = Supabase.instance.client.auth.currentUser?.id ?? '';
+    final me = AppAuth.currentUserId ?? '';
     final metaAsync = ref.watch(chatThreadByIdProvider(widget.chatId));
     final thread = widget.initialThread ?? metaAsync.value;
     final messagesAsync = ref.watch(chatMessagesProvider(widget.chatId));

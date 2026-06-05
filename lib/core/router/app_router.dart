@@ -45,25 +45,26 @@ import 'route_names.dart';
 final appNavigatorKey = GlobalKey<NavigatorState>();
 
 // Create a notifier to track auth state changes and refresh the router
-final _routerRefreshProvider =
-    StateNotifierProvider<_RouterRefreshNotifier, void>((ref) {
-  ref.listen(authStateProvider, (prev, next) {
-    // Any auth state change triggers a refresh
+final _routerRefreshProvider = Provider<_RouterRefreshNotifier>((ref) {
+  final notifier = _RouterRefreshNotifier();
+  ref.listen(authStateProvider, (_, __) {
+    notifier.refresh();
   });
-  return _RouterRefreshNotifier();
+  ref.onDispose(notifier.dispose);
+  return notifier;
 });
 
-class _RouterRefreshNotifier extends StateNotifier<void> {
-  _RouterRefreshNotifier() : super(null);
+class _RouterRefreshNotifier extends ChangeNotifier {
+  void refresh() => notifyListeners();
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  // Listen to router refresh events
-  ref.watch(_routerRefreshProvider);
+  final refreshNotifier = ref.watch(_routerRefreshProvider);
 
   return GoRouter(
     navigatorKey: appNavigatorKey,
     initialLocation: RouteNames.splash,
+    refreshListenable: refreshNotifier,
     redirect: (context, state) {
       // Get current auth state
       final authState = ref.read(authStateProvider);

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/auth/app_auth.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/widgets/translated_text.dart';
 import '../../../../core/widgets/app_bottom_nav.dart';
@@ -29,13 +30,13 @@ import '../../../listings/data/models/mobile_listing_model.dart';
 import '../providers/favorites_provider.dart';
 
 final myAdsProvider = FutureProvider<List<ListingModel>>((ref) async {
-  final me = Supabase.instance.client.auth.currentUser;
-  if (me == null) return const <ListingModel>[];
+  final me = AppAuth.currentUserId;
+  if (me == null || me.isEmpty) return const <ListingModel>[];
 
   final response = await Supabase.instance.client
       .from('listings')
       .select()
-      .eq('seller_id', me.id)
+      .eq('seller_id', me)
       .order('created_at', ascending: false);
 
   if (response.isEmpty) return const <ListingModel>[];

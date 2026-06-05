@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/auth/app_auth.dart';
 
 // ── State ──────────────────────────────────────────────────────────────────────
 
@@ -115,14 +116,19 @@ class SellNotifier extends StateNotifier<SellState> {
     state = state.copyWith(isSubmitting: true, error: null, success: false);
 
     try {
-      final user = _client.auth.currentUser;
-      if (user == null) throw Exception('Please log in to post an ad');
+      final authUser = AppAuth.currentUserEntity;
+      final userId = AppAuth.currentUserId;
+      if (authUser == null || userId == null) {
+        throw Exception('Please log in to post an ad');
+      }
+      final profileLookupValue = AppAuth.currentProfileLookupValue;
+      final profileIdColumn = AppAuth.profileLookupColumn;
 
       // Fetch seller name from profiles
       final profile = await _client
           .from('profiles')
           .select('name')
-          .eq('id', user.id)
+          .eq(profileIdColumn, profileLookupValue ?? userId)
           .maybeSingle();
       final manualSellerName = (baseData['seller_name']?.toString() ?? '').trim();
       final normalizedCategory = category.trim().toLowerCase().replaceAll('_', '-');
@@ -131,7 +137,7 @@ class SellNotifier extends StateNotifier<SellState> {
         ...baseData,
         'category': normalizedCategory,
         'category_data': categoryData,
-        'seller_id': user.id,
+        'seller_id': userId,
         'seller_name': manualSellerName.isNotEmpty
             ? manualSellerName
             : (profile?['name'] ?? ''),

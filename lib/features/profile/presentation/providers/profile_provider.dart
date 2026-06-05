@@ -1,15 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/auth/app_auth.dart';
 import '../../data/models/profile_model.dart';
 
 final profileProvider = FutureProvider<ProfileModel?>((ref) async {
-  final user = Supabase.instance.client.auth.currentUser;
-  if (user == null) return null;
+  final userId = AppAuth.currentProfileLookupValue;
+  if (userId == null) return null;
+  final idColumn = AppAuth.profileLookupColumn;
 
   final response = await Supabase.instance.client
       .from('profiles')
       .select()
-      .eq('id', user.id)
+      .eq(idColumn, userId)
       .maybeSingle();
 
   if (response == null) return null;
@@ -20,15 +22,16 @@ class ProfileNotifier extends StateNotifier<AsyncValue<void>> {
   ProfileNotifier() : super(const AsyncValue.data(null));
 
   Future<void> updateProfile(Map<String, dynamic> data) async {
-    final user = Supabase.instance.client.auth.currentUser;
-    if (user == null) return;
+    final userId = AppAuth.currentProfileLookupValue;
+    if (userId == null) return;
+    final idColumn = AppAuth.profileLookupColumn;
 
     state = const AsyncValue.loading();
     try {
       await Supabase.instance.client
           .from('profiles')
           .update(data)
-          .eq('id', user.id);
+          .eq(idColumn, userId);
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);

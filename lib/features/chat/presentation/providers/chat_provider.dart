@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/auth/app_auth.dart';
 import '../../data/models/chat_message_model.dart';
 import '../../data/models/chat_thread_model.dart';
 
@@ -19,14 +20,22 @@ String _categoryText(dynamic categoryData, List<String> keys) {
   return '';
 }
 
+bool _isUuidLike(String value) {
+  final v = value.trim();
+  return RegExp(
+    r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$',
+  ).hasMatch(v);
+}
+
 // ── Admin check ───────────────────────────────────────────────────────────────
 
 Future<bool> _isAdminUser(SupabaseClient client, String userId) async {
   try {
+    final lookupValue = AppAuth.currentProfileLookupValue ?? userId;
     final row = await client
         .from('profiles')
         .select('is_admin')
-        .eq('id', userId)
+        .eq(AppAuth.profileLookupColumn, lookupValue)
         .maybeSingle();
     return row != null && (row['is_admin'] == true);
   } catch (_) {
@@ -173,23 +182,23 @@ Stream<List<ChatThreadModel>> _chatThreadStreamForRole(
 
 final chatThreadsProvider =
     StreamProvider.autoDispose<List<ChatThreadModel>>((ref) {
-  final user = Supabase.instance.client.auth.currentUser;
-  if (user == null) return Stream.value(const <ChatThreadModel>[]);
+  final userId = AppAuth.currentUserId;
+  if (userId == null) return Stream.value(const <ChatThreadModel>[]);
   final client = ref.read(_chatClientProvider);
-  return Stream.fromFuture(_isAdminUser(client, user.id)).asyncExpand(
-      (isAdmin) => _chatThreadStreamForRole(client, user.id, isAdmin));
+  return Stream.fromFuture(_isAdminUser(client, userId)).asyncExpand(
+      (isAdmin) => _chatThreadStreamForRole(client, userId, isAdmin));
 });
 
 final chatThreadByIdProvider = FutureProvider.autoDispose
     .family<ChatThreadModel?, String>((ref, chatId) async {
-  final user = Supabase.instance.client.auth.currentUser;
-  if (user == null) return null;
+  final userId = AppAuth.currentUserId;
+  if (userId == null) return null;
   final client = ref.read(_chatClientProvider);
   final row =
       await client.from('chats').select().eq('id', chatId).maybeSingle();
   if (row == null) return null;
   final items =
-      await _buildThreads(client, user.id, [Map<String, dynamic>.from(row)]);
+      await _buildThreads(client, userId, [Map<String, dynamic>.from(row)]);
   return items.isEmpty ? null : items.first;
 });
 
@@ -214,18 +223,20 @@ final totalUnreadProvider = Provider.autoDispose<int>((ref) {
 
 // Streams the current user's chat-ban status in real time
 final isChatBannedProvider = StreamProvider.autoDispose<bool>((ref) {
-  final me = Supabase.instance.client.auth.currentUser?.id;
+  final me = AppAuth.currentUserId;
   if (me == null) return Stream.value(false);
+  final lookupValue = AppAuth.currentProfileLookupValue;
+  if (lookupValue == null) return Stream.value(false);
   return Supabase.instance.client
       .from('profiles')
       .stream(primaryKey: const ['id'])
-      .eq('id', me)
+      .eq(AppAuth.profileLookupColumn, lookupValue)
       .map((rows) => rows.isNotEmpty && rows.first['is_chat_banned'] == true);
 });
 
 final isChatBlockedProvider =
     FutureProvider.autoDispose.family<bool, String>((ref, chatId) async {
-  final me = Supabase.instance.client.auth.currentUser?.id;
+  final me = AppAuth.currentUserId;
   if (me == null || chatId.isEmpty) return false;
   final client = ref.read(_chatClientProvider);
 
@@ -286,13 +297,14 @@ class ChatActions {
   // ── Ban check ────────────────────────────────────────────────────────────────
 
   Future<void> _guardBan() async {
-    final me = _client.auth.currentUser?.id;
+    final me = AppAuth.currentUserId;
     if (me == null) throw Exception('Please sign in first.');
     try {
+      final lookupValue = AppAuth.currentProfileLookupValue ?? me;
       final profile = await _client
           .from('profiles')
           .select('is_chat_banned')
-          .eq('id', me)
+          .eq(AppAuth.profileLookupColumn, lookupValue)
           .maybeSingle();
       if (profile != null && profile['is_chat_banned'] == true) {
         throw Exception(
@@ -356,7 +368,9 @@ class ChatActions {
     String? sellerEmailHint,
   }) async {
     final direct = incomingSellerId.trim();
-    if (direct.isNotEmpty) return direct;
+    if (_isUuidLike(direct) && direct != currentUserId) {
+      return direct;
+    }
     try {
       final listing = await _client
           .from('listings')
@@ -373,7 +387,7 @@ class ChatActions {
         'profile_id',
       ]) {
         final id = listing[key]?.toString().trim() ?? '';
-        if (id.isNotEmpty && id != 'unknown' && id != currentUserId) {
+        if (_isUuidLike(id) && id != currentUserId) {
           return id;
         }
       }
@@ -390,7 +404,7 @@ class ChatActions {
           'sellerId',
         ]) {
           final id = categoryData[key]?.toString().trim() ?? '';
-          if (id.isNotEmpty && id != 'unknown' && id != currentUserId) {
+          if (_isUuidLike(id) && id != currentUserId) {
             return id;
           }
         }
@@ -496,7 +510,7 @@ class ChatActions {
     String? sellerPhone,
     String? sellerEmail,
   }) async {
-    final me = _client.auth.currentUser?.id;
+    final me = AppAuth.currentUserId;
     if (me == null) throw Exception('Please sign in first.');
     final resolvedSellerId = await _resolveSellerIdForListing(
       listingId: listingId,
@@ -556,7 +570,8 @@ class ChatActions {
     required String text,
   }) async {
     await _guardBan();
-    final me = _client.auth.currentUser!.id;
+    final me = AppAuth.currentUserId;
+    if (me == null) throw Exception('Please sign in first.');
     await _guardChatBlock(chatId, me);
     final message = text.trim();
     if (message.isEmpty) return;
@@ -588,7 +603,8 @@ class ChatActions {
     required XFile image,
   }) async {
     await _guardBan();
-    final me = _client.auth.currentUser!.id;
+    final me = AppAuth.currentUserId;
+    if (me == null) throw Exception('Please sign in first.');
     await _guardChatBlock(chatId, me);
     try {
       final bytes = await image.readAsBytes();
@@ -627,7 +643,7 @@ class ChatActions {
     required String chatId,
     required bool amIBuyer,
   }) async {
-    final me = _client.auth.currentUser?.id;
+    final me = AppAuth.currentUserId;
     if (me == null) return;
     try {
       final col = amIBuyer ? 'buyer_last_read_at' : 'seller_last_read_at';
@@ -652,7 +668,7 @@ class ChatActions {
     required String blockedUserId,
     String? chatId,
   }) async {
-    final me = _client.auth.currentUser?.id;
+    final me = AppAuth.currentUserId;
     if (me == null) throw Exception('Please sign in first.');
     if (blockedUserId.isEmpty) throw Exception('User is unavailable.');
     if (blockedUserId == me) throw Exception('You cannot block yourself.');
@@ -686,7 +702,7 @@ class ChatActions {
   Future<void> unblockUser({
     required String blockedUserId,
   }) async {
-    final me = _client.auth.currentUser?.id;
+    final me = AppAuth.currentUserId;
     if (me == null) throw Exception('Please sign in first.');
     if (blockedUserId.isEmpty) throw Exception('User is unavailable.');
 
@@ -704,27 +720,30 @@ class ChatActions {
   // ── Save FCM token ───────────────────────────────────────────────────────────
 
   Future<void> saveFcmToken(String token) async {
-    final me = _client.auth.currentUser?.id;
+    final me = AppAuth.currentUserId;
     if (me == null) return;
     try {
+      final lookupValue = AppAuth.currentProfileLookupValue ?? me;
       final updated = await _client
           .from('profiles')
           .update({'fcm_token': token})
-          .eq('id', me)
+          .eq(AppAuth.profileLookupColumn, lookupValue)
           .select('id')
           .maybeSingle();
       if (updated == null) {
-        final user = _client.auth.currentUser;
+        final user = AppAuth.currentUserEntity;
         final displayName =
-            (user?.userMetadata?['name']?.toString().trim().isNotEmpty ?? false)
-                ? user!.userMetadata!['name'].toString().trim()
-                : (user?.email?.split('@').first ?? 'User');
+            user?.name?.trim().isNotEmpty == true
+                ? user!.name!.trim()
+                : (user?.email?.split('@').first ?? user?.phone ?? 'User');
         await _client.from('profiles').upsert({
-          'id': me,
+          if (AppAuth.isFirebaseAuthenticated) 'firebase_uid': AppAuth.currentAuthUid,
+          if (!AppAuth.isFirebaseAuthenticated) 'id': me,
           'name': displayName,
           'email': user?.email,
+          'phone': user?.phone,
           'fcm_token': token,
-        }, onConflict: 'id');
+        }, onConflict: AppAuth.profileLookupColumn);
       }
     } catch (_) {}
   }

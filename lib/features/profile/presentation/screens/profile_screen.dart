@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/router/route_names.dart';
+import '../../../../core/auth/app_auth.dart';
 import '../../../../../core/localization/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/profile_provider.dart';
@@ -32,7 +32,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (_loaded) return;
     _loaded = true;
 
-    final meta = Supabase.instance.client.auth.currentUser?.userMetadata ?? {};
+    final meta = AppAuth.currentUserMetadata;
 
     // Load name — profiles table first, then auth metadata fallback
     final name = (profile?.name as String?)?.isNotEmpty == true
@@ -69,25 +69,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       // Save all fields to profiles table
       await ref.read(profileNotifierProvider.notifier).updateProfile({
         'name': fullName,
-        'phone':
-            Supabase.instance.client.auth.currentUser?.userMetadata?['phone'] ??
-                '',
+        'phone': AppAuth.currentUserPhone ?? '',
         'nationality': _nationalityCtrl.text.trim(),
         'gender': _gender,
         'dob': _dobCtrl.text.trim().isNotEmpty ? _dobCtrl.text.trim() : null,
       });
 
-      // Save extra fields to auth metadata
-      await Supabase.instance.client.auth.updateUser(
-        UserAttributes(data: {
+      // Save extra fields to Supabase auth metadata when available.
+      await AppAuth.updateSupabaseUserMetadata({
           'first_name': firstName,
           'last_name': lastName,
           'name': fullName,
           'dob': _dobCtrl.text.trim(),
           'nationality': _nationalityCtrl.text.trim(),
           'gender': _gender,
-        }),
-      );
+        });
 
       // Refresh profile
       ref.invalidate(profileProvider);

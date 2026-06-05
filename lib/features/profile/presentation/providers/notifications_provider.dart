@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/auth/app_auth.dart';
 import '../../data/models/notification_model.dart';
 
 final notificationsProvider =
     FutureProvider<List<NotificationModel>>((ref) async {
-  final userId = Supabase.instance.client.auth.currentUser?.id;
+  final userId = AppAuth.currentUserId;
   if (userId == null) return const [];
 
   final response = await Supabase.instance.client

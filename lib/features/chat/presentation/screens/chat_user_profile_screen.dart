@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:async';
 
+import '../../../../../core/auth/app_auth.dart';
 import '../../data/models/chat_thread_model.dart';
 import '../providers/chat_provider.dart';
 import '../../../../../core/localization/app_localizations.dart';
@@ -11,7 +12,7 @@ import '../../../../../core/localization/app_localizations.dart';
 final chatUserProfileProvider = FutureProvider.autoDispose
     .family<_ChatUserProfileData, ChatThreadModel>((ref, thread) async {
   final client = Supabase.instance.client;
-  final me = client.auth.currentUser?.id;
+  final me = AppAuth.currentUserId;
   Map<String, dynamic>? profile;
   int listingsCount = 0;
   bool isBlocked = false;
@@ -20,7 +21,7 @@ final chatUserProfileProvider = FutureProvider.autoDispose
     profile = await client
         .from('profiles')
         .select()
-        .eq('id', thread.peerId)
+        .eq(AppAuth.profileIdColumn, thread.peerId)
         .maybeSingle();
   } catch (_) {
     profile = null;
@@ -243,7 +244,7 @@ class _ChatUserProfileScreenState extends ConsumerState<ChatUserProfileScreen> {
       'reason': reason.isNotEmpty ? reason : 'Reported',
       'description':
           description.isNotEmpty ? description : 'No details provided',
-      'reported_by': client.auth.currentUser?.id,
+      'reported_by': AppAuth.currentUserId,
       'status': 'open',
     };
     const optionalOrder = [
@@ -293,8 +294,8 @@ class _ChatUserProfileScreenState extends ConsumerState<ChatUserProfileScreen> {
     required String iconType,
   }) async {
     final client = Supabase.instance.client;
-    final userId = client.auth.currentUser?.id;
-    if (userId == null) return;
+    final userId = AppAuth.currentUserId;
+    if (userId == null || userId.isEmpty) return;
 
     final payload = <String, dynamic>{
       'user_id': userId,

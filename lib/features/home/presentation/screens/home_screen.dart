@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/localization/app_language_provider.dart';
 import '../../../../core/localization/localized_lookup.dart';
+import '../../../../core/auth/app_auth.dart';
 import '../../../chat/presentation/providers/chat_provider.dart';
 import '../../../chat/presentation/screens/chats_screen.dart';
 import '../../../profile/presentation/screens/account_screen.dart';
@@ -653,7 +653,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final unread = index == 1 ? ref.watch(totalUnreadProvider) : 0;
     return GestureDetector(
       onTap: () {
-        final isGuest = Supabase.instance.client.auth.currentUser == null;
+        final isGuest = !AppAuth.isAuthenticated;
         final requiresAuth = index == 1 || index == 3; // CHATS / MY ADS tabs
         if (isGuest && requiresAuth) {
           context.push(RouteNames.onboarding);
