@@ -28,10 +28,10 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyA-qjwj9cuPpxqPsuaViKABE_PKIr61qP0',
-    appId: '1:253988662059:ios:e83b8c28fec986f7e8b36e',
+    appId: '1:253988662059:ios:0470fb43f29030dfe8b36e',
     messagingSenderId: '253988662059',
     projectId: 'afghan-deals-pro-2',
     storageBucket: 'afghan-deals-pro-2.firebasestorage.app',
-    iosBundleId: 'com.afghandeals.afghanDealsPro',
+    iosBundleId: 'com.afghanhdeals.app',
   );
 }
