@@ -43,31 +43,39 @@ final FlutterLocalNotificationsPlugin _localNotifications =
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  FirebaseMessaging.onBackgroundMessage(_onBackgroundMessage);
+  // Firebase / push setup must never block first render. On iOS some of
+  // these calls can stall (e.g. getInitialMessage waits on the APNs token),
+  // so everything here is guarded and time-boxed.
+  try {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)
+        .timeout(const Duration(seconds: 10));
+    FirebaseMessaging.onBackgroundMessage(_onBackgroundMessage);
 
-  const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-  const iosInit = DarwinInitializationSettings();
-  const initSettings = InitializationSettings(
-    android: androidInit,
-    iOS: iosInit,
-  );
-  await _localNotifications.initialize(
-    initSettings,
-    onDidReceiveNotificationResponse: (response) {
-      final route = response.payload;
-      if (route != null && route.startsWith('/')) {
-        final ctx = appNavigatorKey.currentContext;
-        if (ctx != null) {
-          ctx.go(route);
+    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const iosInit = DarwinInitializationSettings();
+    const initSettings = InitializationSettings(
+      android: androidInit,
+      iOS: iosInit,
+    );
+    await _localNotifications.initialize(
+      initSettings,
+      onDidReceiveNotificationResponse: (response) {
+        final route = response.payload;
+        if (route != null && route.startsWith('/')) {
+          final ctx = appNavigatorKey.currentContext;
+          if (ctx != null) {
+            ctx.go(route);
+          }
         }
-      }
-    },
-  );
-  await _localNotifications
-      .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(_chatNotificationChannel);
+      },
+    );
+    await _localNotifications
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(_chatNotificationChannel);
+  } catch (e) {
+    debugPrint('Firebase/notifications init skipped: $e');
+  }
 
   await Supabase.initialize(
     url: _supabaseUrl,
@@ -88,9 +96,17 @@ Future<void> main() async {
     } catch (_) {}
   }
 
-  final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
-  if (initialMessage != null) {
-    _handleNotificationTap(initialMessage);
+  // getInitialMessage can hang on iOS until the APNs token resolves; never
+  // let it block launch.
+  try {
+    final initialMessage = await FirebaseMessaging.instance
+        .getInitialMessage()
+        .timeout(const Duration(seconds: 5));
+    if (initialMessage != null) {
+      _handleNotificationTap(initialMessage);
+    }
+  } catch (e) {
+    debugPrint('getInitialMessage skipped: $e');
   }
 
   SystemChrome.setPreferredOrientations([
