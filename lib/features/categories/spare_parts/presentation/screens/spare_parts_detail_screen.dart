@@ -456,7 +456,7 @@ class _SparePartsDetailScreenState
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (isFa)
-              FaIcon(icon as IconData, size: 16, color: _kBlue)
+              FaIcon(icon as FaIconData, size: 16, color: _kBlue)
             else
               Icon(icon as IconData, size: 16, color: _kBlue),
             if (label.isNotEmpty) ...[
