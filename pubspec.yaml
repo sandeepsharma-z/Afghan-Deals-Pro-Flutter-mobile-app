@@ -18,7 +18,7 @@ dependencies:
   cupertino_icons: ^1.0.6
   google_fonts: ^8.1.0
   flutter_svg: ^2.0.10+1
-  font_awesome_flutter: ^10.8.0
+  font_awesome_flutter: ^11.0.0
 
   # State Management
   flutter_riverpod: ^2.5.1
