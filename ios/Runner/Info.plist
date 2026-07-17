@@ -50,6 +50,10 @@
 				</array>
 			</dict>
 		</array>
+		<key>NSCameraUsageDescription</key>
+		<string>Afghan Deals Pro needs camera access so you can take photos of items you want to sell.</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Afghan Deals Pro needs photo library access so you can add pictures to your listings and profile.</string>
 		<key>UIBackgroundModes</key>
 		<array>
 			<string>remote-notification</string>

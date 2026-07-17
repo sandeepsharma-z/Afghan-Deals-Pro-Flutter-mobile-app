@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.afghandeals.afghanDealsPro</string>
+	<string>com.afghanhdeals.app</string>
 	<key>PROJECT_ID</key>
 	<string>afghan-deals-pro-2</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:253988662059:ios:e83b8c28fec986f7e8b36e</string>
+	<string>1:253988662059:ios:0470fb43f29030dfe8b36e</string>
 </dict>
 </plist>

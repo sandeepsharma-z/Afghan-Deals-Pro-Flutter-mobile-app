@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -363,13 +364,28 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   Future<void> _deleteAccount() async {
     await _run(() async {
       if (AppAuth.isFirebaseAuthenticated) {
-        throw Exception('Delete account is not available for phone login yet.');
-      }
-      try {
-        await _client.rpc('delete_my_account');
-      } catch (e) {
-        throw Exception(
-            'Delete account setup missing. Run ACCOUNT_SETTINGS_SQL_SETUP.sql in Supabase.');
+        final fbUser = fb.FirebaseAuth.instance.currentUser;
+        // Best-effort removal of the Supabase profile linked to this phone user.
+        try {
+          await _client.rpc('delete_my_account_firebase',
+              params: {'p_firebase_uid': fbUser?.uid});
+        } catch (_) {}
+        try {
+          await fbUser?.delete();
+        } on fb.FirebaseAuthException catch (e) {
+          if (e.code == 'requires-recent-login') {
+            throw Exception(
+                'For security, please log in again and then retry deleting your account.');
+          }
+          rethrow;
+        }
+      } else {
+        try {
+          await _client.rpc('delete_my_account');
+        } catch (e) {
+          throw Exception(
+              'Delete account setup missing. Run ACCOUNT_SETTINGS_SQL_SETUP.sql in Supabase.');
+        }
       }
       await AppAuth.signOutAll();
       if (!mounted) return;

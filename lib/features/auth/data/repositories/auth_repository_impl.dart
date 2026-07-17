@@ -1,8 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io' show Platform;
 
+import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -360,6 +364,12 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<UserEntity> signInWithGoogle() async {
+    // iOS has no native Google OAuth client configured; use Supabase's
+    // hosted OAuth flow (opens ASWebAuthenticationSession, returns via the
+    // io.supabase.flutter:// deep link). Android keeps the native flow.
+    if (Platform.isIOS) {
+      return _signInWithGoogleWeb();
+    }
     try {
       try {
         await _client.auth.signOut();
@@ -421,13 +431,95 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
+  Future<UserEntity> _signInWithGoogleWeb() async {
+    try {
+      try {
+        await _client.auth.signOut();
+      } catch (e) {
+        if (!_isInvalidRefreshToken(e)) rethrow;
+      }
+
+      final completer = Completer<User>();
+      late final StreamSubscription<AuthState> sub;
+      sub = _client.auth.onAuthStateChange.listen((data) {
+        final user = data.session?.user;
+        if (user != null && !completer.isCompleted) {
+          completer.complete(user);
+        }
+      });
+
+      try {
+        await _client.auth.signInWithOAuth(
+          OAuthProvider.google,
+          redirectTo: 'io.supabase.flutter://login-callback/',
+          authScreenLaunchMode: LaunchMode.externalApplication,
+        );
+        final user = await completer.future.timeout(const Duration(minutes: 3));
+        await _ensureProfile(user);
+        return UserModel.fromSupabaseUser(user);
+      } finally {
+        await sub.cancel();
+      }
+    } on AuthException catch (e) {
+      throw AppAuthException(e.message, code: e.statusCode);
+    } on TimeoutException {
+      throw const AppAuthException('Google sign-in timed out. Please try again.');
+    } catch (e) {
+      if (e is AppAuthException) rethrow;
+      throw const AppAuthException('Google sign-in failed. Please try again.');
+    }
+  }
+
   @override
   Future<UserEntity> signInWithApple() async {
     try {
-      await _client.auth.signInWithOAuth(OAuthProvider.apple);
-      final user = Supabase.instance.client.auth.currentUser;
+      final rawNonce = _client.auth.generateRawNonce();
+      final hashedNonce = sha256.convert(utf8.encode(rawNonce)).toString();
+
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+        nonce: hashedNonce,
+      );
+
+      final idToken = credential.identityToken;
+      if (idToken == null) {
+        throw const AppAuthException(
+            'Apple sign-in did not return a token. Please try again.');
+      }
+
+      final response = await _client.auth.signInWithIdToken(
+        provider: OAuthProvider.apple,
+        idToken: idToken,
+        nonce: rawNonce,
+      );
+
+      final user = response.user;
       if (user == null) throw const AppAuthException('Apple sign-in failed.');
-      return UserModel.fromSupabaseUser(user);
+
+      // Apple returns the name only on the very first sign-in — save it now.
+      final fullName = _firstNonEmpty([
+        [credential.givenName, credential.familyName]
+            .whereType<String>()
+            .join(' '),
+      ]);
+      final existingName =
+          _metadataText(user.userMetadata ?? const {}, ['full_name', 'name']);
+      if (fullName != null && (existingName == null || existingName.isEmpty)) {
+        try {
+          await _client.auth
+              .updateUser(UserAttributes(data: {'full_name': fullName}));
+        } catch (_) {}
+      }
+
+      return UserModel.fromSupabaseUser(_client.auth.currentUser ?? user);
+    } on SignInWithAppleAuthorizationException catch (e) {
+      if (e.code == AuthorizationErrorCode.canceled) {
+        throw const AppAuthException('Apple sign-in was cancelled.');
+      }
+      throw AppAuthException('Apple sign-in failed: ${e.message}');
     } on AuthException catch (e) {
       throw AppAuthException(e.message, code: e.statusCode);
     } catch (e) {
