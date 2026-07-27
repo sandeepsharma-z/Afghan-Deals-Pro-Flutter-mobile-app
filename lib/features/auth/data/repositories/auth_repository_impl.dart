@@ -140,6 +140,15 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> sendPhoneOtp(String phone) async {
     try {
+      // On iOS, force the reCAPTCHA verification flow. The default silent-APNs
+      // path crashes natively on this app's setup; reCAPTCHA (with the reversed
+      // client-id URL scheme in Info.plist) is reliable and avoids that path.
+      if (Platform.isIOS) {
+        try {
+          await _firebaseAuth.setSettings(forceRecaptchaFlow: true);
+        } catch (_) {}
+      }
+
       final completer = Completer<void>();
       bool codeSent = false;
 
