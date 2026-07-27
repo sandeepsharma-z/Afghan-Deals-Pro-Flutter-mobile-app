@@ -34,6 +34,10 @@ target 'Runner' do
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 
+  # Firebase Auth 11 uses reCAPTCHA Enterprise for phone verification. Without
+  # this SDK linked, verifyPhoneNumber crashes on iOS ("reCAPTCHA SDK not linked").
+  pod 'RecaptchaEnterprise', '~> 18.0'
+
   target 'RunnerTests' do
     inherit! :search_paths
   end
