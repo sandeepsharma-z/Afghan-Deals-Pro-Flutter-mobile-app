@@ -57,6 +57,17 @@
 					<string>com.googleusercontent.apps.253988662059-sn6m80n7i6428b04re9rsglvu5kfb1ca</string>
 				</array>
 			</dict>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<!-- FirebaseAuth's fallback callback scheme, used when Auth has no
+					     client ID ("app-" + googleAppID with colons turned into dashes).
+					     Registered so phone verification can never hit its fatalError. -->
+					<string>app-1-253988662059-ios-0470fb43f29030dfe8b36e</string>
+				</array>
+			</dict>
 		</array>
 		<key>NSCameraUsageDescription</key>
 		<string>Afghan Deals Pro needs camera access so you can take photos of items you want to sell.</string>

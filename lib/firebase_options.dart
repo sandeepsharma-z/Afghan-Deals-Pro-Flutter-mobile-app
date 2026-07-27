@@ -33,5 +33,11 @@ class DefaultFirebaseOptions {
     projectId: 'afghan-deals-pro-2',
     storageBucket: 'afghan-deals-pro-2.firebasestorage.app',
     iosBundleId: 'com.afghanhdeals.app',
+    // Required by FirebaseAuth phone verification: PhoneAuthProvider derives its
+    // callback URL scheme from the reversed client ID. Without this it falls back
+    // to "app-<googleAppID>", which is not in Info.plist, and verifyPhoneNumber
+    // hits fatalError("Please register custom URL scheme ...").
+    iosClientId:
+        '253988662059-sn6m80n7i6428b04re9rsglvu5kfb1ca.apps.googleusercontent.com',
   );
 }
