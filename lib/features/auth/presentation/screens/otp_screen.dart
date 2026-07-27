@@ -69,6 +69,29 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   }
 
   void _onChanged(String value, int index) {
+    // Autofill (and paste) drops the whole code into a single box - spread the
+    // digits across the row and submit once all six are in.
+    if (value.length > 1) {
+      final digits = value.replaceAll(RegExp(r'\D'), '');
+      if (digits.length >= _controllers.length) {
+        for (var i = 0; i < _controllers.length; i++) {
+          _controllers[i].text = digits[i];
+        }
+        _focusNodes[_controllers.length - 1].unfocus();
+        _verify();
+        return;
+      }
+      // Not a full code - the box already held a digit and another was typed.
+      // Keep the newest one and move on.
+      final last = digits.isEmpty ? '' : digits[digits.length - 1];
+      _controllers[index].text = last;
+      _controllers[index].selection =
+          TextSelection.collapsed(offset: last.length);
+      if (last.isNotEmpty && index < 5) {
+        _focusNodes[index + 1].requestFocus();
+      }
+      return;
+    }
     if (value.length == 1 && index < 5) {
       _focusNodes[index + 1].requestFocus();
     } else if (value.isEmpty && index > 0) {
@@ -330,7 +353,9 @@ class _OtpBox extends StatelessWidget {
         focusNode: focusNode,
         textAlign: TextAlign.center,
         keyboardType: TextInputType.number,
-        maxLength: 1,
+        // No maxLength: the keyboard's one-time-code suggestion inserts all six
+        // digits at once, and a limit of 1 would truncate it to the first digit.
+        autofillHints: const [AutofillHints.oneTimeCode],
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         onChanged: onChanged,
         style: AppTextStyles.heading3,
