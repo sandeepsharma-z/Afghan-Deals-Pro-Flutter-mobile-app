@@ -47,6 +47,20 @@ import FirebaseAuth
     }
   }
 
+  // Phone verification comes back through our custom URL scheme. Let Auth
+  // consume the callback here; otherwise Flutter's deep-link handler forwards
+  // the raw URL to GoRouter, which reports it as an unknown route.
+  override func application(
+    _ app: UIApplication,
+    open url: URL,
+    options: [UIApplication.OpenURLOptionsKey: Any] = [:]
+  ) -> Bool {
+    if FirebaseApp.app() != nil, Auth.auth().canHandle(url) {
+      return true
+    }
+    return super.application(app, open: url, options: options)
+  }
+
   // Let Firebase Auth consume its verification push instead of the app.
   override func application(
     _ application: UIApplication,
