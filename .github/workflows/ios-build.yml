@@ -64,6 +64,13 @@ jobs:
             -destination 'generic/platform=iOS' \
             -archivePath build/Runner.xcarchive
 
+      - name: Upload dSYMs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dsyms
+          path: build/Runner.xcarchive/dSYMs
+          if-no-files-found: warn
+
       - name: Export and upload to TestFlight
         run: |
           xcodebuild -exportArchive \
