@@ -65,6 +65,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     navigatorKey: appNavigatorKey,
     initialLocation: RouteNames.splash,
     refreshListenable: refreshNotifier,
+    // iOS hands external callback URLs to Flutter's deep-link handler as well as
+    // to the plugin that owns them - Firebase Auth's reCAPTCHA redirect arrives
+    // here as "com.googleusercontent.apps.<id>://firebaseauth/link?...". Those
+    // are not app routes, so leave the current screen alone rather than covering
+    // the OTP screen with an error page.
+    onException: (context, state, router) {
+      if (state.uri.hasScheme) return;
+      router.go(RouteNames.home);
+    },
     redirect: (context, state) {
       // Get current auth state
       final authState = ref.read(authStateProvider);
