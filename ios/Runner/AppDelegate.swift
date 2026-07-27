@@ -1,5 +1,6 @@
 import Flutter
 import UIKit
+import FirebaseCore
 import FirebaseAuth
 
 @main
@@ -9,21 +10,23 @@ import FirebaseAuth
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     GeneratedPluginRegistrant.register(with: self)
-    // Fetch the APNs device token at launch. Firebase Phone Auth uses a silent
-    // push to verify the app; without a ready APNs token it falls back to the
-    // reCAPTCHA Enterprise SDK, which crashes on this setup. registerForRemote-
-    // Notifications only fetches the token (no user prompt).
+    // Fetch the APNs device token at launch (no user prompt). Firebase Phone
+    // Auth uses a silent push to verify the app; a ready APNs token keeps it
+    // off the reCAPTCHA fallback that crashes on this setup.
     application.registerForRemoteNotifications()
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
-  // Hand the APNs token directly to Firebase Auth so phone verification uses
-  // the silent-push path (and never the crashing reCAPTCHA fallback).
+  // Hand the APNs token to Firebase Auth once Firebase is configured. The nil
+  // guard is essential: this can fire before the Dart side calls
+  // Firebase.initializeApp, and calling Auth.auth() before configuration crashes.
   override func application(
     _ application: UIApplication,
     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
   ) {
-    Auth.auth().setAPNSToken(deviceToken, type: .unknown)
+    if FirebaseApp.app() != nil {
+      Auth.auth().setAPNSToken(deviceToken, type: .unknown)
+    }
     super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
   }
 
@@ -33,7 +36,7 @@ import FirebaseAuth
     didReceiveRemoteNotification userInfo: [AnyHashable: Any],
     fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
   ) {
-    if Auth.auth().canHandleNotification(userInfo) {
+    if FirebaseApp.app() != nil, Auth.auth().canHandleNotification(userInfo) {
       completionHandler(.noData)
       return
     }
