@@ -104,21 +104,25 @@ class OnboardingScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: AppDimensions.xl),
 
-                    // Continue with Phone
-                    _OutlineButton(
-                      onTap: () => context.push(RouteNames.phoneLogin),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.smartphone_outlined,
-                              size: 20, color: AppColors.black),
-                          const SizedBox(width: 10),
-                          Text(context.l10n.t('continue_phone'),
-                              style: AppTextStyles.label),
-                        ],
+                    // Continue with Phone — temporarily hidden on iOS while the
+                    // Firebase phone-auth verification issue is resolved. Phone
+                    // login stays available on Android.
+                    if (!_showAppleSignIn) ...[
+                      _OutlineButton(
+                        onTap: () => context.push(RouteNames.phoneLogin),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.smartphone_outlined,
+                                size: 20, color: AppColors.black),
+                            const SizedBox(width: 10),
+                            Text(context.l10n.t('continue_phone'),
+                                style: AppTextStyles.label),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: AppDimensions.md),
+                      const SizedBox(height: AppDimensions.md),
+                    ],
 
                     // Continue with Google
                     _OutlineButton(
