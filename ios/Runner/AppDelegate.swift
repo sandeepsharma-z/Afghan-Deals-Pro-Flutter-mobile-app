@@ -25,9 +25,18 @@ import FirebaseAuth
     _ application: UIApplication,
     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
   ) {
+    NSLog("ADP-DIAG apns token arrived (%d bytes)", deviceToken.count)
     pendingApnsToken = deviceToken
     deliverApnsTokenToAuth(retriesLeft: 40)
     super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
+  }
+
+  override func application(
+    _ application: UIApplication,
+    didFailToRegisterForRemoteNotificationsWithError error: Error
+  ) {
+    NSLog("ADP-DIAG apns registration FAILED: %@", error.localizedDescription)
+    super.application(application, didFailToRegisterForRemoteNotificationsWithError: error)
   }
 
   // Retry until Firebase is configured (Dart runs initializeApp shortly after
@@ -37,8 +46,12 @@ import FirebaseAuth
     guard let token = pendingApnsToken else { return }
     if FirebaseApp.app() != nil {
       Auth.auth().setAPNSToken(token, type: .unknown)
+      NSLog("ADP-DIAG apns token handed to Auth (%d retries left)", retriesLeft)
       pendingApnsToken = nil
       return
+    }
+    if retriesLeft == 0 {
+      NSLog("ADP-DIAG gave up: Firebase never configured, Auth has no apns token")
     }
     if retriesLeft > 0 {
       DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
@@ -67,7 +80,12 @@ import FirebaseAuth
     didReceiveRemoteNotification userInfo: [AnyHashable: Any],
     fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
   ) {
-    if FirebaseApp.app() != nil, Auth.auth().canHandleNotification(userInfo) {
+    let handledByAuth =
+      FirebaseApp.app() != nil && Auth.auth().canHandleNotification(userInfo)
+    NSLog(
+      "ADP-DIAG remote notification received, auth claimed it: %@",
+      handledByAuth ? "YES" : "NO")
+    if handledByAuth {
       completionHandler(.noData)
       return
     }
