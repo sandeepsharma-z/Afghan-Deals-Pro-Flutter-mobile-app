@@ -639,6 +639,11 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                       context.l10n.t('language'), _selectedLanguage,
                       onTap: _showLanguagePicker),
                   _line(),
+                  _flatItem(Icons.delete_outline, 'Delete Account', null,
+                      onTap: () {
+                    context.push(RouteNames.deleteAccount);
+                  }),
+                  _line(),
                   _flatItem(Icons.logout, context.l10n.t('log_out'), null,
                       onTap: () async {
                     final confirm = await showDialog<bool>(

@@ -16,6 +16,7 @@ import '../../features/chat/data/models/chat_thread_model.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/account_screen.dart';
 import '../../features/profile/presentation/screens/notifications_screen.dart';
+import '../../features/profile/presentation/screens/delete_account_screen.dart';
 import '../../features/categories/cars/presentation/screens/cars_screen.dart';
 import '../../features/categories/cars/presentation/screens/brand_results_screen.dart';
 import '../../features/categories/cars/presentation/screens/car_results_screen.dart';
@@ -191,6 +192,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.account,
         builder: (context, state) => const AccountScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.deleteAccount,
+        builder: (context, state) => const DeleteAccountScreen(),
       ),
       GoRoute(
         path: RouteNames.favorites,
