@@ -27,6 +27,15 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Generate code (build_runner)
+        run: flutter pub run build_runner build --release
+
+      - name: Clean build artifacts
+        run: |
+          flutter clean
+          rm -rf ios/Pods ios/Podfile.lock
+          rm -rf build/
+
       - name: Set up signing keychain
         env:
           P12_B64: ${{ secrets.DIST_CERT_P12_B64 }}
