@@ -30,10 +30,11 @@ jobs:
         run: flutter pub run build_runner build --release
 
       - name: Create keystore from secrets
-        if: secrets.ANDROID_KEYSTORE != ''
         run: |
-          echo "${{ secrets.ANDROID_KEYSTORE }}" | base64 -d > android/app/key.jks
-          echo "${{ secrets.KEY_PROPERTIES }}" | base64 -d > android/key.properties
+          if [ ! -z "${{ secrets.ANDROID_KEYSTORE }}" ]; then
+            echo "${{ secrets.ANDROID_KEYSTORE }}" | base64 -d > android/app/key.jks
+            echo "${{ secrets.KEY_PROPERTIES }}" | base64 -d > android/key.properties
+          fi
 
       - name: Build release APK
         run: flutter build apk --release
@@ -55,12 +56,14 @@ jobs:
           path: build/app/outputs/bundle/release/app-release.aab
           if-no-files-found: warn
 
-      - name: Upload to Play Store (Internal Testing)
-        if: secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON != ''
-        uses: r0adkll/upload-google-play@v1
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}
-          packageName: com.afghandeals.afghan_deals_pro
-          releaseFiles: build/app/outputs/bundle/release/app-release.aab
-          track: internal
-          status: completed
+      - name: Build artifacts summary
+        run: |
+          echo "✅ Build complete!"
+          echo "📦 APK: build/app/outputs/flutter-apk/app-release.apk"
+          echo "📦 AAB: build/app/outputs/bundle/release/app-release.aab"
+          echo ""
+          echo "To upload to Play Store:"
+          echo "1. Go to https://play.google.com/console"
+          echo "2. Upload app-release.aab to Internal Testing track"
+          echo "3. Test thoroughly"
+          echo "4. Promote to Production when ready"
