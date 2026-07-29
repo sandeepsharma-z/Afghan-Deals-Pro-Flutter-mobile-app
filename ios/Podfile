@@ -55,7 +55,18 @@ post_install do |installer|
     # Fix for flutter_native_splash PrivacyInfo.xcprivacy issue
     if target.name == 'flutter_native_splash'
       target.build_configurations.each do |config|
-        config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
+        config.build_settings['EXCLUDED_SOURCE_FILE_NAMES'] = '$(inherited) PrivacyInfo.xcprivacy'
+        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = '$(inherited) FLUTTER_NATIVE_SPLASH_PRIVACY=1'
+      end
+      # Remove the PrivacyInfo file from resource bundle if present
+      target.build_phases.each do |phase|
+        if phase.respond_to?(:files)
+          phase.files.each do |file|
+            if file.real_path.to_s.include?('PrivacyInfo.xcprivacy')
+              phase.remove_file_reference(file)
+            end
+          end
+        end
       end
     end
   end
