@@ -50,25 +50,6 @@ post_install do |installer|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
       # Firebase headers are non-modular; allow them inside framework modules.
       config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
-
-      # Fix for flutter_native_splash PrivacyInfo.xcprivacy Xcode build rule issue
-      if target.name == 'flutter_native_splash'
-        config.build_settings['EXCLUDED_SOURCE_FILE_NAMES'] = '$(inherited) PrivacyInfo.xcprivacy'
-      end
-    end
-
-    # More aggressive: remove PrivacyInfo.xcprivacy from build phases
-    if target.name == 'flutter_native_splash'
-      target.build_phases.each do |phase|
-        next unless phase.respond_to?(:files)
-        files_to_remove = []
-        phase.files.each do |file|
-          if file.real_path.to_s.include?('PrivacyInfo.xcprivacy')
-            files_to_remove << file
-          end
-        end
-        files_to_remove.each { |file| phase.remove_file_reference(file) }
-      end
     end
   end
 end
