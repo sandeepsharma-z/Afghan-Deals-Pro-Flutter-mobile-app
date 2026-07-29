@@ -219,8 +219,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   final password = newCtrl.text.trim();
                   final confirm = confirmCtrl.text.trim();
                   if (password.length < 6) {
-                    _snack(l10n.t('min_6_characters'),
-                        error: true);
+                    _snack(l10n.t('min_6_characters'), error: true);
                     return;
                   }
                   if (password != confirm) {
@@ -230,7 +229,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   Navigator.pop(sheetContext);
                   _run(() async {
                     if (AppAuth.isFirebaseAuthenticated) {
-                      throw Exception('Password change is only available for email login.');
+                      throw Exception(
+                          'Password change is only available for email login.');
                     }
                     await _client.auth.updateUser(
                       UserAttributes(password: password),
@@ -298,8 +298,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       builder: (_) => AlertDialog(
         title: Text(context.l10n.t('deactivate_account'),
             style: GoogleFonts.montserrat(fontWeight: FontWeight.w600)),
-        content: Text(
-            context.l10n.t('deactivate_account_desc'),
+        content: Text(context.l10n.t('deactivate_account_desc'),
             style: GoogleFonts.montserrat(fontSize: 14)),
         actions: [
           TextButton(
@@ -324,8 +323,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       builder: (_) => AlertDialog(
         title: Text(context.l10n.t('delete_account'),
             style: GoogleFonts.montserrat(fontWeight: FontWeight.w600)),
-        content: Text(
-            context.l10n.t('delete_account_desc'),
+        content: Text(context.l10n.t('delete_account_desc'),
             style: GoogleFonts.montserrat(fontSize: 14)),
         actions: [
           TextButton(
@@ -365,11 +363,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     await _run(() async {
       if (AppAuth.isFirebaseAuthenticated) {
         final fbUser = fb.FirebaseAuth.instance.currentUser;
-        // Best-effort removal of the Supabase profile linked to this phone user.
-        try {
-          await _client.rpc('delete_my_account_firebase',
-              params: {'p_firebase_uid': fbUser?.uid});
-        } catch (_) {}
+        await _client.rpc('delete_my_account_firebase');
         try {
           await fbUser?.delete();
         } on fb.FirebaseAuthException catch (e) {

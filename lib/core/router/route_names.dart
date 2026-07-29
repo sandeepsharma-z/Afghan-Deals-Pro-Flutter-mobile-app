@@ -14,7 +14,6 @@ class RouteNames {
   static const favorites = '/favorites';
   static const profile = '/profile';
   static const account = '/account';
-  static const deleteAccount = '/delete-account';
   static const notifications = '/notifications';
   static const accountSettings = '/account-settings';
   static const listingDetail = '/listing/:id';

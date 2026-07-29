@@ -377,7 +377,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                                 ),
                                 const SizedBox(height: 12),
                                 GestureDetector(
-                                  onTap: () => context.push(RouteNames.onboarding),
+                                  onTap: () =>
+                                      context.push(RouteNames.onboarding),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 14,
@@ -638,11 +639,6 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                   _flatItem(Icons.translate_outlined,
                       context.l10n.t('language'), _selectedLanguage,
                       onTap: _showLanguagePicker),
-                  _line(),
-                  _flatItem(Icons.delete_outline, 'Delete Account', null,
-                      onTap: () {
-                    context.push(RouteNames.deleteAccount);
-                  }),
                   _line(),
                   _flatItem(Icons.logout, context.l10n.t('log_out'), null,
                       onTap: () async {
