@@ -51,5 +51,12 @@ post_install do |installer|
       # Firebase headers are non-modular; allow them inside framework modules.
       config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
     end
+
+    # Fix for flutter_native_splash PrivacyInfo.xcprivacy issue
+    if target.name == 'flutter_native_splash'
+      target.build_configurations.each do |config|
+        config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
+      end
+    end
   end
 end
