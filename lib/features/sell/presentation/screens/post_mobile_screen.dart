@@ -357,7 +357,7 @@ class _PostMobileScreenState extends ConsumerState<PostMobileScreen> {
               size: 18, color: Colors.black87),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text('Post Mobile Ad',
+        title: Text(context.l10n.t('Post Mobile Ad'),
             style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -680,7 +680,7 @@ class _PostMobileScreenState extends ConsumerState<PostMobileScreen> {
                     height: 22,
                     child: CircularProgressIndicator(
                         color: Colors.white, strokeWidth: 2.5))
-                : Text('Post Ad',
+                : Text(context.l10n.t('Post Ad'),
                     style: GoogleFonts.poppins(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -729,7 +729,7 @@ class _PostMobileScreenState extends ConsumerState<PostMobileScreen> {
                 child: Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                  child: Text(options[i],
+                  child: Text(context.l10n.t(options[i]),
                       style: GoogleFonts.poppins(
                           fontSize: 14, color: Colors.black87)),
                 ),
@@ -814,7 +814,7 @@ class _PhotoSection extends ConsumerWidget {
                       GoogleFonts.poppins(fontSize: 12, color: Colors.black45)),
               const Spacer(),
               if (remaining > 0)
-                Text('$remaining more',
+                Text('$remaining ${context.l10n.t('more')}',
                     style: GoogleFonts.poppins(
                         fontSize: 11, color: Colors.black38)),
             ],
@@ -1048,7 +1048,7 @@ class _DropdownTile extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                value,
+                context.l10n.t(value),
                 style: GoogleFonts.poppins(
                     fontSize: 14,
                     color: isPlaceholder ? Colors.black38 : Colors.black87),
@@ -1095,7 +1095,7 @@ class _ChipGroup extends StatelessWidget {
               ),
             ),
             child: Text(
-              opt,
+              context.l10n.t(opt),
               style: GoogleFonts.poppins(
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,

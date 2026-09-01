@@ -404,7 +404,7 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
                 child: Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                  child: Text(options[i],
+                  child: Text(context.l10n.t(options[i]),
                       style: GoogleFonts.poppins(
                           fontSize: 14, color: Colors.black87)),
                 ),
@@ -434,7 +434,7 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
                     color: Colors.black12,
                     borderRadius: BorderRadius.circular(2))),
             const SizedBox(height: 12),
-            Text('Select Country',
+            Text(context.l10n.t('Select Country'),
                 style: GoogleFonts.poppins(
                     fontSize: 15, fontWeight: FontWeight.w600)),
             const Divider(height: 1),
@@ -486,7 +486,7 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
                       color: Colors.black12,
                       borderRadius: BorderRadius.circular(2))),
               const SizedBox(height: 12),
-              Text('Select Currency',
+              Text(context.l10n.t('Select Currency'),
                   style: GoogleFonts.poppins(
                       fontSize: 15, fontWeight: FontWeight.w600)),
               const Divider(height: 1),
@@ -557,7 +557,7 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
               size: 18, color: Colors.black87),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text('Post Car Ad',
+        title: Text(context.l10n.t('Post Car Ad'),
             style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -845,7 +845,7 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
                     height: 22,
                     child: CircularProgressIndicator(
                         color: Colors.white, strokeWidth: 2.5))
-                : Text('Post Ad',
+                : Text(context.l10n.t('Post Ad'),
                     style: GoogleFonts.poppins(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -922,7 +922,7 @@ class _CarPhotoSection extends ConsumerWidget {
                     GoogleFonts.poppins(fontSize: 12, color: Colors.black45)),
             const Spacer(),
             if (images.length < 10)
-              Text('${10 - images.length} more',
+              Text('${10 - images.length} ${context.l10n.t('more')}',
                   style:
                       GoogleFonts.poppins(fontSize: 11, color: Colors.black38)),
           ]),
@@ -1016,7 +1016,7 @@ class _CarPhotoSection extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Text('First photo will be the cover. Tap + to add up to 10 photos.',
+          Text(context.l10n.t('First photo will be the cover. Tap + to add up to 10 photos.'),
               style: GoogleFonts.poppins(fontSize: 11, color: Colors.black38)),
         ],
       ),
@@ -1136,7 +1136,7 @@ class _DropdownTile extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              child: Text(value,
+              child: Text(context.l10n.t(value),
                   style: GoogleFonts.poppins(
                       fontSize: 14,
                       color: isPlaceholder ? Colors.black38 : Colors.black87)),
@@ -1180,7 +1180,7 @@ class _FullWidthChipGroup extends StatelessWidget {
             child: Row(
               children: [
                 Expanded(
-                  child: Text(opt,
+                  child: Text(context.l10n.t(opt),
                       style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight:
@@ -1226,7 +1226,7 @@ class _RowChipGroup extends StatelessWidget {
                 border: Border.all(
                     color: isSelected ? _kBlue : const Color(0xFFDDDDDD)),
               ),
-              child: Text(opt,
+              child: Text(context.l10n.t(opt),
                   style: GoogleFonts.poppins(
                       fontSize: 13,
                       fontWeight:

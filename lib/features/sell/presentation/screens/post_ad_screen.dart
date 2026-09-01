@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_text_field.dart';
@@ -624,7 +625,7 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
               _label('Title *'),
               AppTextField(
                 controller: _titleCtrl,
-                hintText: 'e.g. $_categoryLabel for sale',
+                hintText: '${context.l10n.t('e.g.')} $_categoryLabel',
                 validator: (v) => (v == null || v.trim().isEmpty)
                     ? 'Title is required'
                     : null,
@@ -635,7 +636,7 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
                 controller: _descCtrl,
                 maxLines: 4,
                 decoration: InputDecoration(
-                  hintText: 'Describe your listing...',
+                  hintText: context.l10n.t('Describe your listing...'),
                   hintStyle: const TextStyle(color: Colors.black38),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -695,7 +696,7 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
               _label('City *'),
               AppTextField(
                 controller: _cityCtrl,
-                hintText: 'e.g. Dubai',
+                hintText: context.l10n.t('e.g. Dubai'),
                 validator: (v) =>
                     (v == null || v.trim().isEmpty) ? 'City is required' : null,
               ),
@@ -709,7 +710,7 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
                       setState(() => _details.add(_DetailRow()));
                     },
                     icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Add field'),
+                    label: Text(context.l10n.t('Add field')),
                   ),
                 ],
               ),
@@ -722,14 +723,14 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
                       Expanded(
                         child: AppTextField(
                           controller: row.keyCtrl,
-                          hintText: 'Label (e.g. condition)',
+                          hintText: context.l10n.t('Label (e.g. condition)'),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: AppTextField(
                           controller: row.valueCtrl,
-                          hintText: 'Value (e.g. brand new)',
+                          hintText: context.l10n.t('Value (e.g. brand new)'),
                         ),
                       ),
                       if (_details.length > 1)
@@ -749,7 +750,7 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
               }),
               const SizedBox(height: 16),
               AppButton(
-                label: 'Post Ad',
+                label: context.l10n.t('Post Ad'),
                 isLoading: sellState.isSubmitting,
                 onTap: _submit,
               ),
@@ -840,7 +841,7 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
                       ? null
                       : () => ref.read(sellProvider.notifier).pickFromGallery(),
                   icon: const Icon(Icons.photo_library_outlined, size: 18),
-                  label: const Text('Gallery'),
+                  label: Text(context.l10n.t('Gallery')),
                 ),
               ),
               const SizedBox(width: 10),
@@ -850,7 +851,7 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
                       ? null
                       : () => ref.read(sellProvider.notifier).pickFromCamera(),
                   icon: const Icon(Icons.photo_camera_outlined, size: 18),
-                  label: const Text('Camera'),
+                  label: Text(context.l10n.t('Camera')),
                 ),
               ),
             ],

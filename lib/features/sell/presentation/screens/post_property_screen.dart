@@ -176,7 +176,7 @@ class _PostPropertyScreenState extends ConsumerState<PostPropertyScreen> {
                 shrinkWrap: true,
                 itemCount: options.length,
                 itemBuilder: (_, i) => ListTile(
-                  title: Text(options[i],
+                  title: Text(context.l10n.t(options[i]),
                       style: GoogleFonts.poppins(fontSize: 14)),
                   onTap: () {
                     onSelect(options[i]);
@@ -489,7 +489,7 @@ class _PostPropertyScreenState extends ConsumerState<PostPropertyScreen> {
                     child: CircularProgressIndicator(
                         color: Colors.white, strokeWidth: 2.5),
                   )
-                : Text('Post Ad',
+                : Text(context.l10n.t('Post Ad'),
                     style: GoogleFonts.poppins(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
