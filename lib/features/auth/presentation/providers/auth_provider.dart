@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../data/repositories/auth_repository_impl.dart';
@@ -8,7 +7,6 @@ import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../../../core/error/app_exception.dart';
 import '../../../../core/auth/app_auth.dart';
-import '../../../../core/localization/app_language_provider.dart';
 
 // ── Supabase client provider ──────────────────────────────────────────────────
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
@@ -220,12 +218,9 @@ class AuthNotifier extends StateNotifier<AuthActionState> {
 
       await _repository.signOut();
 
-      // Reset language to English on logout
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('app_language_code', 'en');
-
-      // Reset language provider state to English
-      await _ref.read(appLanguageProvider.notifier).setLocale(const Locale('en'));
+      // The chosen language is a device preference, not a user setting - it
+      // must survive logout, otherwise a Pashto-only user lands back in English
+      // with no way to read their way out.
 
       _ref.invalidate(authStateProvider);
       state = const AuthActionSuccess();

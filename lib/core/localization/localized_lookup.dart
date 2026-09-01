@@ -28,15 +28,15 @@ String localizedCategoryName(AppLocalizations l10n, String slug, {String? fallba
 
 String localizedCarSubcategoryName(AppLocalizations l10n, String slug, {String? fallbackName}) {
   switch (slug.trim().toLowerCase()) {
+    // 'new' and 'export' are retired subcategories; their listings now read
+    // as used cars.
     case 'used-cars':
     case 'used':
-      return l10n.t('used_cars');
     case 'new-cars':
     case 'new':
-      return l10n.t('new_cars');
     case 'export-cars':
     case 'export':
-      return l10n.t('export_cars');
+      return l10n.t('used_cars');
     case 'rental-cars':
     case 'rental':
       return l10n.t('rental_cars');

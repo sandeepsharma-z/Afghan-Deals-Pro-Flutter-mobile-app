@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/localization/app_language_provider.dart';
+
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 
@@ -37,11 +39,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     _controller.forward();
 
-    Future.delayed(const Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 3), () async {
       if (!mounted) return;
-      // Always go to home — user can browse without login
-      // Protected routes will redirect to onboarding when needed
-      context.go(RouteNames.home);
+      // First launch goes to the language chooser, so a user who reads no
+      // English picks their language before seeing anything else. After that,
+      // straight to home - browsing needs no login, and protected routes
+      // redirect to onboarding on their own.
+      final chosen = await AppLanguageNotifier.hasChosenLanguage();
+      if (!mounted) return;
+      context.go(chosen ? RouteNames.home : RouteNames.chooseLanguage);
     });
   }
 

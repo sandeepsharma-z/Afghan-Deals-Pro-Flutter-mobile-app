@@ -10,7 +10,7 @@ import '../providers/sell_provider.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
-const _kSubcategories = ['Used Cars', 'New Cars', 'Export Cars', 'Rental Cars'];
+const _kSubcategories = ['Used Cars', 'Rental Cars'];
 
 const _kMakes = [
   'Mercedes',
@@ -111,6 +111,15 @@ const _kBodyTypes = [
   'Convertible',
   'Wagon',
   'Crossover',
+  'Other'
+];
+const _kRegionalSpecs = [
+  'GCC Specs',
+  'American Specs',
+  'European Specs',
+  'Canadian Specs',
+  'Japanese Specs',
+  'Korean Specs',
   'Other'
 ];
 const _kConditions = ['New', 'Used', 'Certified Pre-Owned'];
@@ -252,6 +261,8 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
   String _bodyType = '';
   String _condition = '';
   String _color = '';
+  String _interiorColor = '';
+  String _regionalSpecs = '';
   String _sellerType = 'Individual';
 
   String _currency = 'AFN';
@@ -259,11 +270,9 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
 
   String _normalizeSubcategory(String value) {
     final v = value.trim().toLowerCase();
-    if (v.contains('used')) return 'used-cars';
-    if (v.contains('new')) return 'new-cars';
-    if (v.contains('export')) return 'export-cars';
     if (v.contains('rental')) return 'rental-cars';
-    return v.replaceAll(' ', '-');
+    // "New" and "Export" are retired; anything that isn't a rental is a used car.
+    return 'used-cars';
   }
 
   @override
@@ -334,6 +343,8 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
         'body_type': _bodyType,
         'condition': _condition,
         'color': _color,
+        'interior_color': _interiorColor,
+        'regional_specs': _regionalSpecs,
         'seller_type': _sellerType,
         'rental_duration': _rentalDuration,
         'country': _country.name,
@@ -703,6 +714,25 @@ class _PostCarScreenState extends ConsumerState<PostCarScreen> {
                     value: _color.isEmpty ? 'Select color' : _color,
                     onTap: () => _showPicker(
                         'Color', _kColors, (v) => setState(() => _color = v)),
+                  ),
+                ),
+                _Field(
+                  label: 'Interior Color',
+                  child: _DropdownTile(
+                    value:
+                        _interiorColor.isEmpty ? 'Select color' : _interiorColor,
+                    onTap: () => _showPicker('Interior Color', _kColors,
+                        (v) => setState(() => _interiorColor = v)),
+                  ),
+                ),
+                _Field(
+                  label: 'Regional Specs',
+                  child: _DropdownTile(
+                    value: _regionalSpecs.isEmpty
+                        ? 'Select specs'
+                        : _regionalSpecs,
+                    onTap: () => _showPicker('Regional Specs', _kRegionalSpecs,
+                        (v) => setState(() => _regionalSpecs = v)),
                   ),
                 ),
                 _Field(

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/screens/splash_screen.dart';
+import '../../features/auth/presentation/screens/language_select_screen.dart';
 import '../../features/auth/presentation/screens/onboarding_screen.dart';
 import '../../features/auth/presentation/screens/phone_login_screen.dart';
 import '../../features/auth/presentation/screens/otp_screen.dart';
@@ -84,6 +85,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // Keep splash showing while auth is loading
       if (location == RouteNames.splash) return null;
 
+      // The language chooser is reachable in any auth state.
+      if (location == RouteNames.chooseLanguage) return null;
+
       // If auth is still loading, stay on splash to wait for it
       authState.whenData((user) => null); // Just trigger loading state
       final isAuthLoading = authState.isLoading;
@@ -132,6 +136,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.onboarding,
         builder: (context, state) => const OnboardingScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.chooseLanguage,
+        builder: (context, state) => LanguageSelectScreen(
+          isFirstRun: state.uri.queryParameters['first'] != '0',
+        ),
       ),
       GoRoute(
         path: RouteNames.phoneLogin,

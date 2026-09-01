@@ -5,14 +5,11 @@ import '../../../../../features/home/presentation/providers/country_provider.dar
 
 dynamic _applySubcategoryFilter(dynamic query, String rawSubcategory) {
   final key = rawSubcategory.trim().toLowerCase();
-  if (key.contains('used')) {
-    return query.or('subcategory.ilike.%used%');
-  }
-  if (key.contains('new')) {
-    return query.or('subcategory.ilike.%new%');
-  }
-  if (key.contains('export')) {
-    return query.or('subcategory.ilike.%export%');
+  // "New Cars" and "Export Cars" were retired - their existing listings are
+  // browsed under Used Cars so no seller's ad disappears.
+  if (key.contains('used') || key.contains('new') || key.contains('export')) {
+    return query.or(
+        'subcategory.ilike.%used%,subcategory.ilike.%new%,subcategory.ilike.%export%');
   }
   if (key.contains('rental')) {
     return query.or('subcategory.ilike.%rental%');

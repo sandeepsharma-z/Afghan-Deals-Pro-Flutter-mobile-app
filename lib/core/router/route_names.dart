@@ -1,6 +1,7 @@
 class RouteNames {
   static const splash = '/';
   static const onboarding = '/onboarding';
+  static const chooseLanguage = '/choose-language';
   static const phoneLogin = '/phone-login';
   static const otp = '/otp';
   static const emailLogin = '/email-login';

@@ -11,6 +11,7 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_bottom_nav.dart';
 import '../../../../../core/localization/app_localizations.dart';
+import '../../../../core/localization/app_language_provider.dart';
 import '../providers/auth_provider.dart';
 
 class OnboardingScreen extends ConsumerWidget {
@@ -67,6 +68,34 @@ class OnboardingScreen extends ConsumerWidget {
                   ),
                   Row(
                     children: [
+                      // Always-visible language switch, labelled in the current
+                      // language's own script so it is recognisable without
+                      // reading English.
+                      InkWell(
+                        onTap: () => context.push(
+                            '${RouteNames.chooseLanguage}?first=0'),
+                        borderRadius:
+                            BorderRadius.circular(AppDimensions.radiusFull),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: AppDimensions.sm,
+                              vertical: AppDimensions.xs),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.language,
+                                  size: 18, color: AppColors.primary),
+                              const SizedBox(width: 4),
+                              Text(
+                                AppLanguageNotifier.nativeNameFromCode(
+                                    ref.watch(appLanguageProvider).languageCode),
+                                style: AppTextStyles.caption
+                                    .copyWith(color: AppColors.primary),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppDimensions.sm),
                       const Icon(Icons.info_outline,
                           size: 18, color: AppColors.grey),
                       const SizedBox(width: 4),

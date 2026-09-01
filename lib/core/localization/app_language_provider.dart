@@ -4,19 +4,29 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../auth/app_auth.dart';
 
 const supportedAppLanguages = <AppLanguage>[
-  AppLanguage(name: 'English', code: 'en'),
-  AppLanguage(name: 'Pashto', code: 'ps'),
-  AppLanguage(name: 'Dari (Persian)', code: 'fa'),
-  AppLanguage(name: 'Urdu', code: 'ur'),
+  AppLanguage(name: 'English', nativeName: 'English', code: 'en'),
+  AppLanguage(name: 'Pashto', nativeName: 'پښتو', code: 'ps'),
+  AppLanguage(name: 'Dari (Persian)', nativeName: 'دری', code: 'fa'),
+  AppLanguage(name: 'Urdu', nativeName: 'اردو', code: 'ur'),
 ];
 
 class AppLanguage {
   final String name;
+
+  /// The language written in its own script, so a reader who knows no English
+  /// can still recognise their language.
+  final String nativeName;
   final String code;
 
-  const AppLanguage({required this.name, required this.code});
+  const AppLanguage({
+    required this.name,
+    required this.nativeName,
+    required this.code,
+  });
 
   Locale get locale => Locale(code);
+
+  bool get isRtl => code != 'en';
 }
 
 class AppLanguageNotifier extends StateNotifier<Locale> {
@@ -29,6 +39,14 @@ class AppLanguageNotifier extends StateNotifier<Locale> {
   // even after logout. This is intentional - device preferences are independent
   // of user authentication state.
   static const _prefKey = 'app_language_code';
+
+  /// True once the user has picked a language themselves. Used to show the
+  /// language chooser on first launch, so someone who reads no English never
+  /// has to hunt through settings.
+  static Future<bool> hasChosenLanguage() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_prefKey) != null;
+  }
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -72,6 +90,15 @@ class AppLanguageNotifier extends StateNotifier<Locale> {
     if (normalized.contains('urdu')) return 'ur';
     if (normalized.contains('english')) return 'en';
     return null;
+  }
+
+  static String nativeNameFromCode(String code) {
+    return supportedAppLanguages
+        .firstWhere(
+          (language) => language.code == code,
+          orElse: () => supportedAppLanguages.first,
+        )
+        .nativeName;
   }
 
   static String nameFromCode(String code) {

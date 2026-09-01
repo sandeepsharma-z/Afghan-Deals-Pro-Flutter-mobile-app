@@ -13,8 +13,6 @@ import '../providers/car_listings_provider.dart';
 // Map display title → Supabase subcategory value
 const _subcategoryMap = {
   'Used Cars': 'used',
-  'New Cars': 'new',
-  'Export Cars': 'export',
   'Motorcycles': 'motorcycles',
   'Auto Accessories & Parts': 'accessories',
   'Heavy Vehicles': 'heavy',

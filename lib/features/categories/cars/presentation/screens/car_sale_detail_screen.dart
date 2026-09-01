@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../core/router/route_names.dart';
 import '../../../../../core/widgets/favorite_button.dart';
@@ -27,11 +29,14 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
   late final PageController _pageController;
   Timer? _timer;
   int _currentPage = 0;
+  String _sellerPhone = '';
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(viewportFraction: 1.0);
+    _sellerPhone = widget.car.phone;
+    _loadSellerPhone();
     if (widget.car.images.length > 1) {
       _timer = Timer.periodic(const Duration(seconds: 4), (_) {
         if (!mounted) return;
@@ -258,7 +263,12 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
                         context.l10n.t('Fuel Type'), car.fuelType.isEmpty ? '-' : car.fuelType),
                     _overviewRow(context.l10n.t('Transmission'),
                         car.transmission.isEmpty ? '-' : car.transmission),
-                    _overviewRow(context.l10n.t('Color'), car.color.isEmpty ? '-' : car.color),
+                    _overviewRow(context.l10n.t('exterior_color'),
+                        car.color.isEmpty ? '-' : car.color),
+                    _overviewRow(context.l10n.t('interior_color'),
+                        car.interiorColor.isEmpty ? '-' : car.interiorColor),
+                    _overviewRow(context.l10n.t('regional_specs'),
+                        car.regionalSpecs.isEmpty ? '-' : car.regionalSpecs),
                     const SizedBox(height: 14),
                     const Divider(
                         height: 1, thickness: 1, color: Color(0xFFD9D9D9)),
@@ -267,7 +277,7 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
                       children: [
                         Expanded(child: _detailAction(Icons.message_outlined, context.l10n.t('chat'), onTap: _openChat)),
                         const SizedBox(width: 8),
-                        Expanded(child: _whatsAppAction(onTap: _openChat)),
+                        Expanded(child: _whatsAppAction(onTap: _openWhatsApp)),
                       ],
                     )
                   ],
@@ -423,6 +433,47 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
         ],
       ),
     );
+  }
+
+  // Car ads don't carry their own contact number, so WhatsApp uses the number
+  // on the seller's profile.
+  Future<void> _loadSellerPhone() async {
+    if (_sellerPhone.trim().isNotEmpty) return;
+    final sellerId = widget.car.sellerId.trim();
+    if (sellerId.isEmpty) return;
+    try {
+      final row = await Supabase.instance.client
+          .from('profiles')
+          .select('phone')
+          .eq('id', sellerId)
+          .maybeSingle();
+      final phone = row?['phone']?.toString() ?? '';
+      if (mounted && phone.trim().isNotEmpty) {
+        setState(() => _sellerPhone = phone);
+      }
+    } catch (_) {
+      // Leave the button to fall back to in-app chat.
+    }
+  }
+
+  Future<void> _openWhatsApp() async {
+    final digits = _sellerPhone.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(context.l10n.t('seller_no_whatsapp')),
+        behavior: SnackBarBehavior.floating,
+      ));
+      return;
+    }
+    final uri = Uri.parse('https://wa.me/$digits');
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(context.l10n.t('whatsapp_not_installed')),
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
   }
 
   Future<void> _openChat() async {

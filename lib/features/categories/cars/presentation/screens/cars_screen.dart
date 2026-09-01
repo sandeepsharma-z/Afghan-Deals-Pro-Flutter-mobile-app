@@ -47,11 +47,9 @@ class CarsScreen extends ConsumerWidget {
         error: (_, __) => _buildList(_fallback),
         data: (subs) {
           final visible = (subs.isEmpty ? _fallback : subs)
-              .where((s) =>
-                  s.slug == 'used-cars' ||
-                  s.slug == 'new-cars' ||
-                  s.slug == 'export-cars' ||
-                  s.slug == 'rental-cars')
+              // "New Cars" and "Export Cars" were retired - their listings are
+              // browsed under Used Cars now.
+              .where((s) => s.slug == 'used-cars' || s.slug == 'rental-cars')
               .toList();
           return _buildList(visible);
         },
@@ -85,27 +83,11 @@ class CarsScreen extends ConsumerWidget {
     SubcategoryModel(
         id: '2',
         categorySlug: 'cars',
-        name: 'New Cars',
-        slug: 'new-cars',
-        isActive: true,
-        isNew: false,
-        sortOrder: 2),
-    SubcategoryModel(
-        id: '3',
-        categorySlug: 'cars',
-        name: 'Export Cars',
-        slug: 'export-cars',
-        isActive: true,
-        isNew: false,
-        sortOrder: 3),
-    SubcategoryModel(
-        id: '4',
-        categorySlug: 'cars',
         name: 'Rental Cars',
         slug: 'rental-cars',
         isActive: true,
         isNew: true,
-        sortOrder: 4),
+        sortOrder: 2),
   ];
 }
 

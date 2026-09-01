@@ -23,6 +23,8 @@ class CarSaleModel {
   final String driveline;
   final String cylinders;
   final String interiorColor;
+  final String regionalSpecs;
+  final String phone;
   final String description;
   final String sellerName;
   final String sellerType;
@@ -53,6 +55,8 @@ class CarSaleModel {
     this.driveline = '',
     this.cylinders = '',
     this.interiorColor = '',
+    this.regionalSpecs = '',
+    this.phone = '',
   });
 
   String get imageUrl => images.isNotEmpty ? images.first : '';
@@ -111,6 +115,11 @@ class CarSaleModel {
       driveline: cd['driveline']?.toString() ?? '',
       cylinders: cd['cylinders']?.toString() ?? '',
       interiorColor: cd['interior_color']?.toString() ?? '',
+      regionalSpecs: cd['regional_specs']?.toString() ?? '',
+      phone: cd['phone']?.toString() ??
+          cd['seller_phone']?.toString() ??
+          map['phone']?.toString() ??
+          '',
     );
   }
 }
