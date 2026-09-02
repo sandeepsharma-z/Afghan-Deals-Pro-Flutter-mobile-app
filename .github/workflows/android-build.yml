@@ -26,9 +26,6 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Generate code
-        run: flutter pub run build_runner build --release
-
       - name: Create keystore from secrets
         run: |
           if [ ! -z "${{ secrets.ANDROID_KEYSTORE }}" ]; then

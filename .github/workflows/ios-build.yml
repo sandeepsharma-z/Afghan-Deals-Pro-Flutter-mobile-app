@@ -27,8 +27,6 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Generate code (build_runner)
-        run: flutter pub run build_runner build --release
 
       - name: Clean build artifacts
         run: |
