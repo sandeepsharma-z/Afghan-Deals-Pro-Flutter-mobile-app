@@ -44,6 +44,20 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
         );
         context.go(RouteNames.home);
       }
+    } on ReauthRequiredException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message,
+                style: AppTextStyles.body.copyWith(color: AppColors.white)),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 6),
+          ),
+        );
+        // Already signed out - drop them on the login screen so retrying is
+        // one sign-in away.
+        context.go(RouteNames.onboarding);
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
