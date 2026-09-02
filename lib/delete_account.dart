@@ -1,46 +1,36 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'core/auth/app_auth.dart';
+
+/// Removes the signed-in user and everything belonging to them.
+///
+/// The app's data lives in Supabase, so deletion runs through the
+/// `delete_my_account` RPCs. Phone users are authenticated by Firebase and
+/// additionally need their Firebase user removed.
 class DeleteAccountService {
-  static final _firestore = FirebaseFirestore.instance;
-  static final _auth = FirebaseAuth.instance;
+  static SupabaseClient get _client => Supabase.instance.client;
 
-  /// Delete user account and all associated data
-  static Future<void> deleteUserAccount(String userId) async {
-    try {
-      final batch = _firestore.batch();
-
-      // 1. Delete user profile
-      batch.delete(_firestore.collection('users').doc(userId));
-
-      // 2. Delete all listings by this user
-      final listings = await _firestore
-          .collection('listings')
-          .where('seller_id', isEqualTo: userId)
-          .get();
-      for (var doc in listings.docs) {
-        batch.delete(doc.reference);
+  static Future<void> deleteUserAccount() async {
+    if (AppAuth.isFirebaseAuthenticated) {
+      final firebaseUser = fb.FirebaseAuth.instance.currentUser;
+      // Best-effort: drop the Supabase profile linked to this phone user.
+      try {
+        await _client.rpc('delete_my_account_firebase',
+            params: {'p_firebase_uid': firebaseUser?.uid});
+      } catch (_) {}
+      try {
+        await firebaseUser?.delete();
+      } on fb.FirebaseAuthException catch (e) {
+        if (e.code == 'requires-recent-login') {
+          throw Exception(
+              'For security, please log in again and then retry deleting your account.');
+        }
+        rethrow;
       }
-
-      // 3. Delete all chats with this user
-      final chats = await _firestore
-          .collection('chats')
-          .where('participants', arrayContains: userId)
-          .get();
-      for (var doc in chats.docs) {
-        batch.delete(doc.reference);
-      }
-
-      // 4. Delete all favorites
-      batch.delete(_firestore.collection('favorites').doc(userId));
-
-      // 5. Commit batch
-      await batch.commit();
-
-      // 6. Delete Firebase Auth user
-      await _auth.currentUser?.delete();
-    } catch (e) {
-      throw Exception('Failed to delete account: $e');
+    } else {
+      await _client.rpc('delete_my_account');
     }
+    await AppAuth.signOutAll();
   }
 }

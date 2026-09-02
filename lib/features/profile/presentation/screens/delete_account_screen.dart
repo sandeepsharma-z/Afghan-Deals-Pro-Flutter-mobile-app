@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/theme/app_dimensions.dart';
@@ -31,10 +33,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
     setState(() => isDeleting = true);
 
     try {
-      final userId = FirebaseAuth.instance.currentUser?.uid;
-      if (userId == null) throw Exception('User not logged in');
-
-      await DeleteAccountService.deleteUserAccount(userId);
+      await DeleteAccountService.deleteUserAccount();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -43,7 +42,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
             backgroundColor: AppColors.success,
           ),
         );
-        Navigator.of(context).pushNamedAndRemoveUntil('/sign-in', (route) => false);
+        context.go(RouteNames.home);
       }
     } catch (e) {
       if (mounted) {
