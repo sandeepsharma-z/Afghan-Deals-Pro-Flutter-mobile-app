@@ -72,6 +72,10 @@ jobs:
             -archivePath build/Runner.xcarchive
 
       - name: Upload dSYMs artifact
+        # Symbols are a debugging aid, not part of the release. GitHub's
+        # artifact service timed out once and skipped the TestFlight upload
+        # with it, so a hiccup here must not hold back a build.
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: dsyms
