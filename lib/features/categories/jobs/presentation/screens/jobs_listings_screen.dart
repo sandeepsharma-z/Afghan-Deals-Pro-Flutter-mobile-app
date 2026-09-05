@@ -18,6 +18,7 @@ import '../../../../../features/listings/data/models/jobs_listing_model.dart';
 import 'jobs_detail_screen.dart';
 import 'jobs_filter_screen.dart';
 import '../../../../../core/utils/image_url.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -335,8 +336,7 @@ class _JobResultCardState extends State<_JobResultCard> {
                           itemCount: item.images.length,
                           onPageChanged: (i) =>
                               setState(() => _currentPage = i),
-                          itemBuilder: (_, i) => Image.network(
-                            sizedImageUrl(item.images[i]),
+                          itemBuilder: (_, i) => Image(image: CachedNetworkImageProvider(sizedImageUrl(item.images[i])),
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => _placeholder(),
                           ),

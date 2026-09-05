@@ -14,6 +14,7 @@ import '../providers/electronics_provider.dart';
 import 'electronics_detail_screen.dart';
 import 'electronics_filter_screen.dart';
 import '../../../../../core/utils/image_url.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -251,8 +252,7 @@ class _ListingCard extends ConsumerWidget {
                     const BorderRadius.vertical(top: Radius.circular(7.38)),
                 child: item.images.isEmpty
                     ? _placeholder()
-                    : Image.network(
-                        sizedImageUrl(item.imageUrl),
+                    : Image(image: CachedNetworkImageProvider(sizedImageUrl(item.imageUrl)),
                         height: 110,
                         width: double.infinity,
                         fit: BoxFit.cover,

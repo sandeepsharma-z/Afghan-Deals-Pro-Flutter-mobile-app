@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../listings/data/models/classified_listing_model.dart';
 import '../../../categories/classifieds/presentation/screens/classifieds_detail_screen.dart';
 import '../../../../core/utils/image_url.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -351,7 +352,7 @@ class _AdminListingRow extends StatelessWidget {
                     child: const Icon(Icons.grid_view_outlined,
                         color: Colors.grey, size: 24),
                   )
-                : Image.network(sizedImageUrl(item.imageUrl),
+                : Image(image: CachedNetworkImageProvider(sizedImageUrl(item.imageUrl)),
                     width: 60, height: 60, fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(
                           width: 60,

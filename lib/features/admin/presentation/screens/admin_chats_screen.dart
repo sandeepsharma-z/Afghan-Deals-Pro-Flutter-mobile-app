@@ -8,6 +8,7 @@ import '../../../chat/data/models/chat_message_model.dart';
 import '../../../chat/data/models/chat_thread_model.dart';
 import '../../../chat/presentation/providers/chat_provider.dart';
 import '../../../../core/utils/image_url.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 // ── Admin-only provider: fetches ALL chats (requires is_admin = true in DB) ───
 
@@ -191,7 +192,7 @@ class _AdminChatTile extends StatelessWidget {
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: thread.listingImageUrl != null
-            ? Image.network(sizedImageUrl(thread.listingImageUrl!),
+            ? Image(image: CachedNetworkImageProvider(sizedImageUrl(thread.listingImageUrl!)),
                 width: 52, height: 52, fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => _thumb())
             : _thumb(),

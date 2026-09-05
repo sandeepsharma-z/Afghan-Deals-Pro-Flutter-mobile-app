@@ -9,6 +9,7 @@ import '../../data/models/chat_thread_model.dart';
 import '../providers/chat_provider.dart';
 import '../../../../../core/localization/app_localizations.dart';
 import '../../../../core/utils/image_url.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 final chatUserProfileProvider = FutureProvider.autoDispose
     .family<_ChatUserProfileData, ChatThreadModel>((ref, thread) async {
@@ -549,8 +550,7 @@ class _ChatUserProfileScreenState extends ConsumerState<ChatUserProfileScreen> {
       ),
       clipBehavior: Clip.antiAlias,
       child: avatarUrl != null && avatarUrl.isNotEmpty
-          ? Image.network(
-              sizedImageUrl(avatarUrl),
+          ? Image(image: CachedNetworkImageProvider(sizedImageUrl(avatarUrl)),
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => _avatarFallback(),
             )
@@ -609,7 +609,7 @@ class _ChatUserProfileScreenState extends ConsumerState<ChatUserProfileScreen> {
             borderRadius: BorderRadius.circular(8),
             child: widget.thread.listingImageUrl != null &&
                     widget.thread.listingImageUrl!.isNotEmpty
-                ? Image.network(sizedImageUrl(widget.thread.listingImageUrl!),
+                ? Image(image: CachedNetworkImageProvider(sizedImageUrl(widget.thread.listingImageUrl!)),
                     width: 54,
                     height: 54,
                     fit: BoxFit.cover,

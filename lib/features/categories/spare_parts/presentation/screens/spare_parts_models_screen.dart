@@ -8,6 +8,7 @@ import '../../../../../core/widgets/translated_text.dart';
 import '../providers/spare_parts_provider.dart';
 import 'spare_parts_results_screen.dart';
 import '../../../../../core/utils/image_url.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -417,8 +418,7 @@ class _ModelLogo extends StatelessWidget {
       );
     }
 
-    return Image.network(
-      sizedImageUrl(url),
+    return Image(image: CachedNetworkImageProvider(sizedImageUrl(url)),
       width: 26,
       height: 26,
       fit: BoxFit.contain,

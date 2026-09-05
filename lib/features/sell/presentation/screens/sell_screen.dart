@@ -9,6 +9,7 @@ import '../../../../core/localization/localized_lookup.dart';
 import '../../../home/presentation/providers/home_provider.dart';
 import '../../../home/data/models/home_category_model.dart';
 import '../../../../core/utils/image_url.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class SellScreen extends ConsumerWidget {
   const SellScreen({super.key});
@@ -285,8 +286,7 @@ class SellScreen extends ConsumerWidget {
 
   Widget _buildCategoryVisual(_SellCategory cat) {
     if (cat.imageUrl != null && cat.imageUrl!.isNotEmpty) {
-      return Image.network(
-        sizedImageUrl(cat.imageUrl!),
+      return Image(image: CachedNetworkImageProvider(sizedImageUrl(cat.imageUrl!)),
         width: 56,
         height: 56,
         fit: BoxFit.contain,

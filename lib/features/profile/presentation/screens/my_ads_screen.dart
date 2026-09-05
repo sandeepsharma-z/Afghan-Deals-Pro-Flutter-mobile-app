@@ -29,6 +29,7 @@ import '../../../../features/listings/data/models/listing_model.dart';
 import '../../../listings/data/models/mobile_listing_model.dart';
 import '../providers/favorites_provider.dart';
 import '../../../../core/utils/image_url.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 final myAdsProvider = FutureProvider<List<ListingModel>>((ref) async {
   final me = AppAuth.currentUserId;
@@ -467,8 +468,7 @@ class _AdCardState extends State<_AdCard> {
                       controller: _pageController,
                       onPageChanged: (i) => setState(() => _currentPage = i),
                       itemCount: ad.images.length,
-                      itemBuilder: (_, i) => Image.network(
-                        sizedImageUrl(ad.images[i]),
+                      itemBuilder: (_, i) => Image(image: CachedNetworkImageProvider(sizedImageUrl(ad.images[i])),
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => Container(
                           color: const Color(0xFFEFF2F8),
@@ -571,8 +571,7 @@ class _ListingDetailView extends StatelessWidget {
             if (listing.images.isNotEmpty)
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  sizedImageUrl(listing.images.first),
+                child: Image(image: CachedNetworkImageProvider(sizedImageUrl(listing.images.first)),
                   height: 250,
                   width: double.infinity,
                   fit: BoxFit.cover,

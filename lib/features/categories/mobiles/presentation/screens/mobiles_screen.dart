@@ -18,6 +18,7 @@ import '../../../../../features/listings/data/models/mobile_listing_model.dart';
 import 'mobile_listings_screen.dart';
 import 'mobile_detail_screen.dart';
 import '../../../../../core/utils/image_url.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -648,8 +649,7 @@ class _MobileCard extends StatelessWidget {
                 ),
                 child: item.images.isEmpty
                     ? _placeholder()
-                    : Image.network(
-                        sizedImageUrl(item.imageUrl),
+                    : Image(image: CachedNetworkImageProvider(sizedImageUrl(item.imageUrl)),
                         height: 101.27,
                         width: double.infinity,
                         fit: BoxFit.cover,

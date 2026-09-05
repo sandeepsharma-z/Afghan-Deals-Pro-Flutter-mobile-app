@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/brand_listings_provider.dart';
 import '../../../../../core/utils/image_url.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -380,8 +381,7 @@ class _BrandModelsScreenState extends ConsumerState<BrandModelsScreen> {
         placeholderBuilder: (_) => Icon(Icons.directions_car_outlined, color: fallbackColor, size: size),
       );
     }
-    return Image.network(
-      sizedImageUrl(iconUrl),
+    return Image(image: CachedNetworkImageProvider(sizedImageUrl(iconUrl)),
       width: size,
       height: size,
       fit: BoxFit.contain,

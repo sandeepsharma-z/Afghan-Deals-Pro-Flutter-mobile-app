@@ -22,6 +22,7 @@ import 'property_detail_screen.dart';
 import 'property_listings_screen.dart';
 import 'property_subtype_screen.dart';
 import '../../../../../core/utils/image_url.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -258,8 +259,7 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
                         placeholderBuilder: (_) =>
                             Icon(fallback, color: _kBlue, size: 22),
                       )
-                    : Image.network(
-                        sizedImageUrl(safeIconUrl),
+                    : Image(image: CachedNetworkImageProvider(sizedImageUrl(safeIconUrl)),
                         width: 26,
                         height: 26,
                         fit: BoxFit.contain,
@@ -717,8 +717,7 @@ class _PropertyCardState extends State<_PropertyCard> {
                             itemCount: item.images.length,
                             onPageChanged: (i) =>
                                 setState(() => _currentPage = i),
-                            itemBuilder: (_, i) => Image.network(
-                              sizedImageUrl(item.images[i]),
+                            itemBuilder: (_, i) => Image(image: CachedNetworkImageProvider(sizedImageUrl(item.images[i])),
                               fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => _placeholder(),
                             ),

@@ -15,6 +15,7 @@ import '../../../../../core/widgets/translated_text.dart';
 import '../../../../chat/presentation/providers/chat_provider.dart';
 import '../../data/models/property_listing_model.dart';
 import '../../../../../core/utils/image_url.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class PropertyDetailScreen extends ConsumerStatefulWidget {
   final PropertyListingModel property;
@@ -80,8 +81,7 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
                           itemCount: property.images.length,
                           onPageChanged: (i) =>
                               setState(() => _currentImage = i),
-                          itemBuilder: (_, i) => Image.network(
-                            fullImageUrl(property.images[i]),
+                          itemBuilder: (_, i) => Image(image: CachedNetworkImageProvider(fullImageUrl(property.images[i])),
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => Container(
                               color: const Color(0xFFE8E8E8),

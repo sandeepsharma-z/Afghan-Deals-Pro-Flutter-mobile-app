@@ -25,6 +25,7 @@ import '../providers/home_provider.dart';
 import '../providers/country_provider.dart';
 import '../../data/models/home_category_model.dart';
 import '../../../../core/utils/image_url.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -537,8 +538,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildCategoryImage(_CategoryTile cat) {
     if (cat.imageUrl != null && cat.imageUrl!.isNotEmpty) {
-      return Image.network(
-        sizedImageUrl(cat.imageUrl!),
+      return Image(image: CachedNetworkImageProvider(sizedImageUrl(cat.imageUrl!)),
         fit: BoxFit.contain,
         width: double.infinity,
         errorBuilder: (_, __, ___) => cat.assetPath != null

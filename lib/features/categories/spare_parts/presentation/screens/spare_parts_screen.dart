@@ -13,6 +13,7 @@ import 'spare_parts_detail_screen.dart';
 import 'spare_parts_models_screen.dart';
 import 'spare_parts_results_screen.dart';
 import '../../../../../core/utils/image_url.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -295,8 +296,7 @@ class _SparePartMiniCard extends StatelessWidget {
                                 color: Colors.grey, size: 40),
                           ),
                         )
-                      : Image.network(
-                          sizedImageUrl(listing.images.first),
+                      : Image(image: CachedNetworkImageProvider(sizedImageUrl(listing.images.first)),
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => const ColoredBox(
                             color: Color(0xFFF0F0F0),
@@ -515,8 +515,7 @@ class _BrandLogo extends StatelessWidget {
       );
     }
 
-    return Image.network(
-      sizedImageUrl(url),
+    return Image(image: CachedNetworkImageProvider(sizedImageUrl(url)),
       width: 26,
       height: 26,
       fit: BoxFit.contain,

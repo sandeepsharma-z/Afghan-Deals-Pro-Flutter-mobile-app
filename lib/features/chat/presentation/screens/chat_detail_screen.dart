@@ -10,6 +10,7 @@ import '../providers/chat_provider.dart';
 import 'chat_user_profile_screen.dart';
 import '../../../../../core/localization/app_localizations.dart';
 import '../../../../core/utils/image_url.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ChatDetailScreen extends ConsumerStatefulWidget {
   final String chatId;
@@ -544,7 +545,7 @@ class _MessageBubble extends StatelessWidget {
       child: isLocal
           ? Image.asset(url,
               fit: BoxFit.cover, errorBuilder: (_, __, ___) => _imgError())
-          : Image.network(fullImageUrl(url),
+          : Image(image: CachedNetworkImageProvider(fullImageUrl(url)),
               fit: BoxFit.cover,
               loadingBuilder: (_, child, progress) => progress == null
                   ? child

@@ -22,6 +22,7 @@ import '../../data/models/jobs_listing_model.dart';
 import '../../data/models/listing_model.dart';
 import '../../data/models/mobile_listing_model.dart';
 import '../../../../core/utils/image_url.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class SearchResultsScreen extends StatefulWidget {
   final String initialQuery;
@@ -317,8 +318,7 @@ class _SearchResultCard extends StatelessWidget {
                         child: const Icon(Icons.image_outlined,
                             color: Colors.black26),
                       )
-                    : Image.network(
-                        sizedImageUrl(image),
+                    : Image(image: CachedNetworkImageProvider(sizedImageUrl(image)),
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => Container(
                           color: const Color(0xFFEDEDED),

@@ -8,6 +8,8 @@ import '../../../../delete_account.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../../core/localization/app_localizations.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../../../../core/utils/image_url.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
   const AccountSettingsScreen({super.key});
@@ -488,7 +490,8 @@ class _BlockedUsersSheetState extends State<_BlockedUsersSheet> {
                           backgroundColor: const Color(0xFFEDEDED),
                           backgroundImage: user.avatarUrl != null &&
                                   user.avatarUrl!.trim().isNotEmpty
-                              ? NetworkImage(user.avatarUrl!)
+                              ? CachedNetworkImageProvider(
+                                  sizedImageUrl(user.avatarUrl!, width: 96))
                               : null,
                           child: user.avatarUrl == null ||
                                   user.avatarUrl!.trim().isEmpty
