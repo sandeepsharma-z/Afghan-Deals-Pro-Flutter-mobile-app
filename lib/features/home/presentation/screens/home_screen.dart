@@ -24,6 +24,7 @@ import '../../../listings/presentation/screens/search_results_screen.dart';
 import '../providers/home_provider.dart';
 import '../providers/country_provider.dart';
 import '../../data/models/home_category_model.dart';
+import '../../../../core/utils/image_url.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -537,7 +538,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildCategoryImage(_CategoryTile cat) {
     if (cat.imageUrl != null && cat.imageUrl!.isNotEmpty) {
       return Image.network(
-        cat.imageUrl!,
+        sizedImageUrl(cat.imageUrl!),
         fit: BoxFit.contain,
         width: double.infinity,
         errorBuilder: (_, __, ___) => cat.assetPath != null

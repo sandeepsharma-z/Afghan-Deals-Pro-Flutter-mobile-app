@@ -12,6 +12,7 @@ import '../../../../../core/widgets/favorite_button.dart';
 import '../../../../../core/localization/app_localizations.dart';
 import '../../../../chat/presentation/providers/chat_provider.dart';
 import '../../../../../features/listings/data/models/furniture_listing_model.dart';
+import '../../../../../core/utils/image_url.dart';
 
 class FurnitureDetailScreen extends ConsumerStatefulWidget {
   final FurnitureListingModel item;
@@ -78,7 +79,7 @@ class _FurnitureDetailScreenState extends ConsumerState<FurnitureDetailScreen> {
                           onPageChanged: (i) =>
                               setState(() => _currentImage = i),
                           itemBuilder: (_, i) => Image.network(
-                            item.images[i],
+                            fullImageUrl(item.images[i]),
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => Container(
                               color: const Color(0xFFE8E8E8),

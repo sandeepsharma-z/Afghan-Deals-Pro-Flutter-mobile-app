@@ -18,6 +18,7 @@ import '../providers/car_listings_provider.dart';
 import 'brand_models_screen.dart';
 import 'car_sale_detail_screen.dart';
 import 'cars_filter_screen.dart';
+import '../../../../../core/utils/image_url.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -1229,7 +1230,7 @@ class _BrandBox extends StatelessWidget {
                               ),
                             )
                           : Image.network(
-                              brand.logoUrl!,
+                              sizedImageUrl(brand.logoUrl!),
                               fit: BoxFit.contain,
                               errorBuilder: (_, __, ___) => _fallbackIcon(),
                             ))
@@ -1341,7 +1342,7 @@ class _CarCardState extends State<_CarCard> {
                                 );
                               }
                               return Image.network(
-                                img,
+                                sizedImageUrl(img),
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, __, ___) => _placeholder(),
                               );

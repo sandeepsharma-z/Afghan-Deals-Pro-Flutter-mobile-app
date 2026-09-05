@@ -16,6 +16,7 @@ import 'notification_settings_screen.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/localization/app_localizations.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/utils/image_url.dart';
 
 class AccountScreen extends ConsumerStatefulWidget {
   final bool embedded;
@@ -509,7 +510,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                                               strokeWidth: 2))
                                       : avatarUrl != null
                                           ? Image.network(
-                                              avatarUrl,
+                                              sizedImageUrl(avatarUrl),
                                               fit: BoxFit.cover,
                                               errorBuilder: (_, __, ___) =>
                                                   _avatarFallback(),

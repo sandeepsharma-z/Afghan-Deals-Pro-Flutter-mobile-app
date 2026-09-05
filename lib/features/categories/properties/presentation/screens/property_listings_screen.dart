@@ -18,6 +18,7 @@ import 'property_detail_screen.dart';
 import 'property_filter_screen.dart';
 import '../../data/models/property_listing_model.dart';
 import '../providers/property_filtered_listings_provider.dart';
+import '../../../../../core/utils/image_url.dart';
 
 // ignore_for_file: unused_import
 
@@ -515,7 +516,7 @@ class _PropertyCardState extends State<_PropertyCard> {
                             onPageChanged: (i) =>
                                 setState(() => _currentPage = i),
                             itemBuilder: (_, i) => Image.network(
-                              item.images[i],
+                              sizedImageUrl(item.images[i]),
                               fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => _placeholder(),
                             ),

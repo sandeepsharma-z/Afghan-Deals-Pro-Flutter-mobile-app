@@ -15,6 +15,7 @@ import '../../../../../core/localization/app_localizations.dart';
 import '../../../../../core/widgets/translated_text.dart';
 import '../../../../chat/presentation/providers/chat_provider.dart';
 import '../../../../../features/listings/data/models/car_sale_model.dart';
+import '../../../../../core/utils/image_url.dart';
 
 class CarSaleDetailScreen extends ConsumerStatefulWidget {
   final CarSaleModel car;
@@ -85,7 +86,7 @@ class _CarSaleDetailScreenState extends ConsumerState<CarSaleDetailScreen> {
                             onPageChanged: (i) =>
                                 setState(() => _currentPage = i),
                             itemBuilder: (_, i) => Image.network(
-                              car.images[i],
+                              fullImageUrl(car.images[i]),
                               fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => Container(
                                 color: const Color(0xFFE8E8E8),

@@ -13,6 +13,7 @@ import '../../../../../core/widgets/favorite_button.dart';
 import '../../../../../core/widgets/translated_text.dart';
 import 'car_sale_detail_screen.dart';
 import 'cars_filter_screen.dart';
+import '../../../../../core/utils/image_url.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -532,7 +533,7 @@ class _CarCardState extends ConsumerState<_CarCard> {
                             onPageChanged: (i) =>
                                 setState(() => _currentPage = i),
                             itemBuilder: (_, i) => Image.network(
-                              car.images[i],
+                              sizedImageUrl(car.images[i]),
                               fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => _placeholderImage(),
                             ),

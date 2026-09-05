@@ -21,6 +21,7 @@ import '../providers/property_listings_provider.dart';
 import 'property_detail_screen.dart';
 import 'property_listings_screen.dart';
 import 'property_subtype_screen.dart';
+import '../../../../../core/utils/image_url.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -258,7 +259,7 @@ class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
                             Icon(fallback, color: _kBlue, size: 22),
                       )
                     : Image.network(
-                        safeIconUrl,
+                        sizedImageUrl(safeIconUrl),
                         width: 26,
                         height: 26,
                         fit: BoxFit.contain,
@@ -717,7 +718,7 @@ class _PropertyCardState extends State<_PropertyCard> {
                             onPageChanged: (i) =>
                                 setState(() => _currentPage = i),
                             itemBuilder: (_, i) => Image.network(
-                              item.images[i],
+                              sizedImageUrl(item.images[i]),
                               fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => _placeholder(),
                             ),

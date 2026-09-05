@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/brand_listings_provider.dart';
+import '../../../../../core/utils/image_url.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -380,7 +381,7 @@ class _BrandModelsScreenState extends ConsumerState<BrandModelsScreen> {
       );
     }
     return Image.network(
-      iconUrl,
+      sizedImageUrl(iconUrl),
       width: size,
       height: size,
       fit: BoxFit.contain,

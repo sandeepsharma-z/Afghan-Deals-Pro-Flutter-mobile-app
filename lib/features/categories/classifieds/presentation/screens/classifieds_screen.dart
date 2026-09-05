@@ -16,6 +16,7 @@ import '../../../../../features/listings/data/models/classified_listing_model.da
 import '../../../../../features/home/presentation/providers/country_provider.dart';
 import 'classifieds_listings_screen.dart';
 import 'classifieds_detail_screen.dart';
+import '../../../../../core/utils/image_url.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -288,7 +289,7 @@ class _ClassifiedsScreenState extends ConsumerState<ClassifiedsScreen> {
         );
       } else {
         iconWidget = Image.network(
-          iconUrl,
+          sizedImageUrl(iconUrl),
           width: 26,
           height: 26,
           fit: BoxFit.contain,
@@ -691,7 +692,7 @@ class _ClassifiedCard extends StatelessWidget {
                   topRight: Radius.circular(7.38)),
               child: item.images.isEmpty
                   ? _placeholder()
-                  : Image.network(item.imageUrl,
+                  : Image.network(sizedImageUrl(item.imageUrl),
                       height: 101.27,
                       width: double.infinity,
                       fit: BoxFit.cover,

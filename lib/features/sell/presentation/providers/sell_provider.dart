@@ -47,12 +47,21 @@ class SellNotifier extends StateNotifier<SellState> {
   final _client = Supabase.instance.client;
 
   static const int _maxImages = 10;
+
+  // A phone camera hands back 4000px, multi-megabyte files. Stored originals
+  // here already average ~880 kB and reach 14 MB, which is what makes listing
+  // screens slow to load. 1600px is still more than any screen shows.
+  static const double _maxUploadEdge = 1600;
   static const String _bucket = 'listing-images';
 
   // ── Image picking ────────────────────────────────────────────────────────────
 
   Future<void> pickFromGallery() async {
-    final picked = await _picker.pickMultiImage(imageQuality: 80);
+    final picked = await _picker.pickMultiImage(
+      imageQuality: 80,
+      maxWidth: _maxUploadEdge,
+      maxHeight: _maxUploadEdge,
+    );
     if (picked.isEmpty) return;
     final combined = [...state.images, ...picked];
     state = state.copyWith(
@@ -67,6 +76,8 @@ class SellNotifier extends StateNotifier<SellState> {
     final picked = await _picker.pickImage(
       source: ImageSource.camera,
       imageQuality: 80,
+      maxWidth: _maxUploadEdge,
+      maxHeight: _maxUploadEdge,
     );
     if (picked == null) return;
     state = state.copyWith(images: [...state.images, picked]);

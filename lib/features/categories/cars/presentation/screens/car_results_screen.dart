@@ -11,6 +11,7 @@ import '../../../../chat/presentation/providers/chat_provider.dart';
 import '../../../../profile/presentation/providers/favorites_provider.dart';
 import '../../../../../features/listings/data/models/rental_car_model.dart';
 import '../providers/rental_cars_provider.dart';
+import '../../../../../core/utils/image_url.dart';
 
 class CarResultsScreen extends ConsumerStatefulWidget {
   final String subcategory;
@@ -536,7 +537,7 @@ class _CarCardState extends ConsumerState<_CarCard> {
                             onPageChanged: (i) =>
                                 setState(() => _currentPage = i),
                             itemBuilder: (_, i) => Image.network(
-                              car.images[i],
+                              sizedImageUrl(car.images[i]),
                               fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => Container(
                                 color: const Color(0xFFE8E8E8),
@@ -931,7 +932,7 @@ class _RentalCarDetailScreenState
                             onPageChanged: (i) =>
                                 setState(() => _currentPage = i),
                             itemBuilder: (_, i) => Image.network(
-                              car.images[i],
+                              sizedImageUrl(car.images[i]),
                               fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => Container(
                                 color: const Color(0xFFE8E8E8),

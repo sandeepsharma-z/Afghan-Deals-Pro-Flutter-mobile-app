@@ -21,6 +21,7 @@ import '../../data/models/furniture_listing_model.dart';
 import '../../data/models/jobs_listing_model.dart';
 import '../../data/models/listing_model.dart';
 import '../../data/models/mobile_listing_model.dart';
+import '../../../../core/utils/image_url.dart';
 
 class SearchResultsScreen extends StatefulWidget {
   final String initialQuery;
@@ -317,7 +318,7 @@ class _SearchResultCard extends StatelessWidget {
                             color: Colors.black26),
                       )
                     : Image.network(
-                        image,
+                        sizedImageUrl(image),
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => Container(
                           color: const Color(0xFFEDEDED),

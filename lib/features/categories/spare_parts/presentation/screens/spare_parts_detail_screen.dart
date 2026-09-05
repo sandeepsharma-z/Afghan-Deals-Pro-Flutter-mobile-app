@@ -16,6 +16,7 @@ import '../../../../../core/widgets/favorite_button.dart';
 import '../../../../../core/localization/app_localizations.dart';
 import '../../../../chat/presentation/providers/chat_provider.dart';
 import '../providers/spare_parts_provider.dart';
+import '../../../../../core/utils/image_url.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -141,7 +142,7 @@ class _SparePartsDetailScreenState
                             onPageChanged: (index) =>
                                 setState(() => _currentPage = index),
                             itemBuilder: (_, i) => Image.network(
-                              item.images[i],
+                              fullImageUrl(item.images[i]),
                               fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => Container(
                                 color: const Color(0xFFE8E8E8),

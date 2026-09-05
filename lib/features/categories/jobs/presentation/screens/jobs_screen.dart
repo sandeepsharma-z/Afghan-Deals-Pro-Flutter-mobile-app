@@ -16,6 +16,7 @@ import '../../../../../features/listings/data/models/jobs_listing_model.dart';
 import '../../../../../features/home/presentation/providers/country_provider.dart';
 import 'jobs_listings_screen.dart';
 import 'jobs_detail_screen.dart';
+import '../../../../../core/utils/image_url.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -302,7 +303,7 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
         );
       } else {
         iconWidget = Image.network(
-          iconUrl,
+          sizedImageUrl(iconUrl),
           width: 26,
           height: 26,
           fit: BoxFit.contain,
@@ -815,7 +816,7 @@ class _JobCard extends StatelessWidget {
               ),
               child: item.images.isEmpty
                   ? _placeholder()
-                  : Image.network(item.imageUrl,
+                  : Image.network(sizedImageUrl(item.imageUrl),
                       height: 101.27,
                       width: double.infinity,
                       fit: BoxFit.cover,

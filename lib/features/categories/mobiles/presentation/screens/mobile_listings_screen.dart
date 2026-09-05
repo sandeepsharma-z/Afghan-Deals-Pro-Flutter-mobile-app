@@ -15,6 +15,7 @@ import '../../../../../features/listings/data/models/mobile_listing_model.dart';
 import '../providers/mobile_listings_provider.dart';
 import 'mobile_detail_screen.dart';
 import 'mobile_filter_screen.dart';
+import '../../../../../core/utils/image_url.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -351,7 +352,7 @@ class _MobileListCard extends ConsumerWidget {
                       const BorderRadius.vertical(top: Radius.circular(7.38)),
                   child: listing.imageUrl.isNotEmpty
                       ? Image.network(
-                          listing.imageUrl,
+                          sizedImageUrl(listing.imageUrl),
                           height: 110,
                           width: double.infinity,
                           fit: BoxFit.cover,

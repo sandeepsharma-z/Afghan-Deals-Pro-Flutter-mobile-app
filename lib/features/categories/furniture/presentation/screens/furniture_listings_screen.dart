@@ -13,6 +13,7 @@ import '../providers/furniture_provider.dart';
 import '../../../../../features/listings/data/models/furniture_listing_model.dart';
 import 'furniture_detail_screen.dart';
 import 'furniture_filter_screen.dart';
+import '../../../../../core/utils/image_url.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -277,7 +278,7 @@ class _FurnitureResultCardState extends State<_FurnitureResultCard> {
                         itemCount: item.images.length,
                         onPageChanged: (i) => setState(() => _currentPage = i),
                         itemBuilder: (_, i) => Image.network(
-                          item.images[i],
+                          sizedImageUrl(item.images[i]),
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => _placeholder(),
                         ),

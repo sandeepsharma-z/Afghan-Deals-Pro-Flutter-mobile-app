@@ -16,6 +16,7 @@ import '../providers/classifieds_provider.dart';
 import '../../../../../features/listings/data/models/classified_listing_model.dart';
 import 'classifieds_detail_screen.dart';
 import 'classifieds_filter_screen.dart';
+import '../../../../../core/utils/image_url.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -279,7 +280,7 @@ class _ClassifiedCardState extends State<_ClassifiedCard> {
                         itemCount: item.images.length,
                         onPageChanged: (i) => setState(() => _currentPage = i),
                         itemBuilder: (_, i) => Image.network(
-                          item.images[i],
+                          sizedImageUrl(item.images[i]),
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => _placeholder(),
                         ),

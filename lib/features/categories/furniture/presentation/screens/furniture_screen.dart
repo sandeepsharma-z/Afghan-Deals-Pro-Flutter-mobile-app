@@ -17,6 +17,7 @@ import '../../../../../features/listings/data/models/furniture_listing_model.dar
 import '../../../../../features/home/presentation/providers/country_provider.dart';
 import 'furniture_listings_screen.dart';
 import 'furniture_detail_screen.dart';
+import '../../../../../core/utils/image_url.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -304,7 +305,7 @@ class _FurnitureScreenState extends ConsumerState<FurnitureScreen> {
         );
       } else {
         iconWidget = Image.network(
-          iconUrl,
+          sizedImageUrl(iconUrl),
           width: 26,
           height: 26,
           fit: BoxFit.contain,
@@ -808,7 +809,7 @@ class _FurnitureCardState extends State<_FurnitureCard> {
                         itemCount: item.images.length,
                         onPageChanged: (i) => setState(() => _currentPage = i),
                         itemBuilder: (_, i) => Image.network(
-                          item.images[i],
+                          sizedImageUrl(item.images[i]),
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => _placeholder(),
                         ),

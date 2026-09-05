@@ -9,6 +9,7 @@ import '../../../../../core/widgets/favorite_button.dart';
 import '../../../../../core/widgets/translated_text.dart';
 import '../../../../../features/listings/data/models/car_sale_model.dart';
 import '../providers/car_listings_provider.dart';
+import '../../../../../core/utils/image_url.dart';
 
 // Map display title → Supabase subcategory value
 const _subcategoryMap = {
@@ -421,7 +422,7 @@ class _ListingCard extends ConsumerWidget {
                       left: Radius.circular(12)),
                   child: listing.imageUrl.isNotEmpty
                       ? Image.network(
-                          listing.imageUrl,
+                          sizedImageUrl(listing.imageUrl),
                           width: 130,
                           height: 110,
                           fit: BoxFit.cover,
@@ -552,7 +553,7 @@ class _GridCard extends ConsumerWidget {
                       top: Radius.circular(12)),
                   child: listing.imageUrl.isNotEmpty
                       ? Image.network(
-                          listing.imageUrl,
+                          sizedImageUrl(listing.imageUrl),
                           height: 110,
                           width: double.infinity,
                           fit: BoxFit.cover,

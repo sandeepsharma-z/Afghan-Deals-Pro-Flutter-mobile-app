@@ -13,6 +13,7 @@ import '../../../../../features/listings/data/models/electronics_listing_model.d
 import '../providers/electronics_provider.dart';
 import 'electronics_detail_screen.dart';
 import 'electronics_filter_screen.dart';
+import '../../../../../core/utils/image_url.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -251,7 +252,7 @@ class _ListingCard extends ConsumerWidget {
                 child: item.images.isEmpty
                     ? _placeholder()
                     : Image.network(
-                        item.imageUrl,
+                        sizedImageUrl(item.imageUrl),
                         height: 110,
                         width: double.infinity,
                         fit: BoxFit.cover,

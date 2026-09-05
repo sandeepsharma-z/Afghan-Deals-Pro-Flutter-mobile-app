@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/router/route_names.dart';
 import '../../data/models/chat_thread_model.dart';
 import '../providers/chat_provider.dart';
+import '../../../../core/utils/image_url.dart';
 
 class ChatsScreen extends ConsumerStatefulWidget {
   final VoidCallback? onExploreListings;
@@ -288,7 +289,7 @@ class _ChatTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               child: item.listingImageUrl != null &&
                       item.listingImageUrl!.isNotEmpty
-                  ? Image.network(item.listingImageUrl!,
+                  ? Image.network(sizedImageUrl(item.listingImageUrl!),
                       width: 54,
                       height: 54,
                       fit: BoxFit.cover,

@@ -17,6 +17,7 @@ import '../../../../../features/chat/presentation/providers/chat_provider.dart';
 import '../../../../../features/listings/data/models/jobs_listing_model.dart';
 import 'jobs_detail_screen.dart';
 import 'jobs_filter_screen.dart';
+import '../../../../../core/utils/image_url.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -335,7 +336,7 @@ class _JobResultCardState extends State<_JobResultCard> {
                           onPageChanged: (i) =>
                               setState(() => _currentPage = i),
                           itemBuilder: (_, i) => Image.network(
-                            item.images[i],
+                            sizedImageUrl(item.images[i]),
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => _placeholder(),
                           ),

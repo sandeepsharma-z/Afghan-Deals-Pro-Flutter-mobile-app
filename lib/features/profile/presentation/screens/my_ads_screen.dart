@@ -28,6 +28,7 @@ import '../../../listings/data/models/jobs_listing_model.dart';
 import '../../../../features/listings/data/models/listing_model.dart';
 import '../../../listings/data/models/mobile_listing_model.dart';
 import '../providers/favorites_provider.dart';
+import '../../../../core/utils/image_url.dart';
 
 final myAdsProvider = FutureProvider<List<ListingModel>>((ref) async {
   final me = AppAuth.currentUserId;
@@ -467,7 +468,7 @@ class _AdCardState extends State<_AdCard> {
                       onPageChanged: (i) => setState(() => _currentPage = i),
                       itemCount: ad.images.length,
                       itemBuilder: (_, i) => Image.network(
-                        ad.images[i],
+                        sizedImageUrl(ad.images[i]),
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => Container(
                           color: const Color(0xFFEFF2F8),
@@ -571,7 +572,7 @@ class _ListingDetailView extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: Image.network(
-                  listing.images.first,
+                  sizedImageUrl(listing.images.first),
                   height: 250,
                   width: double.infinity,
                   fit: BoxFit.cover,

@@ -13,6 +13,7 @@ import '../../../../../core/localization/app_localizations.dart';
 import '../../../../../core/widgets/translated_text.dart';
 import '../../../../chat/presentation/providers/chat_provider.dart';
 import '../../../../../features/listings/data/models/classified_listing_model.dart';
+import '../../../../../core/utils/image_url.dart';
 
 class ClassifiedsDetailScreen extends ConsumerStatefulWidget {
   final ClassifiedListingModel item;
@@ -80,7 +81,7 @@ class _ClassifiedsDetailScreenState
                           onPageChanged: (i) =>
                               setState(() => _currentImage = i),
                           itemBuilder: (_, i) => Image.network(
-                            item.images[i],
+                            fullImageUrl(item.images[i]),
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => Container(
                               color: const Color(0xFFE8E8E8),

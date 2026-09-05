@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/widgets/favorite_button.dart';
 import '../providers/spare_parts_provider.dart';
 import 'spare_parts_detail_screen.dart';
+import '../../../../../core/utils/image_url.dart';
 
 const _kBlue = Color(0xFF2258A8);
 
@@ -521,7 +522,7 @@ class _SparePartCardState extends State<_SparePartCard> {
                         ? _placeholderImage()
                         : _controller == null
                             ? Image.network(
-                                item.images.first,
+                                sizedImageUrl(item.images.first),
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, __, ___) =>
                                     _placeholderImage(),
@@ -532,7 +533,7 @@ class _SparePartCardState extends State<_SparePartCard> {
                                 onPageChanged: (i) =>
                                     setState(() => _currentPage = i),
                                 itemBuilder: (_, i) => Image.network(
-                                  item.images[i],
+                                  sizedImageUrl(item.images[i]),
                                   fit: BoxFit.cover,
                                   errorBuilder: (_, __, ___) =>
                                       _placeholderImage(),
